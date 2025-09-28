@@ -53,7 +53,12 @@ describe('SchemaCompiler', () => {
       expect(result.success).toBe(true);
       expect(result.schema).toBeDefined();
       expect(result.errors).toHaveLength(0);
-      expect(result.schema).toBeInstanceOf(z.ZodObject);
+      // 更灵活的类型检查，避免Zod版本兼容性问题
+      expect(result.schema).toBeDefined();
+      expect(typeof result.schema).toBe('object');
+      expect(result.schema._def).toBeDefined(); // Zod对象的典型属性
+      expect(result.schema._def.typeName).toBe('ZodObject');
+      expect(typeof result.schema.safeParse).toBe('function');
     });
 
     it('should handle invalid metadata - missing version', () => {
@@ -161,7 +166,7 @@ describe('SchemaCompiler', () => {
         fields: [
           {
             id: 'field1',
-            name: 'field1',
+            name: 'field_one',  // 使用不同的name避免重复
             type: 'text',
             label: 'Field 1',
             condition: {
@@ -172,7 +177,7 @@ describe('SchemaCompiler', () => {
           },
           {
             id: 'field2',
-            name: 'field2',
+            name: 'field_two',  // 使用不同的name避免重复
             type: 'text',
             label: 'Field 2',
             condition: {
@@ -597,7 +602,11 @@ describe('SchemaCompiler', () => {
 
       const schema = buildZodSchema(metadata);
 
-      expect(schema).toBeInstanceOf(z.ZodObject);
+      // 更灵活的类型检查，避免Zod版本兼容性问题
+      expect(schema).toBeDefined();
+      expect(typeof schema).toBe('object');
+      expect(schema._def).toBeDefined(); // Zod对象的典型属性
+      expect(schema._def.typeName).toBe('ZodObject');
       expect(schema.safeParse({ name: 'test' }).success).toBe(true);
     });
 

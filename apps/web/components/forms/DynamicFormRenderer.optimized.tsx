@@ -204,8 +204,8 @@ const createFieldComponent = (type: string): React.FC<FormFieldComponentProps> =
                   placeholder={field.placeholder}
                   {...formField}
                   value={formField.value || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = (e.currentTarget as HTMLInputElement).value;
                     formField.onChange(value === '' ? '' : Number(value));
                   }}
                   className={cn(

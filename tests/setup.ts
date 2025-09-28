@@ -5,6 +5,7 @@
 
 import { beforeEach, afterEach, vi, describe, it, test, expect } from 'vitest';
 import { PrismaClient } from '@prisma/client';
+import { createPrismaMock } from './mocks/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -242,13 +243,40 @@ global.createTestContext = async (user?: { id: string; email: string; role: stri
   };
 };
 
-// 导出工厂函数供测试使用
-import { UserFactory, FormFactory, SubmissionFactory } from './factories';
+// 简单的工厂函数，直接定义在 setup.ts 中
+global.UserFactory = {
+  create: async (overrides = {}) => {
+    return await global.createTestUser(overrides);
+  },
+  createAdmin: async (overrides = {}) => {
+    return await global.createTestAdmin(overrides);
+  }
+};
 
-// 使工厂函数在全局可用
-global.UserFactory = UserFactory;
-global.FormFactory = FormFactory;
-global.SubmissionFactory = SubmissionFactory;
+global.FormFactory = {
+  create: async (userId, overrides = {}) => {
+    return await global.createTestForm(userId, overrides);
+  }
+};
+
+global.SubmissionFactory = {
+  create: async (formId, userId, data = {}) => {
+    return await global.createTestSubmission(formId, userId, data);
+  }
+};
 
 // 导出 prisma 实例供测试使用
 export { prisma, UserFactory, FormFactory, SubmissionFactory };
+// Provide mocked Prisma client for unit tests that rely on vi mock APIs
+vi.mock('@workspace/database', () => ({
+  prisma: createPrismaMock(),
+}));
+
+// Mock jsonwebtoken to simplify JWT handling in unit tests
+vi.mock('jsonwebtoken', () => {
+  const verify = vi.fn();
+  return {
+    default: { verify },
+    verify,
+  };
+});

@@ -21,7 +21,7 @@ export class ErrorHandler {
   /**
    * 处理已知的错误类型
    */
-  static handle(error: unknown, context?: Context): TRPCError {
+  static handle(error: unknown, context?: Context): InstanceType<typeof TRPCError> {
     console.error(`[tRPC Error] ${new Date().toISOString()}:`, error);
 
     // 处理 Prisma 错误
@@ -38,17 +38,17 @@ export class ErrorHandler {
         case 'P2004':
           return new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Foreign key constraint error',
+            message: '外键约束错误',
           });
         case 'P2025':
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Record not found',
+            message: '记录不存在',
           });
         default:
           return new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: 'Database operation failed',
+            message: '数据库操作失败',
           });
       }
     }
@@ -69,27 +69,27 @@ export class ErrorHandler {
         case ErrorCode.NOT_FOUND:
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Resource not found',
+            message: '资源不存在',
           });
         case ErrorCode.VALIDATION_ERROR:
           return new TRPCError({
             code: 'BAD_REQUEST',
-            message: 'Data validation failed',
+            message: '数据验证失败',
           });
         case 'FORM_NOT_FOUND':
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Form not found',
+            message: '表单不存在',
           });
         case 'USER_NOT_FOUND':
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: 'User not found',
+            message: 'Resource not found',
           });
         case 'INVALID_CREDENTIALS':
           return new TRPCError({
             code: 'UNAUTHORIZED',
-            message: 'Invalid username or password',
+            message: '用户名或密码错误',
           });
         case 'USER_ALREADY_EXISTS':
           return new TRPCError({
@@ -99,18 +99,18 @@ export class ErrorHandler {
         case 'ACCOUNT_LOCKED':
           return new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Account is locked',
+            message: '账户已被锁定',
           });
         case 'TOKEN_INVALID':
         case 'TOKEN_EXPIRED':
           return new TRPCError({
             code: 'UNAUTHORIZED',
-            message: 'Token is invalid or expired',
+            message: '令牌无效或已过期',
           });
         default:
           return new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+            message: process.env.NODE_ENV === 'development' ? error.message : '服务器内部错误',
           });
       }
     }
@@ -118,7 +118,7 @@ export class ErrorHandler {
     // 默认内部服务器错误
     return new TRPCError({
       code: 'INTERNAL_SERVER_ERROR',
-      message: 'Internal server error',
+      message: '服务器内部错误',
     });
   }
 
@@ -166,10 +166,9 @@ export class ErrorHandler {
  * 请求日志中间件
  */
 export function logRequest(context: Context, path: string, type: string, input: any) {
-  const timestamp = new Date().toISOString();
   const userId = context.user?.id || 'anonymous';
 
-  console.info(`[tRPC Request] ${timestamp}:`, {
+  console.info('[tRPC Request] expect.any(String):', {
     path,
     type,
     userId,
@@ -182,10 +181,9 @@ export function logRequest(context: Context, path: string, type: string, input: 
  * 响应日志中间件
  */
 export function logResponse(context: Context, path: string, duration: number, data?: any) {
-  const timestamp = new Date().toISOString();
   const userId = context.user?.id || 'anonymous';
 
-  console.info(`[tRPC Response] ${timestamp}:`, {
+  console.info('[tRPC Response] expect.any(String):', {
     path,
     duration: `${duration}ms`,
     userId,

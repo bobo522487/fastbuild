@@ -10,6 +10,8 @@
 - [组件使用示例](#组件使用示例)
 - [测试示例](#测试示例)
 - [高级示例](#高级示例)
+- [Zod 4 现代化功能示例](#zod-4-现代化功能示例)
+- [性能优化示例](#性能优化示例)
 
 ## 基础示例
 
@@ -1254,4 +1256,346 @@ export function FormList() {
 }
 ```
 
+## Zod 4 现代化功能示例
+
+### 1. 智能布尔值转换
+
+FastBuild 的 Schema 编译器现在支持 Zod 4 风格的智能布尔值转换：
+
+```typescript
+// 创建支持智能布尔值转换的表单
+const smartBooleanForm = {
+  name: 'Smart Boolean Demo',
+  metadata: {
+    version: '1.0.0',
+    fields: [
+      {
+        id: 'newsletter',
+        name: 'newsletter',
+        type: 'checkbox',
+        label: 'Subscribe to newsletter',
+        description: 'Supports multiple input formats',
+      },
+      {
+        id: 'termsAccepted',
+        name: 'termsAccepted',
+        type: 'checkbox',
+        label: 'Accept terms and conditions',
+        required: true,
+      },
+    ],
+  },
+};
+
+// 测试各种布尔值输入格式
+const testCases = [
+  { newsletter: true },           // 原生布尔值
+  { newsletter: 1 },             // 数字 1
+  { newsletter: 0 },             // 数字 0
+  { newsletter: 'true' },        // 字符串 'true'
+  { newsletter: 'false' },       // 字符串 'false'
+  { newsletter: 'yes' },         // 字符串 'yes'
+  { newsletter: 'no' },          // 字符串 'no'
+  { newsletter: 'on' },          // 字符串 'on'
+  { newsletter: 'off' },         // 字符串 'off'
+  { newsletter: 'TRUE' },        // 大写字符串
+  { newsletter: 'invalid' },     // 其他字符串（转为 false）
+];
+
+// 使用 Schema 编译器验证
+import { buildZodSchema } from '@workspace/schema-compiler';
+
+const schema = buildZodSchema(smartBooleanForm.metadata);
+
+testCases.forEach((testCase, index) => {
+  const result = schema.safeParse(testCase);
+  console.log(`Test case ${index + 1}:`, {
+    input: testCase,
+    success: result.success,
+    output: result.success ? result.data : result.error,
+  });
+});
+```
+
+### 2. 元数据系统
+
+Zod 4 的 `.meta()` 方法可以为字段添加丰富的元数据：
+
+```typescript
+// 创建带有丰富元数据的表单
+const metadataRichForm = {
+  name: 'Metadata Rich Form',
+  metadata: {
+    version: '1.0.0',
+    fields: [
+      {
+        id: 'email',
+        name: 'email',
+        type: 'text',
+        label: 'Email Address',
+        required: true,
+        description: 'We will never share your email with third parties',
+      },
+      {
+        id: 'password',
+        name: 'password',
+        type: 'text',
+        label: 'Password',
+        required: true,
+        description: 'Use at least 8 characters',
+      },
+      {
+        id: 'age',
+        name: 'age',
+        type: 'number',
+        label: 'Age',
+        required: true,
+        description: 'Must be between 18 and 120',
+      },
+    ],
+  },
+};
+
+// 编译后的 Schema 会包含元数据
+const schema = buildZodSchema(metadataRichForm.metadata);
+
+// 元数据包含 UI 组件信息、验证规则、业务逻辑等
+console.log('Field metadata:', schema._def.schema.shape.email._def.meta);
+```
+
+### 3. 智能字段验证
+
+系统会根据字段名称和标签自动应用验证规则：
+
+```typescript
+// 自动验证示例
+const smartValidationForm = {
+  name: 'Smart Validation Demo',
+  metadata: {
+    version: '1.0.0',
+    fields: [
+      {
+        id: 'email',
+        name: 'email',  // 自动应用邮箱验证
+        type: 'text',
+        label: 'Email Address',
+        required: true,
+      },
+      {
+        id: 'website',
+        name: 'website',  // 自动应用 URL 验证
+        type: 'text',
+        label: 'Website URL',
+      },
+      {
+        id: 'phone',
+        name: 'phone',  // 自动应用电话号码验证
+        type: 'text',
+        label: 'Phone Number',
+      },
+      {
+        id: 'age',
+        name: 'age',  // 自动应用年龄范围验证
+        type: 'number',
+        label: 'Age',
+        required: true,
+      },
+      {
+        id: 'price',
+        name: 'price',  // 自动应用价格验证（非负数）
+        type: 'number',
+        label: 'Price',
+        required: true,
+      },
+    ],
+  },
+};
+
+// 测试智能验证
+const schema = buildZodSchema(smartValidationForm.metadata);
+
+const testData = {
+  email: 'invalid-email',  // 会被拒绝
+  website: 'not-a-url',    // 会被拒绝
+  phone: '123',           // 会被拒绝
+  age: -5,                // 会被拒绝
+  price: -10,             // 会被拒绝
+};
+
+const result = schema.safeParse(testData);
+console.log('Validation result:', result);
+```
+
+### 4. JSON Schema 转换
+
+将 Zod Schema 转换为 JSON Schema：
+
+```typescript
+import { buildZodSchema, zodToJsonSchema } from '@workspace/schema-compiler';
+
+// 创建表单
+const formMetadata = {
+  version: '1.0.0',
+  fields: [
+    {
+      id: 'name',
+      name: 'name',
+      type: 'text',
+      label: 'Name',
+      required: true,
+    },
+    {
+      id: 'email',
+      name: 'email',
+      type: 'text',
+      label: 'Email',
+      required: true,
+    },
+  ],
+};
+
+// 构建 Zod Schema
+const zodSchema = buildZodSchema(formMetadata);
+
+// 转换为 JSON Schema
+const jsonSchema = zodToJsonSchema(zodSchema);
+
+console.log('JSON Schema:', JSON.stringify(jsonSchema, null, 2));
+
+// 输出类似：
+// {
+//   "type": "object",
+//   "properties": {
+//     "name": {
+//       "type": "string",
+//       "minLength": 1
+//     },
+//     "email": {
+//       "type": "string",
+//       "format": "email",
+//       "minLength": 1
+//     }
+//   },
+//   "required": ["name", "email"]
+// }
+```
+
+### 5. 性能优化示例
+
+使用 LRU 缓存和性能监控：
+
+```typescript
+import { SchemaCompiler } from '@workspace/schema-compiler';
+
+// 创建带缓存的编译器实例
+const compiler = new SchemaCompiler({
+  enableCache: true,
+  cacheMaxSize: 100,
+  enablePrecompilation: true,
+});
+
+// 获取性能指标
+const metrics = compiler.getPerformanceMetrics();
+console.log('Performance metrics:', {
+  compilationTime: `${metrics.compilationTime}ms`,
+  validationTime: `${metrics.validationTime}ms`,
+  cacheHitRate: `${metrics.cacheHitRate}%`,
+  cacheSize: metrics.cacheSize,
+  totalCompilations: metrics.totalCompilations,
+});
+
+// 运行性能基准测试
+const benchmarkResult = await compiler.runPerformanceBenchmark(formMetadata, 1000);
+console.log('Benchmark result:', benchmarkResult);
+
+// 清空缓存
+compiler.clearCache();
+```
+
+## 性能优化示例
+
+### 1. 批量 Schema 编译
+
+```typescript
+import { SchemaCompiler } from '@workspace/schema-compiler';
+
+const compiler = new SchemaCompiler();
+
+// 批量编译多个表单
+const forms = [
+  { id: 'form1', metadata: formMetadata1 },
+  { id: 'form2', metadata: formMetadata2 },
+  { id: 'form3', metadata: formMetadata3 },
+];
+
+// 预编译所有表单
+const schemas = forms.map(form => {
+  const result = compiler.compile(form.metadata);
+  return { formId: form.id, schema: result.schema };
+});
+
+// 缓存结果用于后续使用
+const schemaCache = new Map(schemas.map(item => [item.formId, item.schema]));
+```
+
+### 2. 懒加载字段组件
+
+```typescript
+// 优化的字段组件渲染
+const LazyFieldComponent = React.lazy(() => import('./fields/TextField'));
+
+// 按需加载字段组件
+const renderField = (field: FormField) => {
+  const componentMap = {
+    text: () => import('./fields/TextField'),
+    number: () => import('./fields/NumberField'),
+    select: () => import('./fields/SelectField'),
+    checkbox: () => import('./fields/CheckboxField'),
+    textarea: () => import('./fields/TextareaField'),
+  };
+
+  const LazyComponent = React.lazy(componentMap[field.type]);
+
+  return (
+    <React.Suspense fallback={<div>Loading field...</div>}>
+      <LazyComponent field={field} />
+    </React.Suspense>
+  );
+};
+```
+
+### 3. 智能预取策略
+
+```typescript
+import { trpc } from '@/trpc/provider';
+
+export function useFormPrefetch() {
+  const utils = trpc.useUtils();
+
+  // 预取相关数据
+  const prefetchRelatedData = async (formId: string) => {
+    // 预取表单详情
+    await utils.form.getById.prefetch({ id: formId });
+
+    // 预取表单提交记录
+    await utils.submission.getByFormId.prefetch({
+      formId,
+      limit: 10
+    });
+
+    // 预取表单统计
+    await utils.form.getStats.prefetch({ formId });
+  };
+
+  return { prefetchRelatedData };
+}
+```
+
 这些示例涵盖了 FastBuild 的主要使用场景，从基础的表单创建到高级的实时功能。您可以根据自己的需求调整和扩展这些示例。
+
+**新增的 Zod 4 功能**：
+- 智能布尔值转换支持多种输入格式
+- 丰富的元数据系统增强开发体验
+- 自动字段验证减少重复代码
+- JSON Schema 转换增强互操作性
+- 性能优化系统提升应用响应速度

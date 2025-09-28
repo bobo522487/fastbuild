@@ -5,6 +5,40 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./trpc": {
+      "types": "./dist/trpc/trpc.d.ts",
+      "default": "./trpc/trpc.js"
+    },
+    "./trpc/context": {
+      "types": "./dist/trpc/context.d.ts",
+      "default": "./trpc/context.js"
+    },
+    "./trpc/routers": {
+      "types": "./dist/trpc/routers/index.d.ts",
+      "default": "./trpc/routers/index.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware/index.d.ts",
+      "default": "./middleware/index.js"
+    },
+    "./middleware/index": {
+      "types": "./dist/middleware/index.d.ts",
+      "default": "./middleware/index.js"
+    },
+    "./middleware/rateLimiter": {
+      "types": "./dist/middleware/rateLimiter.d.ts",
+      "default": "./middleware/rateLimiter.js"
+    },
+    "./middleware/errorHandler": {
+      "types": "./dist/middleware/errorHandler.d.ts",
+      "default": "./middleware/errorHandler.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

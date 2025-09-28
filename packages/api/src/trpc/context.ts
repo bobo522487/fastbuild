@@ -1,7 +1,7 @@
-// 移除jsonwebtoken和NextAuth依赖，简化认证逻辑
 import { prisma } from '@workspace/database';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import type { IncomingMessage, ServerResponse } from 'http';
+import jwt from 'jsonwebtoken';
 
 // 注释掉NextAuth auth函数导入，避免循环依赖
 // 在实际使用中，认证应该由API包自身处理，而不是依赖web应用
@@ -38,26 +38,50 @@ export async function createContext({
     prisma,
   };
 
-  try {
-    // 暂时跳过Auth.js认证，避免循环依赖
-    // 在实际生产环境中，应该在这里实现独立的认证逻辑
+  const headers = req?.headers ?? {};
+  const authorization = typeof headers?.authorization === 'string' ? headers.authorization : undefined;
 
-    // 如果Auth.js认证失败，尝试传统JWT认证（适用于API客户端）
-    // 注意：Edge环境中不支持jsonwebtoken，这里简化处理
-    if (!context.user) {
-      const authHeader = req?.headers.authorization;
+  if (!context.user && authorization?.startsWith('Bearer ')) {
+    const token = authorization.slice('Bearer '.length);
 
-      if (authHeader?.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-
-        // 在实际应用中，这里应该使用Web Crypto API验证JWT
-        // 为了简化，我们暂时跳过JWT验证，直接记录日志
-        console.warn('JWT authentication not implemented in Edge environment');
-      }
+    if (token.length === 0) {
+      return context;
     }
-  } catch (error) {
-    // 认证失败，上下文中不包含用户信息
-    console.warn('Authentication failed:', error);
+
+    const secret = process.env.JWT_SECRET ?? 'default-secret';
+
+    try {
+      const decoded = jwt.verify(token, secret) as { userId?: string; email?: string } | undefined;
+
+      if (!decoded?.userId) {
+        return context;
+      }
+
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            isActive: true,
+          },
+        });
+
+        if (user && user.isActive) {
+          context.user = {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            isActive: user.isActive,
+          };
+        }
+      } catch (error) {
+        console.warn('Failed to load user for token:', error);
+      }
+    } catch (error) {
+      console.warn('Invalid auth token:', error);
+    }
   }
 
   return context;

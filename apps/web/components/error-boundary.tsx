@@ -55,13 +55,15 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
    * 记录错误到监控服务
    */
   private logErrorToService = (error: Error, errorInfo: React.ErrorInfo) => {
+    const globalWin = typeof globalThis !== 'undefined' ? (globalThis as Record<string, unknown>).window : undefined;
+    const isBrowser = !!globalWin;
     const errorData = {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: isBrowser ? ((globalWin as { navigator?: { userAgent?: string } }).navigator?.userAgent ?? 'unknown') : 'unknown',
+      url: isBrowser ? ((globalWin as { location?: { href?: string } }).location?.href ?? 'unknown') : 'unknown',
     };
 
     // 发送到错误监控服务
@@ -87,14 +89,22 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
    * 刷新页面
    */
   refreshPage = () => {
-    window.location.reload();
+    const win = typeof globalThis !== 'undefined' ? (globalThis as Record<string, unknown>).window as { location?: { reload?: () => void } } | undefined : undefined;
+    if (win) {
+      win.location?.reload?.();
+    }
   };
 
   /**
    * 返回首页
    */
   goToHome = () => {
-    window.location.href = '/';
+    const win = typeof globalThis !== 'undefined' ? (globalThis as Record<string, unknown>).window as { location?: { href?: string } } | undefined : undefined;
+    if (win) {
+      if (win.location) {
+        win.location.href = '/';
+      }
+    }
   };
 
   render() {
@@ -245,15 +255,22 @@ export class GlobalErrorHandler {
    * 初始化全局错误处理
    */
   init() {
+    const win = typeof globalThis !== 'undefined' ? ((globalThis as Record<string, unknown>).window as any) : undefined;
+    if (!win) return;
+
     // 处理未捕获的 JavaScript 错误
-    window.addEventListener('error', (event) => {
-      console.error('Global error handler:', event.error);
+    win.addEventListener('error', (event: any) => {
+      if (typeof console !== 'undefined' && typeof console.error === 'function') {
+        console.error('Global error handler:', event.error);
+      }
       this.handleGlobalError(event.error);
     });
 
     // 处理未捕获的 Promise 拒绝
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
+    win.addEventListener('unhandledrejection', (event: any) => {
+      if (typeof console !== 'undefined' && typeof console.error === 'function') {
+        console.error('Unhandled promise rejection:', event.reason);
+      }
       this.handleGlobalError(event.reason);
     });
   }
@@ -267,8 +284,12 @@ export class GlobalErrorHandler {
       message: error?.message || 'Unknown error',
       stack: error?.stack,
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: typeof globalThis !== 'undefined' && (globalThis as any).navigator
+        ? (globalThis as any).navigator.userAgent
+        : 'unknown',
+      url: typeof globalThis !== 'undefined' && (globalThis as any).location
+        ? (globalThis as any).location.href
+        : 'unknown',
     };
 
     console.error('Global error logged:', errorData);

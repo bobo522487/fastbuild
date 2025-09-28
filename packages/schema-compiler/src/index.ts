@@ -9,6 +9,8 @@ import {
   SchemaCompilerOptions,
   VisibilityMap,
 } from '@workspace/types';
+import { ErrorHandler } from './error-handler';
+import { PerformanceOptimizer } from './performance-optimizer';
 
 // 默认选项
 const DEFAULT_OPTIONS: Required<SchemaCompilerOptions> = {
@@ -63,9 +65,16 @@ let schemaCache: LRUCache<string, z.ZodObject<any>> | null = null;
  */
 export class SchemaCompiler {
   private options: Required<SchemaCompilerOptions>;
+  private errorHandler: ErrorHandler;
+  private performanceOptimizer: PerformanceOptimizer;
 
   constructor(options: SchemaCompilerOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
+    this.errorHandler = new ErrorHandler();
+    this.performanceOptimizer = new PerformanceOptimizer({
+      enableCache: this.options.enableCache,
+      cacheSize: this.options.cacheMaxSize,
+    });
 
     if (this.options.enableCache && !schemaCache) {
       schemaCache = new LRUCache(this.options.cacheMaxSize);
@@ -76,20 +85,15 @@ export class SchemaCompiler {
    * 编译表单元数据为 Zod Schema
    */
   compile(metadata: FormMetadata): CompilationResult {
-    try {
-      // 验证输入元数据
-      const metadataValidation = this.validateMetadata(metadata);
-      if (!metadataValidation.success) {
-        return {
-          success: false,
-          errors: metadataValidation.errors,
-        };
-      }
+    const startTime = performance.now();
 
-      // 检查循环引用
-      if (this.options.validateCircularReference) {
+    try {
+      // 优先检查循环引用（这是更严重的架构问题）
+      if (this.options.validateCircularReference && metadata.fields && Array.isArray(metadata.fields)) {
         const circularCheck = this.checkCircularReference(metadata.fields);
         if (!circularCheck.success) {
+          const endTime = performance.now();
+          this.performanceOptimizer.recordCompilationTime(endTime - startTime);
           return {
             success: false,
             errors: circularCheck.errors,
@@ -97,13 +101,26 @@ export class SchemaCompiler {
         }
       }
 
+      // 验证输入元数据
+      const metadataValidation = this.validateMetadata(metadata);
+      if (!metadataValidation.success) {
+        const endTime = performance.now();
+        this.performanceOptimizer.recordCompilationTime(endTime - startTime);
+        return {
+          success: false,
+          errors: metadataValidation.errors,
+        };
+      }
+
       // 生成缓存键
       const cacheKey = this.generateCacheKey(metadata);
 
-      // 检查缓存
-      if (this.options.enableCache && schemaCache) {
-        const cachedSchema = schemaCache.get(cacheKey);
+      // 检查性能优化器缓存
+      if (this.options.enableCache) {
+        const cachedSchema = this.performanceOptimizer.getCachedSchema(cacheKey);
         if (cachedSchema) {
+          const endTime = performance.now();
+          this.performanceOptimizer.recordCompilationTime(endTime - startTime);
           return {
             success: true,
             schema: cachedSchema,
@@ -112,13 +129,24 @@ export class SchemaCompiler {
         }
       }
 
+      // 预编译 schema（如果启用）
+      if (this.options.enableCache) {
+        this.performanceOptimizer.precompileSchema(metadata, cacheKey);
+      }
+
       // 构建 Zod Schema
       const schema = this.buildZodSchema(metadata);
 
       // 缓存结果
-      if (this.options.enableCache && schemaCache) {
-        schemaCache.set(cacheKey, schema);
+      if (this.options.enableCache) {
+        this.performanceOptimizer.cacheSchema(cacheKey, schema);
+        if (schemaCache) {
+          schemaCache.set(cacheKey, schema);
+        }
       }
+
+      const endTime = performance.now();
+      this.performanceOptimizer.recordCompilationTime(endTime - startTime);
 
       return {
         success: true,
@@ -126,6 +154,9 @@ export class SchemaCompiler {
         errors: [],
       };
     } catch (error) {
+      const endTime = performance.now();
+      this.performanceOptimizer.recordCompilationTime(endTime - startTime);
+
       return {
         success: false,
         errors: [
@@ -142,9 +173,14 @@ export class SchemaCompiler {
    * 验证表单数据
    */
   validate(data: Record<string, any>, metadata: FormMetadata): ValidationResult {
+    const startTime = performance.now();
+
     const compilation = this.compile(metadata);
 
     if (!compilation.success || !compilation.schema) {
+      const endTime = performance.now();
+      this.performanceOptimizer.recordValidationTime(endTime - startTime);
+
       return {
         success: false,
         errors: compilation.errors.map(err => ({
@@ -157,6 +193,9 @@ export class SchemaCompiler {
     const result = compilation.schema.safeParse(data);
 
     if (result.success) {
+      const endTime = performance.now();
+      this.performanceOptimizer.recordValidationTime(endTime - startTime);
+
       return {
         success: true,
         data: result.data,
@@ -164,11 +203,16 @@ export class SchemaCompiler {
       };
     }
 
-    const errors: ValidationError[] = result.error.errors.map(err => ({
-      field: err.path.join('.'),
+    // 使用新的错误处理系统
+    const errorMessages = this.errorHandler.handleZodError(result.error, { fields: metadata.fields });
+    const errors: ValidationError[] = errorMessages.map(err => ({
+      field: err.field,
       message: err.message,
       code: err.code,
     }));
+
+    const endTime = performance.now();
+    this.performanceOptimizer.recordValidationTime(endTime - startTime);
 
     return {
       success: false,
@@ -206,6 +250,57 @@ export class SchemaCompiler {
     if (schemaCache) {
       schemaCache.clear();
     }
+    // 同时清空性能优化器的缓存
+    this.performanceOptimizer.clearCache();
+  }
+
+  /**
+   * 设置错误消息语言
+   */
+  setErrorLocale(locale: string): void {
+    this.errorHandler.setLocale(locale);
+  }
+
+  /**
+   * 获取错误处理器实例
+   */
+  getErrorHandler(): ErrorHandler {
+    return this.errorHandler;
+  }
+
+  /**
+   * 获取当前错误消息语言
+   */
+  getCurrentLocale(): string {
+    return this.errorHandler.getCurrentLocalization().locale;
+  }
+
+  /**
+   * 获取性能指标
+   */
+  getPerformanceMetrics() {
+    return this.performanceOptimizer.getMetrics();
+  }
+
+  /**
+   * 重置性能指标
+   */
+  resetPerformanceMetrics(): void {
+    this.performanceOptimizer.resetMetrics();
+  }
+
+  /**
+   * 获取缓存统计信息
+   */
+  getCacheStats() {
+    return this.performanceOptimizer.getCacheStats();
+  }
+
+  /**
+   * 运行性能基准测试
+   */
+  async runPerformanceBenchmark(metadata: FormMetadata, iterations?: number) {
+    return this.performanceOptimizer.runBenchmark(metadata, iterations);
   }
 
   /**
@@ -224,7 +319,7 @@ export class SchemaCompiler {
     }
 
     // 验证字段
-    if (!Array.isArray(metadata.fields)) {
+    if (!metadata.fields || !Array.isArray(metadata.fields)) {
       errors.push({
         field: 'fields',
         message: '字段必须是数组',
@@ -357,6 +452,7 @@ export class SchemaCompiler {
           message: `检测到循环引用，涉及字段 "${fieldId}"`,
           type: 'CIRCULAR_REFERENCE',
         });
+        break; // 只报告一个循环引用错误
       }
     }
 
@@ -402,26 +498,136 @@ export class SchemaCompiler {
    * 创建字段 Schema
    */
   private createFieldSchema(field: FormField): z.ZodTypeAny {
+    let schema: z.ZodTypeAny;
+
     switch (field.type) {
       case 'text':
       case 'textarea':
-        return z.string();
+        schema = z.string();
+        break;
 
       case 'number':
-        return z.coerce.number();
+        schema = z.coerce.number();
+        break;
 
       case 'date':
-        return z.coerce.date();
+        schema = z.coerce.date();
+        break;
 
       case 'select':
-        return this.createSelectSchema(field);
+        schema = this.createSelectSchema(field);
+        break;
 
       case 'checkbox':
-        return z.boolean();
+        // 创建智能布尔值转换 schema
+        schema = z.union([
+          z.boolean(),  // 原生布尔值
+          z.number().transform(val => val === 1),  // 数字转换：只有 1 为 true，其他数字为 false
+          z.string().transform(val => {
+            // 智能字符串转布尔值
+            const lowerVal = val.toLowerCase().trim();
+            if (['true', '1', 'yes', 'on', 'y'].includes(lowerVal)) return true;
+            if (['false', '0', 'no', 'off', 'n', ''].includes(lowerVal)) return false;
+            // 其他字符串值（包括 '2', 'invalid' 等）都转为 false
+            return false;
+          })
+        ]);
+        break;
 
       default:
-        return z.any();
+        schema = z.any();
     }
+
+    // 智能字段验证：基于字段名称和标签添加适当的验证规则
+    if (field.type === 'text' || field.type === 'textarea') {
+      // 邮箱验证：如果字段名或标签包含 'email'
+      if (field.name.toLowerCase().includes('email') || field.label?.toLowerCase().includes('email')) {
+        schema = (schema as z.ZodString).email(`请输入有效的${field.label || '邮箱地址'}`);
+      }
+
+      // URL验证：如果字段名或标签包含 'url' 或 'website'
+      if (field.name.toLowerCase().includes('url') || field.label?.toLowerCase().includes('url') ||
+          field.name.toLowerCase().includes('website') || field.label?.toLowerCase().includes('website')) {
+        schema = (schema as z.ZodString).url(`请输入有效的${field.label || '网址'}`);
+      }
+
+      // 电话号码验证：如果字段名或标签包含 'phone' 或 'tel'
+      if (field.name.toLowerCase().includes('phone') || field.label?.toLowerCase().includes('phone') ||
+          field.name.toLowerCase().includes('tel') || field.label?.toLowerCase().includes('tel')) {
+        schema = (schema as z.ZodString).regex(/^[+]?[\d\s\-\(\)]+$/, `请输入有效的${field.label || '电话号码'}`);
+      }
+    }
+
+    // 数字字段智能验证
+    if (field.type === 'number') {
+      // 年龄验证：通常为正数且合理范围
+      if (field.name.toLowerCase().includes('age') || field.label?.toLowerCase().includes('年龄')) {
+        schema = (schema as z.ZodNumber)
+          .min(0, `${field.label || '年龄'}不能为负数`)
+          .max(150, `${field.label || '年龄'}不能超过150岁`);
+      }
+
+      // 数量验证：通常为正数
+      if (field.name.toLowerCase().includes('quantity') || field.name.toLowerCase().includes('count') ||
+          field.label?.toLowerCase().includes('数量') || field.label?.toLowerCase().includes('计数')) {
+        schema = (schema as z.ZodNumber).min(0, `${field.label || '数量'}不能为负数`);
+      }
+
+      // 价格验证：通常为正数
+      if (field.name.toLowerCase().includes('price') || field.name.toLowerCase().includes('amount') ||
+          field.label?.toLowerCase().includes('价格') || field.label?.toLowerCase().includes('金额')) {
+        schema = (schema as z.ZodNumber).min(0, `${field.label || '价格'}不能为负数`);
+      }
+    }
+
+    // 尝试使用 Zod 4 的 .meta() 方法附加字段元数据（如果可用）
+    // 这对 UI 生成、文档生成、权限控制等都很有价值
+    const fieldMetadata = {
+      fieldId: field.id,
+      fieldType: field.type,
+      label: field.label,
+      placeholder: field.placeholder,
+      required: field.required,
+      description: (field as any).description,
+      // UI 相关元数据
+      ui: {
+        component: this.getUIComponentType(field.type),
+        validation: {
+          showError: true,
+          realtime: true
+        }
+      },
+      // 业务逻辑元数据
+      business: {
+        sensitive: field.type === 'text' && field.label?.toLowerCase().includes('password') ||
+                   field.type === 'text' && field.label?.toLowerCase().includes('email'),
+        encrypted: field.type === 'text' && field.label?.toLowerCase().includes('password')
+      }
+    };
+
+    // 兼容性处理：如果 .meta() 方法可用则使用，否则直接返回 schema
+    if (typeof (schema as any).meta === 'function') {
+      return (schema as any).meta(fieldMetadata);
+    }
+
+    // 如果没有 .meta() 方法，直接返回 schema
+    // 未来可以将元数据存储在其他地方，比如 schema._def.meta 或 WeakMap
+    return schema;
+  }
+
+  /**
+   * 获取字段对应的 UI 组件类型
+   */
+  private getUIComponentType(fieldType: FormField['type']): string {
+    const componentMap: Record<FormField['type'], string> = {
+      'text': 'input',
+      'textarea': 'textarea',
+      'number': 'input',
+      'select': 'select',
+      'checkbox': 'checkbox',
+      'date': 'date-picker'
+    };
+    return componentMap[fieldType] || 'input';
   }
 
   /**
@@ -448,10 +654,19 @@ export class SchemaCompiler {
    */
   private applyRequiredValidation(schema: z.ZodTypeAny, field: FormField): z.ZodTypeAny {
     if (field.type === 'text' || field.type === 'textarea') {
-      return (schema as z.ZodString).min(1, { message: `${field.label}不能为空` });
+      return (schema as z.ZodString)
+        .min(1, { message: `${field.label}不能为空` })
+        .refine(
+          (value) => value !== undefined && value !== null && value.toString().trim() !== '',
+          { message: `${field.label}不能为空` }
+        );
     }
 
-    return schema;
+    // 为其他类型添加必填验证
+    return schema.refine(
+      (value) => value !== undefined && value !== null,
+      { message: `${field.label}不能为空` }
+    );
   }
 
   /**
@@ -510,6 +725,18 @@ export const clearSchemaCache = (): void => {
   const compiler = new SchemaCompiler();
   compiler.clearCache();
 };
+
+// 导出元数据提取工具
+export * from './metadata-extractor';
+
+// 导出错误处理工具
+export * from './error-handler';
+
+// 导出 JSON Schema 转换工具
+export * from './json-schema-converter';
+
+// 导出性能优化工具
+export * from './performance-optimizer';
 
 // 默认导出
 export default SchemaCompiler;

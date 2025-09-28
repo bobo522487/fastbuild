@@ -27,12 +27,10 @@ export default function FormDemoPage() {
 
   const handleFormSubmit = React.useCallback((data: Record<string, any>) => {
     console.log('✅ Form submitted successfully:', data);
-    alert('表单提交成功！请查看控制台输出。');
   }, []);
 
   const handleFormError = React.useCallback((error: string) => {
     console.error('❌ Form submission error:', error);
-    alert(`Submission failed: ${error}`);
   }, []);
 
   if (!currentMetadata) {

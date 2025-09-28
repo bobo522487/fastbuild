@@ -13,7 +13,7 @@ interface RateLimitStore {
 /**
  * 内存存储实现（生产环境建议使用 Redis）
  */
-class MemoryStore implements RateLimitStore {
+export class MemoryStore implements RateLimitStore {
   private store = new Map<string, { count: number; expires: number }>();
 
   async get(key: string): Promise<number> {
