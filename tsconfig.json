@@ -1,4 +1,15 @@
 {
-  "extends": "@workspace/typescript-config/base.json"
+  "extends": "@workspace/typescript-config/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@workspace/api": ["packages/api/src"],
+      "@workspace/database": ["packages/database/src"],
+      "@workspace/ui": ["packages/ui/src"],
+      "@workspace/schema-compiler": ["packages/schema-compiler/src"],
+      "@workspace/typescript-config": ["packages/typescript-config"],
+      "@workspace/eslint-config": ["packages/eslint-config"]
+    }
+  }
 }
 

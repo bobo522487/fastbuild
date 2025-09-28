@@ -651,79 +651,53 @@ export const submissionRouter = createTRPCRouter({
 | **版本管理**     | 实现表单 Schema 的版本控制、对比和回滚功能。                 |
 | **权限控制**     | 实现字段级别的读写权限控制（RBAC/ABAC）。                    |
 
-## **九、项目实际结构（采用 tRPC 架构）**
+## **九、项目实际结构（tRPC 已落地）**
 
-基于 pnpm workspace 的 Monorepo 结构，已实现基础架构，计划集成 tRPC：
+Monorepo 目录已经围绕 tRPC 架构整理，关键模块如下：
 
 ```bash
-/fastbuild (pnpm workspace Monorepo)
+/fastbuild
 ├── apps/
-│   └── web/                   # Next.js 主应用
+│   └── web/
 │       ├── app/
-│       │   ├── api/           # 传统 REST API (将被 tRPC 替代)
-│       │   │   ├── forms/     # 表单相关 API
-│       │   │   └── forms/[id]/ # 单个表单操作
-│       │   ├── page.tsx       # 主页面
-│       │   ├── layout.tsx     # 根布局
-│       │   └── test/          # 测试页面
-│       ├── components/        # 应用组件
-│       │   └── providers.tsx  # 主题提供者
-│       ├── server/            # 🆕 tRPC 服务端
-│       │   ├── trpc/          # 🆕 tRPC 配置
-│       │   │   ├── trpc.ts    # 🆕 tRPC 实例
-│       │   │   ├── routers/   # 🆕 路由定义
-│       │   │   │   ├── index.ts
-│       │   │   │   ├── form.ts
-│       │   │   │   ├── submission.ts
-│       │   │   │   └── auth.ts
-│       │   │   └── context.ts # 🆕 上下文
-│       │   └── index.ts       # 🆕 服务端入口
-│       ├── trpc/              # 🆕 tRPC 客户端
-│       │   └── provider.tsx   # 🆕 tRPC React Provider
+│       │   ├── (admin)/designer/        # 表单管理与预览页面（受保护）
+│       │   ├── (public)/form/[formId]/  # 运行时表单渲染页面
+│       │   ├── api/trpc/[trpc]/route.ts # Next.js Route Handler -> tRPC
+│       │   ├── layout.tsx
+│       │   └── page.tsx
+│       ├── components/                  # 应用级 UI 组件
+│       ├── lib/                         # 公共工具（含 schema-compiler 入口）
+│       ├── server/trpc/
+│       │   ├── context.ts               # 注入租户/用户上下文
+│       │   ├── routers/
+│       │   │   ├── form.ts
+│       │   │   ├── submission.ts
+│       │   │   └── auth.ts
+│       │   └── trpc.ts                  # createTRPCRouter / appRouter
+│       ├── trpc/
+│       │   ├── client.ts                # createTRPCReact<AppRouter>()
+│       │   └── provider.tsx             # React Query + tRPC Provider
 │       └── package.json
 ├── packages/
-│   ├── ui/                   # shadcn/ui 组件库
-│   │   ├── src/
-│   │   │   ├── components/    # UI 组件 (button, card)
-│   │   │   ├── lib/          # 工具函数
-│   │   │   └── styles/       # 全局样式
-│   │   └── package.json
-│   ├── database/             # Prisma 客户端
-│   │   ├── src/
-│   │   │   └── index.ts      # Prisma 单例
-│   │   └── package.json
-│   ├── schema-compiler/      # 核心 Schema 转换
-│   │   └── package.json      # Zod 依赖已安装
-│   ├── typescript-config/                # 🆕 共享类型定义
-│   │   ├── src/
-│   │   │   ├── form.ts       # 🆕 FormMetadata 类型
-│   │   │   └── index.ts      # 🆕 类型导出
-│   │   ├── base.json            # 基础 TypeScript 配置
-│   │   ├── nextjs.json          # Next.js 特定配置
-│   │   ├── react-library.json   # React 库配置
-│   │   └── package.json      # 🆕 类型包
-│   ├── typescript-config/   # TS 配置
-│   └── eslint-config/       # ESLint 配置
+│   ├── schema-compiler/                 # FormMetadata -> Zod Schema
+│   ├── types/                           # 共享类型（FormMetadata 等）
+│   ├── ui/                              # shadcn/ui 扩展组件库
+│   ├── database/                        # Prisma Client 单例
+│   ├── eslint-config/
+│   └── typescript-config/
 ├── prisma/
-│   └── schema.prisma         # 数据库定义
-├── docker-compose.yml       # PostgreSQL 容器
-├── .env                      # 环境变量
-├── package.json             # 根依赖和脚本
-├── pnpm-workspace.yaml       # workspace 配置
-└── turbo.json               # 构建配置
+│   └── schema.prisma
+├── docker-compose.yml                   # PostgreSQL 本地容器
+├── pnpm-workspace.yaml
+├── turbo.json
+└── package.json
 ```
 
-### **关键变更说明**
+### **结构要点**
 
-🆕 **新增 tRPC 相关结构**
-- `server/trpc/` - tRPC 服务端实现
-- `trpc/provider.tsx` - React tRPC Provider
-- `packages/types/` - 共享类型定义包
-
-🔄 **架构转变**
-- 从 REST API 转向 tRPC 类型安全 API
-- 类型从前端到后端端到端安全
-- 自动 API 客户端生成和验证
+- API 仅通过 `app/api/trpc/[trpc]/route.ts` 暴露，所有表单/提交/鉴权能力由 tRPC router 提供。
+- 前端消费层统一使用 `trpc/provider.tsx` 注入客户端实例，页面组件直接调用 `api.form.getById.useQuery()` 等 hooks。
+- 设计时、运行时页面与共享 schema-compiler 均位于同一应用，减少跨包耦合；公共类型通过 `packages/types` 共享给前后端。
 
 ## **十、总结**
 
@@ -736,44 +710,21 @@ export const submissionRouter = createTRPCRouter({
 
 该方案适用于构建中大型企业级低代码平台，具备出色的可维护性、安全性与开发体验。
 
-### **当前状态和 tRPC 集成计划：**
+### **当前状态与 MVP 实施路线**
 
-✅ **已完成基础架构**
-- pnpm workspace monorepo 配置
-- Next.js 15 + TypeScript + Tailwind CSS v4
-- shadcn/ui 组件库集成
-- Prisma + PostgreSQL 数据库配置
-- 基础 REST API 路由实现（将迁移至 tRPC）
-- Docker 容器化部署
+✅ **已完成**
+- Monorepo（pnpm + Turborepo）骨架
+- Next.js 15 + TypeScript + Tailwind CSS v4 + shadcn/ui
+- Prisma + PostgreSQL 基础设施
+- tRPC 基础设施（`app/api/trpc/[trpc]/route.ts`、`server/trpc`、`trpc/provider.tsx`）
 
-🔄 **tRPC 集成优先级（关键路径）**
-
-#### **第一阶段：tRPC 基础设施**
-1. **安装 tRPC 依赖**
-   - `@trpc/server`, `@trpc/client`, `@trpc/react-query`, `superjson`
-
-2. **创建共享类型包**
-   - 新建 `packages/types` 包定义 FormMetadata 等核心类型
-   - 确保 tRPC 和前端使用相同的类型定义
-
-3. **搭建 tRPC 服务端**
-   - 配置 `server/trpc/` 目录结构
-   - 实现 tRPC 实例和上下文
-   - 创建基础 routers（form, submission, auth）
-
-4. **集成 tRPC 客户端**
-   - 配置 React tRPC Provider
-   - 替换现有 REST API 调用为 tRPC calls
-
-#### **第二阶段：核心功能实现**
-5. **实现 Schema 编译器** - 完成 `packages/schema-compiler` 的核心功能
-6. **开发表单设计器** - 基于 dnd-kit 实现拖拽式设计界面（使用 tRPC API）
-7. **构建动态渲染器** - 运行时自动渲染表单 UI（使用 tRPC 获取表单定义）
-
-#### **第三阶段：完善和优化**
-8. **用户认证系统** - 基于 tRPC 的 auth router
-9. **权限管理** - 实现表单级别的访问控制
-10. **性能优化** - 集成 React Query 缓存和批量请求
+🚀 **MVP 最短路径**
+- **阶段 2：Schema 驱动运行时 MVP**  
+  使用示例 FormMetadata（可硬编码或 JSON 文件）串起 “获取 Schema → 生成 Zod → 渲染表单 → 提交数据”。优先覆盖 text/number/select/checkbox，提交先 `console.log`，如需入库调用 `submissionRouter.create`。
+- **阶段 3：Schema 管理最小化 UI**  
+  管理端提供 JSON 编辑/上传能力，通过 `formRouter.create/update/list` 保存与预览 Schema；运行时页面按 URL 参数加载对应表单。
+- **阶段 4：体验增强（按需迭代）**  
+  在 JSON 编辑基础上加入字段模板与校验提示，逐步引入 `condition` 联动、默认值等高级特性；待 MVP 验证成功后再评估拖拽式设计器投入。
 
 ### **tRPC 的技术优势**
 
