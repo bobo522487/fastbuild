@@ -211,7 +211,7 @@
 ### 文档
 
 #### 完整文档
-- [API 文档](./API.md)
+- [API 规范文档](./API-specs.md)
 - [开发指南](./DEVELOPMENT.md)
 - [快速开始](./QUICKSTART.md)
 - [更新日志](./CHANGELOG.md)

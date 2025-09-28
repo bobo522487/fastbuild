@@ -47,7 +47,7 @@ pnpm dev
 
 - 📖 [快速开始指南](docs/QUICKSTART.md)
 - 🔧 [开发指南](docs/DEVELOPMENT.md)
-- 📡 [API 文档](docs/API.md)
+- 📡 [API 规范文档](docs/API-specs.md)
 - 📋 [更新日志](docs/CHANGELOG.md)
 
 ## 📦 项目结构

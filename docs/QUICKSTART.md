@@ -306,7 +306,7 @@ export const newEndpointRouter = router({
 
 ## 资源链接
 
-- [API 文档](./API.md)
+- [API 规范文档](./API-specs.md)
 - [开发指南](./DEVELOPMENT.md)
 - [tRPC 文档](https://trpc.io/docs)
 - [Next.js 文档](https://nextjs.org/docs)
@@ -317,13 +317,13 @@ export const newEndpointRouter = router({
 如果您遇到问题，请：
 
 1. 查看本文档的 [常见问题](#常见问题) 部分
-2. 查看 [API 文档](./API.md)
+2. 查看 [API 规范文档](./API-specs.md)
 3. 查阅 [开发指南](./DEVELOPMENT.md)
 4. 提交 Issue 到项目仓库
 
 ## 下一步
 
-- 阅读 [完整 API 文档](./API.md)
+- 阅读 [完整 API 规范文档](./API-specs.md)
 - 查看 [开发指南](./DEVELOPMENT.md)
 - 探索演示页面
 - 尝试创建自定义表单
