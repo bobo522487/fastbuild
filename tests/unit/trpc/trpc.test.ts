@@ -7,10 +7,10 @@ import {
   adminProcedure,
   middleware,
   mergeRouters,
-} from '@workspace/api/src/trpc/trpc';
-import type { Context } from '@workspace/api/src/trpc/context';
-import { ErrorHandler, ErrorCode } from '@workspace/api/src/middleware/errorHandler';
-import { rateLimiters } from '@workspace/api/src/middleware/rateLimiter';
+} from '@workspace/api/trpc/trpc';
+import type { Context } from '@workspace/api/trpc/context';
+import { ErrorHandler, ErrorCode } from '@workspace/api/middleware/errorHandler';
+import { rateLimiters } from '@workspace/api/middleware/rateLimiter';
 
 describe('tRPC 配置单元测试', () => {
   describe('核心导出', () => {

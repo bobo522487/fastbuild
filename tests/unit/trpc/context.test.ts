@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import jwt from 'jsonwebtoken';
-import { createContext, createInnerContext, type Context } from '@workspace/api/src/trpc/context';
+import { createContext, createInnerContext, type Context } from '@workspace/api/trpc/context';
 import { prisma } from '@workspace/database';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import type { IncomingMessage, ServerResponse } from 'http';

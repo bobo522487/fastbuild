@@ -3,7 +3,7 @@
  * 统一管理所有错误代码和消息
  */
 
-export const AppErrors = {
+export const AppErrors = Object.freeze({
   // 认证错误
   UNAUTHORIZED: 'UNAUTHORIZED',
   INVALID_TOKEN: 'INVALID_TOKEN',
@@ -37,7 +37,7 @@ export const AppErrors = {
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   DATABASE_ERROR: 'DATABASE_ERROR',
   NETWORK_ERROR: 'NETWORK_ERROR',
-} as const;
+});
 
 export type AppError = keyof typeof AppErrors;
 
@@ -45,28 +45,28 @@ export type AppError = keyof typeof AppErrors;
  * 错误消息映射
  */
 export const ErrorMessages: Record<AppError, string> = {
-  [AppErrors.UNAUTHORIZED]: '未授权访问',
-  [AppErrors.INVALID_TOKEN]: '无效的令牌',
-  [AppErrors.TOKEN_EXPIRED]: '令牌已过期',
-  [AppErrors.FORBIDDEN]: '访问被禁止',
-  [AppErrors.USER_NOT_FOUND]: '用户不存在',
-  [AppErrors.USER_ALREADY_EXISTS]: '用户已存在',
-  [AppErrors.USER_INACTIVE]: '用户已停用',
-  [AppErrors.INVALID_CREDENTIALS]: '无效的凭据',
-  [AppErrors.FORM_NOT_FOUND]: '表单不存在',
-  [AppErrors.FORM_ALREADY_EXISTS]: '表单已存在',
-  [AppErrors.FORM_INACTIVE]: '表单已停用',
-  [AppErrors.INVALID_FORM_DATA]: '无效的表单数据',
-  [AppErrors.SUBMISSION_NOT_FOUND]: '提交记录不存在',
-  [AppErrors.SUBMISSION_INVALID]: '无效的提交数据',
-  [AppErrors.FORM_CLOSED]: '表单已关闭',
-  [AppErrors.VALIDATION_ERROR]: '数据验证失败',
-  [AppErrors.REQUIRED_FIELD_MISSING]: '缺少必填字段',
-  [AppErrors.INVALID_EMAIL]: '无效的邮箱地址',
-  [AppErrors.INVALID_PASSWORD]: '无效的密码',
-  [AppErrors.INTERNAL_ERROR]: '内部服务器错误',
-  [AppErrors.DATABASE_ERROR]: '数据库错误',
-  [AppErrors.NETWORK_ERROR]: '网络错误',
+  [AppErrors.UNAUTHORIZED]: 'Unauthorized access',
+  [AppErrors.INVALID_TOKEN]: 'Invalid token',
+  [AppErrors.TOKEN_EXPIRED]: 'Token expired',
+  [AppErrors.FORBIDDEN]: 'Access forbidden',
+  [AppErrors.USER_NOT_FOUND]: 'User not found',
+  [AppErrors.USER_ALREADY_EXISTS]: 'User already exists',
+  [AppErrors.USER_INACTIVE]: 'User inactive',
+  [AppErrors.INVALID_CREDENTIALS]: 'Invalid credentials',
+  [AppErrors.FORM_NOT_FOUND]: 'Form not found',
+  [AppErrors.FORM_ALREADY_EXISTS]: 'Form already exists',
+  [AppErrors.FORM_INACTIVE]: 'Form inactive',
+  [AppErrors.INVALID_FORM_DATA]: 'Invalid form data',
+  [AppErrors.SUBMISSION_NOT_FOUND]: 'Submission not found',
+  [AppErrors.SUBMISSION_INVALID]: 'Invalid submission data',
+  [AppErrors.FORM_CLOSED]: 'Form closed',
+  [AppErrors.VALIDATION_ERROR]: 'Data validation failed',
+  [AppErrors.REQUIRED_FIELD_MISSING]: 'Required field missing',
+  [AppErrors.INVALID_EMAIL]: 'Invalid email address',
+  [AppErrors.INVALID_PASSWORD]: 'Invalid password',
+  [AppErrors.INTERNAL_ERROR]: 'Internal server error',
+  [AppErrors.DATABASE_ERROR]: 'Database error',
+  [AppErrors.NETWORK_ERROR]: 'Network error',
 };
 
 /**

@@ -1,0 +1,78 @@
+import type { FormMetadata } from '@workspace/types';
+
+export const userRegistrationMetadata: FormMetadata = {
+  version: '1.0.0',
+  fields: [
+    {
+      id: 'username',
+      name: 'username',
+      type: 'text',
+      label: '用户名',
+      placeholder: '请输入用户名（3-20个字符）',
+      required: true,
+    },
+    {
+      id: 'email',
+      name: 'email',
+      type: 'text',
+      label: '邮箱地址',
+      placeholder: '请输入邮箱地址',
+      required: true,
+    },
+    {
+      id: 'password',
+      name: 'password',
+      type: 'text',
+      label: '密码',
+      placeholder: '请输入密码（至少6个字符）',
+      required: true,
+    },
+    {
+      id: 'confirmPassword',
+      name: 'confirmPassword',
+      type: 'text',
+      label: '确认密码',
+      placeholder: '请再次输入密码',
+      required: true,
+    },
+    {
+      id: 'age',
+      name: 'age',
+      type: 'number',
+      label: '年龄',
+      placeholder: '请输入您的年龄',
+      required: true,
+    },
+    {
+      id: 'gender',
+      name: 'gender',
+      type: 'select',
+      label: '性别',
+      placeholder: '请选择性别',
+      required: true,
+      options: [
+        { label: '男', value: 'male' },
+        { label: '女', value: 'female' },
+        { label: '其他', value: 'other' },
+        { label: '不愿透露', value: 'prefer_not_to_say' },
+      ],
+    },
+    {
+      id: 'terms',
+      name: 'terms',
+      type: 'checkbox',
+      label: '我同意用户协议和隐私政策',
+      required: true,
+      defaultValue: false,
+    },
+    {
+      id: 'marketing',
+      name: 'marketing',
+      type: 'checkbox',
+      label: '我同意接收营销邮件',
+      placeholder: '包括产品更新、优惠活动等',
+      required: false,
+      defaultValue: false,
+    },
+  ],
+};

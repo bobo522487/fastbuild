@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createCaller } from '@workspace/api/src/trpc';
+import { createCaller } from '@workspace/api/trpc/routers';
 import { createTestUser, createTestForm, createTestSubmission } from '../setup';
 
 describe('表单提交集成测试', () => {

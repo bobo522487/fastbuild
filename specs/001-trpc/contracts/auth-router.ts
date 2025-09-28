@@ -34,16 +34,16 @@ const UserSessionSchema = z.object({
 
 // 登录输入
 const LoginInputSchema = z.object({
-  email: z.string().email('请输入有效的邮箱地址'),
-  password: z.string().min(6, '密码至少6位'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   rememberMe: z.boolean().default(false),
 });
 
 // 注册输入
 const RegisterInputSchema = z.object({
-  email: z.string().email('请输入有效的邮箱地址'),
-  password: z.string().min(6, '密码至少6位').max(100, '密码不能超过100位'),
-  name: z.string().min(1, '姓名不能为空').max(50, '姓名不能超过50位'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters').max(100, 'Password cannot exceed 100 characters'),
+  name: z.string().min(1, 'Name cannot be empty').max(50, 'Name cannot exceed 50 characters'),
 });
 
 // 刷新令牌
@@ -53,19 +53,19 @@ const RefreshTokenInputSchema = z.object({
 
 // 修改密码
 const ChangePasswordInputSchema = z.object({
-  currentPassword: z.string().min(1, '当前密码不能为空'),
-  newPassword: z.string().min(6, '新密码至少6位').max(100, '新密码不能超过100位'),
+  currentPassword: z.string().min(1, 'Current password cannot be empty'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters').max(100, 'New password cannot exceed 100 characters'),
 });
 
 // 重置密码请求
 const ForgotPasswordInputSchema = z.object({
-  email: z.string().email('请输入有效的邮箱地址'),
+  email: z.string().email('Please enter a valid email address'),
 });
 
 // 重置密码确认
 const ResetPasswordInputSchema = z.object({
   token: z.string(),
-  newPassword: z.string().min(6, '新密码至少6位').max(100, '新密码不能超过100位'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters').max(100, 'New password cannot exceed 100 characters'),
 });
 
 // ============================================
@@ -74,10 +74,10 @@ const ResetPasswordInputSchema = z.object({
 
 // 创建用户 (管理员)
 const CreateUserInputSchema = z.object({
-  email: z.string().email('请输入有效的邮箱地址'),
-  name: z.string().min(1, '姓名不能为空').max(50, '姓名不能超过50位'),
+  email: z.string().email('Please enter a valid email address'),
+  name: z.string().min(1, 'Name cannot be empty').max(50, 'Name cannot exceed 50 characters'),
   role: UserRoleSchema.default('USER'),
-  password: z.string().min(6, '密码至少6位').optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
 });
 
 // 更新用户信息
@@ -274,8 +274,8 @@ export const authRouterTestCases = {
       rememberMe: true,
     },
     invalidInput: {
-      email: 'invalid-email', // 无效邮箱格式
-      password: '123', // 密码太短
+      email: 'invalid-email', // Invalid email format
+      password: '123', // Password too short
     },
   },
 
@@ -287,9 +287,9 @@ export const authRouterTestCases = {
       name: '新用户',
     },
     invalidInput: {
-      email: 'existing@example.com', // 已存在的邮箱
-      password: '123', // 密码太短
-      name: '', // 姓名为空
+      email: 'existing@example.com', // Email already exists
+      password: '123', // Password too short
+      name: '', // Name is empty
     },
   },
 
@@ -301,8 +301,8 @@ export const authRouterTestCases = {
       role: 'ADMIN' as const,
     },
     invalidInput: {
-      email: 'invalid-email', // 无效邮箱
-      role: 'INVALID_ROLE' as any, // 无效角色
+      email: 'invalid-email', // Invalid email
+      role: 'INVALID_ROLE' as any, // Invalid role
     },
   },
 };

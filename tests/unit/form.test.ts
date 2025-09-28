@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createCaller } from '@workspace/api/src/trpc/routers/index';
+import { createCaller } from '@workspace/api/trpc/routers';
 import { prisma } from '@workspace/database';
 
 describe('tRPC Form Router 单元测试', () => {

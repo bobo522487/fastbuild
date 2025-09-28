@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Form {
+  id        String   @id @default(cuid())
+  name      String
+  metadata  Json     // 存储 FormMetadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联到创建表单的用户
+  createdById String?
+  createdBy  User?   @relation("FormCreator", fields: [createdById], references: [id])
+
+  submissions Submission[]
+
+  @@map("forms")
+}
+
+model Submission {
+  id        String   @id @default(cuid())
+  formId    String
+  data      Json     // 提交的表单数据
+  createdAt DateTime @default(now())
+
+  // 关联到提交表单的用户
+  submittedById String?
+  submittedBy  User?   @relation("SubmissionAuthor", fields: [submittedById], references: [id])
+
+  form Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@map("submissions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String
+  passwordHash  String?
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // 关联
+  createdForms  Form[]       @relation("FormCreator")
+  submissions   Submission[] @relation("SubmissionAuthor")
+  sessions      UserSession[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id          String    @id @default(cuid())
+  userId      String
+  token       String    @unique
+  expiresAt   DateTime
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime  @default(now())
+
+  // 关联到用户
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}

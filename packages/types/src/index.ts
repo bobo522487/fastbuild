@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { ZodObject } from 'zod';
 
 /**
  * 表单字段类型定义
@@ -71,7 +71,7 @@ export interface CompilationResult {
   /** 编译是否成功 */
   success: boolean;
   /** 编译后的 Zod Schema */
-  schema?: z.ZodObject<any>;
+  schema?: ZodObject<any>;
   /** 错误信息列表 */
   errors: CompilationError[];
 }

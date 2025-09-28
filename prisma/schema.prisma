@@ -95,3 +95,68 @@ enum SubmissionStatus {
   COMPLETED
   FAILED
 }
+
+model MonitoringEvent {
+  id        String   @id @default(cuid())
+  type      String   // 'error' | 'performance' | 'user_action' | 'api_call'
+  timestamp DateTime // 事件时间
+  userId    String?  // 用户ID（如果有）
+  sessionId String   // 会话ID
+  data      Json     // 事件数据
+  metadata  Json?    // 元数据（userAgent, url等）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("monitoring_events")
+}
+
+model ErrorLog {
+  id          String   @id @default(cuid())
+  eventId     String?  // 关联的监控事件ID
+  level       String   // 'error' | 'warn' | 'info'
+  message     String   // 错误消息
+  stack       String?  // 错误堆栈
+  component   String?  // 组件名称
+  path        String   // 发生错误的路径
+  userId      String?  // 用户ID
+  sessionId   String   // 会话ID
+  resolved    Boolean  @default(false) // 是否已解决
+  resolvedAt  DateTime? // 解决时间
+  resolvedBy  String?  // 解决者
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("error_logs")
+}
+
+model PerformanceMetric {
+  id        String   @id @default(cuid())
+  name      String   // 指标名称
+  value     Float    // 指标值
+  unit      String   // 单位
+  tags      Json?    // 标签
+  path      String   // 页面路径
+  userId    String?  // 用户ID
+  sessionId String   // 会话ID
+  timestamp DateTime // 记录时间
+  createdAt DateTime @default(now())
+
+  @@map("performance_metrics")
+  @@index([name, timestamp])
+}
+
+model UserActivity {
+  id          String   @id @default(cuid())
+  userId      String?  // 用户ID
+  sessionId   String   // 会话ID
+  action      String   // 用户操作
+  element     String?  // 操作元素
+  path        String   // 页面路径
+  metadata    Json?    // 额外元数据
+  timestamp   DateTime // 操作时间
+  createdAt   DateTime @default(now())
+
+  @@map("user_activities")
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+}

@@ -268,9 +268,9 @@ const mockCompileFormMetadata = vitest_1.vi.fn();
             mockValidateFormData.mockReturnValue({
                 success: false,
                 errors: [
-                    { field: 'name', message: '姓名不能为空' },
-                    { field: 'email', message: '邮箱格式不正确' },
-                    { field: 'age', message: '年龄不能为负数' },
+                    { field: 'name', message: 'Name cannot be empty' },
+                    { field: 'email', message: 'Email format is incorrect' },
+                    { field: 'age', message: 'Age cannot be negative' },
                 ],
             });
             // 这里会失败，因为错误处理还不存在
@@ -278,9 +278,9 @@ const mockCompileFormMetadata = vitest_1.vi.fn();
                 // TODO: 测试错误报告
                 // const result = mockValidateFormData(invalidFormData, formMetadata);
                 // expect(result.errors).toEqual([
-                //   { field: 'name', message: '姓名不能为空' },
-                //   { field: 'email', message: '邮箱格式不正确' },
-                //   { field: 'age', message: '年龄不能为负数' },
+                //   { field: 'name', message: 'Name cannot be empty' },
+                //   { field: 'email', message: 'Email format is incorrect' },
+                //   { field: 'age', message: 'Age cannot be negative' },
                 // ]);
             }).toThrow();
         });

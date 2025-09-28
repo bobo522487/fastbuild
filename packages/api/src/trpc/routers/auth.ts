@@ -1,4 +1,4 @@
-import { router, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
+import { router, publicProcedure, protectedProcedure, adminProcedure, authProcedure } from '../trpc';
 import { prisma } from '@workspace/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -50,10 +50,10 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 
 export const authRouter = router({
   // 用户登录
-  login: publicProcedure
+  login: authProcedure
     .input(z.object({
-      email: z.string().email('请输入有效的邮箱地址'),
-      password: z.string().min(6, '密码至少6位'),
+      email: z.string().email('Please enter a valid email address'),
+      password: z.string().min(6, 'Password must be at least 6 characters'),
       rememberMe: z.boolean().default(false),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -113,11 +113,11 @@ export const authRouter = router({
     }),
 
   // 用户注册
-  register: publicProcedure
+  register: authProcedure
     .input(z.object({
-      email: z.string().email('请输入有效的邮箱地址'),
-      password: z.string().min(6, '密码至少6位').max(100, '密码不能超过100位'),
-      name: z.string().min(1, '姓名不能为空').max(50, '姓名不能超过50位'),
+      email: z.string().email('Please enter a valid email address'),
+      password: z.string().min(6, 'Password must be at least 6 characters').max(100, 'Password cannot exceed 100 characters'),
+      name: z.string().min(1, 'Name cannot be empty').max(50, 'Name cannot exceed 50 characters'),
     }))
     .mutation(async ({ input, ctx }) => {
       const { email, password, name } = input;
@@ -178,7 +178,7 @@ export const authRouter = router({
     }),
 
   // 刷新令牌
-  refreshToken: publicProcedure
+  refreshToken: authProcedure
     .input(z.object({
       refreshToken: z.string(),
     }))
@@ -312,8 +312,8 @@ export const authRouter = router({
   // 修改密码
   changePassword: publicProcedure
     .input(z.object({
-      currentPassword: z.string().min(1, '当前密码不能为空'),
-      newPassword: z.string().min(6, '新密码至少6位').max(100, '新密码不能超过100位'),
+      currentPassword: z.string().min(1, 'Current password cannot be empty'),
+      newPassword: z.string().min(6, 'New password must be at least 6 characters').max(100, 'New password cannot exceed 100 characters'),
     }))
     .mutation(async ({ input, ctx }) => {
       if (!ctx.user) {
@@ -353,7 +353,7 @@ export const authRouter = router({
 
       return {
         success: true,
-        message: '密码修改成功，请重新登录',
+        message: 'Password changed successfully, please log in again',
       };
     }),
 
@@ -372,17 +372,17 @@ export const authRouter = router({
 
       return {
         success: true,
-        message: '登出成功',
+        message: 'Logout successful',
       };
     }),
 
   // 管理员：创建用户
   createUser: publicProcedure
     .input(z.object({
-      email: z.string().email('请输入有效的邮箱地址'),
-      name: z.string().min(1, '姓名不能为空').max(50, '姓名不能超过50位'),
+      email: z.string().email('Please enter a valid email address'),
+      name: z.string().min(1, 'Name cannot be empty').max(50, 'Name cannot exceed 50 characters'),
       role: UserRoleSchema.default('USER'),
-      password: z.string().min(6, '密码至少6位').optional(),
+      password: z.string().min(6, 'Password must be at least 6 characters').optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       if (!ctx.user || ctx.user.role !== 'ADMIN') {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TRPCError } from '@trpc/server';
-import { ErrorHandler, ErrorCode, logRequest, logResponse } from '@workspace/api/src/middleware/errorHandler';
-import type { Context } from '@workspace/api/src/trpc/context';
+import { ErrorHandler, ErrorCode, logRequest, logResponse } from '@workspace/api/middleware/errorHandler';
+import type { Context } from '@workspace/api/trpc/context';
 
 describe('错误处理中间件单元测试', () => {
   let mockContext: Context;
@@ -39,7 +39,7 @@ describe('错误处理中间件单元测试', () => {
 
       expect(result).toBeInstanceOf(TRPCError);
       expect(result.code).toBe('CONFLICT');
-      expect(result.message).toBe('记录已存在');
+      expect(result.message).toBe('Record already exists');
     });
 
     it('应该处理 Prisma P2003/P2004 错误（外键约束）', () => {
@@ -108,7 +108,7 @@ describe('错误处理中间件单元测试', () => {
 
       expect(result).toBeInstanceOf(TRPCError);
       expect(result.code).toBe('CONFLICT');
-      expect(result.message).toBe('用户已存在');
+      expect(result.message).toBe('User already exists');
     });
 
     it('应该处理账户锁定错误', () => {

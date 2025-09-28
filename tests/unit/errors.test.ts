@@ -117,38 +117,38 @@ describe('错误定义单元测试', () => {
       expect(typeof ErrorMessages).toBe('object');
 
       // 验证认证错误消息
-      expect(ErrorMessages.UNAUTHORIZED).toBe('未授权访问');
-      expect(ErrorMessages.INVALID_TOKEN).toBe('无效的令牌');
-      expect(ErrorMessages.TOKEN_EXPIRED).toBe('令牌已过期');
-      expect(ErrorMessages.FORBIDDEN).toBe('访问被禁止');
+      expect(ErrorMessages.UNAUTHORIZED).toBe('Unauthorized access');
+      expect(ErrorMessages.INVALID_TOKEN).toBe('Invalid token');
+      expect(ErrorMessages.TOKEN_EXPIRED).toBe('Token expired');
+      expect(ErrorMessages.FORBIDDEN).toBe('Access forbidden');
 
       // 验证用户错误消息
-      expect(ErrorMessages.USER_NOT_FOUND).toBe('用户不存在');
-      expect(ErrorMessages.USER_ALREADY_EXISTS).toBe('用户已存在');
-      expect(ErrorMessages.USER_INACTIVE).toBe('用户已停用');
-      expect(ErrorMessages.INVALID_CREDENTIALS).toBe('无效的凭据');
+      expect(ErrorMessages.USER_NOT_FOUND).toBe('User not found');
+      expect(ErrorMessages.USER_ALREADY_EXISTS).toBe('User already exists');
+      expect(ErrorMessages.USER_INACTIVE).toBe('User inactive');
+      expect(ErrorMessages.INVALID_CREDENTIALS).toBe('Invalid credentials');
 
       // 验证表单错误消息
-      expect(ErrorMessages.FORM_NOT_FOUND).toBe('表单不存在');
-      expect(ErrorMessages.FORM_ALREADY_EXISTS).toBe('表单已存在');
-      expect(ErrorMessages.FORM_INACTIVE).toBe('表单已停用');
-      expect(ErrorMessages.INVALID_FORM_DATA).toBe('无效的表单数据');
+      expect(ErrorMessages.FORM_NOT_FOUND).toBe('Form not found');
+      expect(ErrorMessages.FORM_ALREADY_EXISTS).toBe('Form already exists');
+      expect(ErrorMessages.FORM_INACTIVE).toBe('Form inactive');
+      expect(ErrorMessages.INVALID_FORM_DATA).toBe('Invalid form data');
 
       // 验证提交错误消息
-      expect(ErrorMessages.SUBMISSION_NOT_FOUND).toBe('提交记录不存在');
-      expect(ErrorMessages.SUBMISSION_INVALID).toBe('无效的提交数据');
-      expect(ErrorMessages.FORM_CLOSED).toBe('表单已关闭');
+      expect(ErrorMessages.SUBMISSION_NOT_FOUND).toBe('Submission not found');
+      expect(ErrorMessages.SUBMISSION_INVALID).toBe('Invalid submission data');
+      expect(ErrorMessages.FORM_CLOSED).toBe('Form closed');
 
       // 验证验证错误消息
-      expect(ErrorMessages.VALIDATION_ERROR).toBe('数据验证失败');
-      expect(ErrorMessages.REQUIRED_FIELD_MISSING).toBe('缺少必填字段');
-      expect(ErrorMessages.INVALID_EMAIL).toBe('无效的邮箱地址');
-      expect(ErrorMessages.INVALID_PASSWORD).toBe('无效的密码');
+      expect(ErrorMessages.VALIDATION_ERROR).toBe('Data validation failed');
+      expect(ErrorMessages.REQUIRED_FIELD_MISSING).toBe('Required field missing');
+      expect(ErrorMessages.INVALID_EMAIL).toBe('Invalid email address');
+      expect(ErrorMessages.INVALID_PASSWORD).toBe('Invalid password');
 
       // 验证服务器错误消息
-      expect(ErrorMessages.INTERNAL_ERROR).toBe('内部服务器错误');
-      expect(ErrorMessages.DATABASE_ERROR).toBe('数据库错误');
-      expect(ErrorMessages.NETWORK_ERROR).toBe('网络错误');
+      expect(ErrorMessages.INTERNAL_ERROR).toBe('Internal server error');
+      expect(ErrorMessages.DATABASE_ERROR).toBe('Database error');
+      expect(ErrorMessages.NETWORK_ERROR).toBe('Network error');
     });
 
     it('应该提供完整的消息覆盖', () => {
@@ -175,7 +175,7 @@ describe('错误定义单元测试', () => {
         success: false,
         error: {
           code: 'UNAUTHORIZED',
-          message: '未授权访问',
+          message: 'Unauthorized access',
         },
       });
     });
@@ -187,7 +187,7 @@ describe('错误定义单元测试', () => {
         success: false,
         error: {
           code: 'FORM_NOT_FOUND',
-          message: '表单不存在',
+          message: 'Form not found',
           details: 'Form ID: 123',
         },
       });
@@ -200,7 +200,7 @@ describe('错误定义单元测试', () => {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: '内部服务器错误',
+          message: 'Internal server error',
           details: '',
         },
       });
@@ -213,7 +213,7 @@ describe('错误定义单元测试', () => {
         success: false,
         error: {
           code: 'DATABASE_ERROR',
-          message: '数据库错误',
+          message: 'Database error',
         },
       });
     });
@@ -226,7 +226,7 @@ describe('错误定义单元测试', () => {
       expect(response.error).toHaveProperty('code');
       expect(response.error).toHaveProperty('message');
       expect(response.error.code).toBe('VALIDATION_ERROR');
-      expect(response.error.message).toBe('数据验证失败');
+      expect(response.error.message).toBe('Data validation failed');
       expect(response.error.details).toBe('Missing required field');
     });
 
@@ -248,7 +248,7 @@ describe('错误定义单元测试', () => {
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(AppErrorClass);
       expect(error.code).toBe('UNAUTHORIZED');
-      expect(error.message).toBe('未授权访问');
+      expect(error.message).toBe('Unauthorized access');
       expect(error.name).toBe('AppError');
       expect(error.details).toBeUndefined();
     });
@@ -273,7 +273,7 @@ describe('错误定义单元测试', () => {
       const error = new AppErrorClass('INTERNAL_ERROR');
 
       expect(error.stack).toBeDefined();
-      expect(error.toString()).toBe('AppError: 内部服务器错误');
+      expect(error.toString()).toBe('AppError: Internal server error');
     });
 
     it('应该正确处理所有错误类型', () => {
@@ -453,10 +453,10 @@ describe('错误定义单元测试', () => {
       });
     });
 
-    it('应该提供本地化的错误消息', () => {
-      // 验证消息是中文的
+    it('应该提供英文的错误消息', () => {
+      // 验证消息是英文的
       Object.values(ErrorMessages).forEach(message => {
-        expect(message).toMatch(/[\u4e00-\u9fa5]/); // 包含中文字符
+        expect(message).toMatch(/^[A-Za-z\s\-']+$/); // 包含英文字符
       });
     });
   });

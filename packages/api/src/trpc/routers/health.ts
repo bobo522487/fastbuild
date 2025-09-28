@@ -1,4 +1,4 @@
-import { router, publicProcedure } from '../trpc';
+import { router, publicProcedure, healthProcedure } from '../trpc';
 import { prisma } from '@workspace/database';
 import { z } from 'zod';
 
@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 export const healthRouter = router({
   // 系统健康检查
-  check: publicProcedure
+  check: healthProcedure
     .query(async ({ ctx }) => {
       // 检查数据库连接
       try {
@@ -37,7 +37,7 @@ export const healthRouter = router({
     }),
 
   // 数据库连接测试
-  database: publicProcedure
+  database: healthProcedure
     .query(async ({ ctx }) => {
       const startTime = Date.now();
 
@@ -61,7 +61,7 @@ export const healthRouter = router({
     }),
 
   // 获取系统信息
-  info: publicProcedure
+  info: healthProcedure
     .query(() => {
       return {
         service: 'FastBuild API',

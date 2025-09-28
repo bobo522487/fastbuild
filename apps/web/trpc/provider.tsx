@@ -1,53 +1,18 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createWSClient, wsLink } from '@trpc/client';
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { useState, useEffect } from 'react';
 import superjson from 'superjson';
 import type { AppRouter } from '@workspace/api';
+import { ErrorHandler, getUserFriendlyMessage, useErrorHandler } from './error-handling';
+import { monitoring, useMonitoring } from '@/lib/monitoring';
 
 /**
  * 创建 tRPC React 客户端
  */
 export const trpc = createTRPCReact<AppRouter>();
-
-/**
- * 创建 WebSocket 客户端（用于实时功能）
- */
-function getWsClient() {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  return createWSClient({
-    url: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000',
-  });
-}
-
-/**
- * 获取 HTTP 链接配置
- */
-function getHttpLink() {
-  return {
-    url: getBaseUrl() + '/api/trpc',
-    transformer: superjson,
-    headers() {
-      const headers: Record<string, string> = {};
-
-      // 添加认证头
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-          headers.authorization = `Bearer ${token}`;
-        }
-      }
-
-      return headers;
-    },
-  };
-}
 
 /**
  * 获取基础 URL
@@ -76,10 +41,20 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
     defaultOptions: {
       queries: {
         staleTime: 5 * 60 * 1000, // 5 分钟
+        gcTime: 10 * 60 * 1000, // 10 分钟
         retry: (failureCount, error: any) => {
           // 根据错误类型决定是否重试
           if (error?.data?.code === 'UNAUTHORIZED') {
             return false; // 认证错误不重试
+          }
+          if (error?.data?.code === 'FORBIDDEN') {
+            return false; // 权限错误不重试
+          }
+          if (error?.data?.code === 'VALIDATION_ERROR') {
+            return false; // 验证错误不重试
+          }
+          if (error?.data?.code === 'NOT_FOUND') {
+            return false; // 404 错误不重试
           }
           return failureCount < 3; // 其他错误最多重试 3 次
         },
@@ -89,6 +64,12 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
           if (error?.data?.code === 'UNAUTHORIZED') {
             return false;
           }
+          if (error?.data?.code === 'FORBIDDEN') {
+            return false;
+          }
+          if (error?.data?.code === 'VALIDATION_ERROR') {
+            return false;
+          }
           return failureCount < 2;
         },
       },
@@ -96,26 +77,27 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
   }));
 
   const [trpcClient] = useState(() => {
-    const wsClient = getWsClient();
+    return trpc.createClient({
+      transformer: superjson,
+      links: [
+        httpBatchLink({
+          url: getBaseUrl() + '/api/trpc',
+          headers: () => {
+            const headers: Record<string, string> = {};
 
-    if (wsClient) {
-      // 如果支持 WebSocket，使用 HTTP + WebSocket 混合链接
-      return trpc.createClient({
-        links: [
-          wsLink({
-            client: wsClient,
-            transformer: superjson,
-          }),
-        ],
-      });
-    } else {
-      // 否则使用纯 HTTP 链接
-      return trpc.createClient({
-        links: [
-          httpBatchLink(getHttpLink()),
-        ],
-      });
-    }
+            // 添加认证头
+            if (typeof window !== 'undefined') {
+              const token = localStorage.getItem('accessToken');
+              if (token) {
+                headers.authorization = `Bearer ${token}`;
+              }
+            }
+
+            return headers;
+          },
+        }),
+      ],
+    });
   });
 
   return (
@@ -134,8 +116,12 @@ export function useAuth() {
   const { data: user, isLoading } = trpc.auth.me.useQuery();
   const utils = trpc.useUtils();
 
+  const loginMutation = trpc.auth.login.useMutation();
+  const logoutMutation = trpc.auth.logout.useMutation();
+  const refreshTokenMutation = trpc.auth.refreshToken.useMutation();
+
   const login = async (credentials: { email: string; password: string }) => {
-    const result = await trpc.auth.login.mutate(credentials);
+    const result = await loginMutation.mutateAsync(credentials);
     if (result.accessToken) {
       localStorage.setItem('accessToken', result.accessToken);
       localStorage.setItem('refreshToken', result.refreshToken);
@@ -145,19 +131,19 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    await trpc.auth.logout.mutate();
+    await logoutMutation.mutateAsync();
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     await utils.auth.me.invalidate();
   };
 
   const refreshToken = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
+    const refreshTokenValue = localStorage.getItem('refreshToken');
+    if (!refreshTokenValue) {
       throw new Error('No refresh token available');
     }
 
-    const result = await trpc.auth.refreshToken.mutate({ refreshToken });
+    const result = await refreshTokenMutation.mutateAsync({ refreshToken: refreshTokenValue });
     if (result.accessToken) {
       localStorage.setItem('accessToken', result.accessToken);
       localStorage.setItem('refreshToken', result.refreshToken);
@@ -181,21 +167,25 @@ export function useAuth() {
 export function useFormManagement() {
   const utils = trpc.useUtils();
 
+  const createFormMutation = trpc.form.create.useMutation();
+  const updateFormMutation = trpc.form.update.useMutation();
+  const deleteFormMutation = trpc.form.delete.useMutation();
+
   const createForm = async (data: any) => {
-    const result = await trpc.form.create.mutate(data);
+    const result = await createFormMutation.mutateAsync(data);
     await utils.form.list.invalidate();
     return result;
   };
 
   const updateForm = async (id: string, data: any) => {
-    const result = await trpc.form.update.mutate({ id, ...data });
+    const result = await updateFormMutation.mutateAsync({ id, ...data });
     await utils.form.list.invalidate();
     await utils.form.getById.invalidate({ id });
     return result;
   };
 
   const deleteForm = async (id: string) => {
-    const result = await trpc.form.delete.mutate({ id });
+    const result = await deleteFormMutation.mutateAsync({ id });
     await utils.form.list.invalidate();
     return result;
   };
@@ -212,9 +202,10 @@ export function useFormManagement() {
  */
 export function useFormSubmission(formId: string) {
   const utils = trpc.useUtils();
+  const submitMutation = trpc.submission.create.useMutation();
 
   const submitForm = async (data: any) => {
-    const result = await trpc.submission.create.mutate({
+    const result = await submitMutation.mutateAsync({
       formId,
       data,
     });

@@ -5,6 +5,11 @@ import { ErrorHandler, ErrorCode, logRequest, logResponse } from './errorHandler
 import { rateLimiters } from './rateLimiter';
 
 /**
+ * 速率限制器导出
+ */
+export { rateLimiters };
+
+/**
  * tRPC 实例配置
  */
 export const t = initTRPC.context<Context>().create({
@@ -115,17 +120,17 @@ export const adminProcedure = t.procedure.use(
 /**
  * 速率限制中间件
  */
-// export function withRateLimit(limiter: any) {
-//   return t.procedure.use(limiter);
-// }
+export function withRateLimit(limiter: any) {
+  return t.procedure.use(limiter);
+}
 
 /**
  * 创建自定义速率限制过程
  */
-// export function createRateLimitedProcedure(config?: any) {
-//   const limiter = rateLimiters.create(config);
-//   return t.procedure.use(limiter);
-// }
+export function createRateLimitedProcedure(config?: any) {
+  const limiter = rateLimiters.create(config);
+  return t.procedure.use(limiter);
+}
 
 /**
  * 路由器创建辅助函数
@@ -141,3 +146,18 @@ export const middleware = t.middleware;
  * 合并路由器
  */
 export const mergeRouters = t.mergeRouters;
+
+/**
+ * 认证路由（严格速率限制）
+ */
+export const authProcedure = publicProcedure.use(rateLimiters.auth);
+
+/**
+ * 表单路由（中等速率限制）
+ */
+export const formProcedure = publicProcedure.use(rateLimiters.form);
+
+/**
+ * 健康检查路由（宽松速率限制）
+ */
+export const healthProcedure = publicProcedure.use(rateLimiters.health);

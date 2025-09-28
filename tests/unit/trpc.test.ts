@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCaller } from '@workspace/api/src/trpc/routers/index';
+import { createCaller } from '@workspace/api/trpc/routers';
 import { createTestUser, createTestForm } from '../setup';
 
 // 模拟依赖

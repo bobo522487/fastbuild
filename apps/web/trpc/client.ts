@@ -1,5 +1,4 @@
-import { createTRPCUntypedClient } from '@trpc/client';
-import { httpBatchLink } from '@trpc/client';
+import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import superjson from 'superjson';
 import type { AppRouter } from '@workspace/api';
 
@@ -7,18 +6,26 @@ import type { AppRouter } from '@workspace/api';
  * 创建独立的 tRPC 客户端
  * 用于服务器端操作或需要独立客户端的场景
  */
-export const trpcClient = createTRPCUntypedClient<AppRouter>({
+export const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
       url: getBaseUrl() + '/api/trpc',
       transformer: superjson,
-      headers() {
+      headers: () => {
         const headers: Record<string, string> = {};
 
         // 在服务器端时，可以添加自定义头
         if (typeof window === 'undefined') {
           // 例如：添加内部服务认证
           // headers['x-internal-secret'] = process.env.INTERNAL_SECRET;
+        }
+
+        // 添加认证头（如果在客户端且有 token）
+        if (typeof window !== 'undefined') {
+          const token = localStorage.getItem('accessToken');
+          if (token) {
+            headers.authorization = `Bearer ${token}`;
+          }
         }
 
         return headers;

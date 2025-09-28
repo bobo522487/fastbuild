@@ -1,5 +1,6 @@
-import { router, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
+import { router, publicProcedure, protectedProcedure, adminProcedure, formProcedure } from '../trpc';
 import { prisma } from '@workspace/database';
+import { validateFormData } from '@workspace/schema-compiler';
 import { z } from 'zod';
 import type { Context } from '../context';
 
@@ -10,7 +11,7 @@ import type { Context } from '../context';
 
 export const submissionRouter = router({
   // 提交表单数据
-  create: publicProcedure
+  create: formProcedure
     .input(z.object({
       formId: z.string(),
       data: z.record(z.any()),
@@ -25,16 +26,15 @@ export const submissionRouter = router({
         throw new Error('FORM_NOT_FOUND');
       }
 
-      // TODO: 这里可以添加表单数据验证
       // 使用 schema-compiler 包验证数据
-      // const validation = validateFormData(input.data, form.metadata);
-      // if (!validation.success) {
-      //   return {
-      //     submissionId: null,
-      //     message: '表单数据验证失败',
-      //     validationErrors: validation.errors,
-      //   };
-      // }
+      const validation = validateFormData(input.data, form.metadata as any);
+      if (!validation.success) {
+        return {
+          submissionId: null,
+          message: 'Form data validation failed',
+          validationErrors: validation.errors,
+        };
+      }
 
       // 创建提交记录
       const submission = await ctx.prisma.submission.create({

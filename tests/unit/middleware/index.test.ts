@@ -8,10 +8,10 @@ import {
   router,
   middleware,
   mergeRouters,
-} from '@workspace/api/src/middleware';
-import { ErrorHandler, ErrorCode } from '@workspace/api/src/middleware/errorHandler';
-import { rateLimiters } from '@workspace/api/src/middleware/rateLimiter';
-import type { Context } from '@workspace/api/src/trpc/context';
+} from '@workspace/api/trpc/trpc';
+import { ErrorHandler, ErrorCode } from '@workspace/api/middleware/errorHandler';
+import { rateLimiters } from '@workspace/api/middleware/rateLimiter';
+import type { Context } from '@workspace/api/trpc/context';
 
 describe('中间件聚合器单元测试', () => {
   let mockContext: Context;

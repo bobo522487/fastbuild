@@ -90,17 +90,8 @@ const defaultConfig: RateLimitConfig = {
 export function createRateLimiter(config: Partial<RateLimitConfig> = {}) {
   const options = { ...defaultConfig, ...config };
 
-  return async function rateLimitMiddleware({
-    ctx,
-    path,
-    type,
-    next,
-  }: {
-    ctx: Context;
-    path: string;
-    type: 'query' | 'mutation';
-    next: () => Promise<any>;
-  }) {
+  return async function rateLimitMiddleware(opts: any) {
+    const { ctx, path, type, next } = opts;
     // 生成限制键
     const key = options.keyGenerator
       ? options.keyGenerator(ctx)

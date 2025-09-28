@@ -680,11 +680,11 @@ Monorepo 目录已经围绕 tRPC 架构整理，关键模块如下：
 │       └── package.json
 ├── packages/
 │   ├── schema-compiler/                 # FormMetadata -> Zod Schema
-│   ├── types/                           # 共享类型（FormMetadata 等）
+│   ├── types/                           # 业务类型库（FormMetadata 等）
 │   ├── ui/                              # shadcn/ui 扩展组件库
 │   ├── database/                        # Prisma Client 单例
 │   ├── eslint-config/
-│   └── typescript-config/
+│   └── typescript-config/               # 统一的 TypeScript 配置模板
 ├── prisma/
 │   └── schema.prisma
 ├── docker-compose.yml                   # PostgreSQL 本地容器
@@ -697,7 +697,7 @@ Monorepo 目录已经围绕 tRPC 架构整理，关键模块如下：
 
 - API 仅通过 `app/api/trpc/[trpc]/route.ts` 暴露，所有表单/提交/鉴权能力由 tRPC router 提供。
 - 前端消费层统一使用 `trpc/provider.tsx` 注入客户端实例，页面组件直接调用 `api.form.getById.useQuery()` 等 hooks。
-- 设计时、运行时页面与共享 schema-compiler 均位于同一应用，减少跨包耦合；公共类型通过 `packages/types` 共享给前后端。
+- 设计时、运行时页面与共享 schema-compiler 均位于同一应用，减少跨包耦合；公共类型由 `packages/types` 输出，`packages/typescript-config` 只承担 tsconfig 模板，两者职责清晰。
 
 ## **十、总结**
 

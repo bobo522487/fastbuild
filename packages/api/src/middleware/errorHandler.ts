@@ -32,23 +32,23 @@ export class ErrorHandler {
         case 'P2002':
           return new TRPCError({
             code: 'CONFLICT',
-            message: '记录已存在',
+            message: 'Record already exists',
           });
         case 'P2003':
         case 'P2004':
           return new TRPCError({
             code: 'FORBIDDEN',
-            message: '外键约束错误',
+            message: 'Foreign key constraint error',
           });
         case 'P2025':
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: '记录不存在',
+            message: 'Record not found',
           });
         default:
           return new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: '数据库操作失败',
+            message: 'Database operation failed',
           });
       }
     }
@@ -59,58 +59,58 @@ export class ErrorHandler {
         case ErrorCode.UNAUTHORIZED:
           return new TRPCError({
             code: 'UNAUTHORIZED',
-            message: '未授权访问',
+            message: 'Unauthorized access',
           });
         case ErrorCode.FORBIDDEN:
           return new TRPCError({
             code: 'FORBIDDEN',
-            message: '权限不足',
+            message: 'Insufficient permissions',
           });
         case ErrorCode.NOT_FOUND:
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: '资源不存在',
+            message: 'Resource not found',
           });
         case ErrorCode.VALIDATION_ERROR:
           return new TRPCError({
             code: 'BAD_REQUEST',
-            message: '数据验证失败',
+            message: 'Data validation failed',
           });
         case 'FORM_NOT_FOUND':
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: '表单不存在',
+            message: 'Form not found',
           });
         case 'USER_NOT_FOUND':
           return new TRPCError({
             code: 'NOT_FOUND',
-            message: '用户不存在',
+            message: 'User not found',
           });
         case 'INVALID_CREDENTIALS':
           return new TRPCError({
             code: 'UNAUTHORIZED',
-            message: '用户名或密码错误',
+            message: 'Invalid username or password',
           });
         case 'USER_ALREADY_EXISTS':
           return new TRPCError({
             code: 'CONFLICT',
-            message: '用户已存在',
+            message: 'User already exists',
           });
         case 'ACCOUNT_LOCKED':
           return new TRPCError({
             code: 'FORBIDDEN',
-            message: '账户已被锁定',
+            message: 'Account is locked',
           });
         case 'TOKEN_INVALID':
         case 'TOKEN_EXPIRED':
           return new TRPCError({
             code: 'UNAUTHORIZED',
-            message: '令牌无效或已过期',
+            message: 'Token is invalid or expired',
           });
         default:
           return new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: process.env.NODE_ENV === 'development' ? error.message : '服务器内部错误',
+            message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
           });
       }
     }
@@ -118,7 +118,7 @@ export class ErrorHandler {
     // 默认内部服务器错误
     return new TRPCError({
       code: 'INTERNAL_SERVER_ERROR',
-      message: '服务器内部错误',
+      message: 'Internal server error',
     });
   }
 

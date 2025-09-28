@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TRPCError } from '@trpc/server';
-import { createRateLimiter, rateLimiters, isAllowedIP, isAllowedUser, MemoryStore } from '@workspace/api/src/middleware/rateLimiter';
-import type { Context } from '@workspace/api/src/trpc/context';
+import { createRateLimiter, rateLimiters, isAllowedIP, isAllowedUser, MemoryStore } from '@workspace/api/middleware/rateLimiter';
+import type { Context } from '@workspace/api/trpc/context';
 
 describe('速率限制中间件单元测试', () => {
   let mockContext: Context;
