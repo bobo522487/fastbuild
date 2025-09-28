@@ -1,38 +1,15 @@
-import { router, publicProcedure, protectedProcedure, adminProcedure, authProcedure } from '../trpc';
+import { router, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
 import { prisma } from '@workspace/database';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import type { Context } from '../context';
 
 /**
- * Auth Router - 用户认证路由
- * 提供注册、登录、令牌管理等认证功能
+ * User Management Router - 用户管理路由
+ * 由于使用Auth.js处理认证，此路由专注于用户数据管理
  */
 
 const UserRoleSchema = z.enum(['ADMIN', 'USER']);
-
-/**
- * 生成 JWT 令牌
- */
-function generateAccessToken(userId: string, email: string, role: string): string {
-  return jwt.sign(
-    { userId, email, role },
-    process.env.JWT_SECRET || 'default-secret',
-    { expiresIn: '15m' }
-  );
-}
-
-/**
- * 生成刷新令牌
- */
-function generateRefreshToken(): string {
-  return jwt.sign(
-    { type: 'refresh' },
-    process.env.JWT_SECRET || 'default-secret',
-    { expiresIn: '7d' }
-  );
-}
 
 /**
  * 哈希密码
@@ -49,197 +26,8 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 }
 
 export const authRouter = router({
-  // 用户登录
-  login: authProcedure
-    .input(z.object({
-      email: z.string().email('Please enter a valid email address'),
-      password: z.string().min(6, 'Password must be at least 6 characters'),
-      rememberMe: z.boolean().default(false),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      const { email, password, rememberMe } = input;
-
-      // 查找用户
-      const user = await ctx.prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (!user || !user.passwordHash) {
-        throw new Error('INVALID_CREDENTIALS');
-      }
-
-      if (!user.isActive) {
-        throw new Error('ACCOUNT_LOCKED');
-      }
-
-      // 验证密码
-      const isValidPassword = await verifyPassword(password, user.passwordHash);
-      if (!isValidPassword) {
-        throw new Error('INVALID_CREDENTIALS');
-      }
-
-      // 生成令牌
-      const accessToken = generateAccessToken(user.id, user.email, user.role);
-      const refreshToken = generateRefreshToken();
-
-      // 计算令牌过期时间
-      const accessTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15分钟
-      const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7天
-
-      // 创建会话
-      await ctx.prisma.userSession.create({
-        data: {
-          userId: user.id,
-          token: refreshToken,
-          expiresAt: refreshTokenExpiresAt,
-          isActive: true,
-          lastUsedAt: new Date(),
-        },
-      });
-
-      return {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-        },
-        accessToken,
-        refreshToken,
-        expiresAt: accessTokenExpiresAt,
-      };
-    }),
-
-  // 用户注册
-  register: authProcedure
-    .input(z.object({
-      email: z.string().email('Please enter a valid email address'),
-      password: z.string().min(6, 'Password must be at least 6 characters').max(100, 'Password cannot exceed 100 characters'),
-      name: z.string().min(1, 'Name cannot be empty').max(50, 'Name cannot exceed 50 characters'),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      const { email, password, name } = input;
-
-      // 检查邮箱是否已存在
-      const existingUser = await ctx.prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (existingUser) {
-        throw new Error('USER_ALREADY_EXISTS');
-      }
-
-      // 哈希密码
-      const passwordHash = await hashPassword(password);
-
-      // 创建用户
-      const user = await ctx.prisma.user.create({
-        data: {
-          email,
-          name,
-          passwordHash,
-          role: 'USER',
-        },
-      });
-
-      // 生成令牌
-      const accessToken = generateAccessToken(user.id, user.email, user.role);
-      const refreshToken = generateRefreshToken();
-
-      const accessTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
-      const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-      // 创建会话
-      await ctx.prisma.userSession.create({
-        data: {
-          userId: user.id,
-          token: refreshToken,
-          expiresAt: refreshTokenExpiresAt,
-          isActive: true,
-          lastUsedAt: new Date(),
-        },
-      });
-
-      return {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-        },
-        accessToken,
-        refreshToken,
-        expiresAt: accessTokenExpiresAt,
-      };
-    }),
-
-  // 刷新令牌
-  refreshToken: authProcedure
-    .input(z.object({
-      refreshToken: z.string(),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      const { refreshToken } = input;
-
-      // 查找会话
-      const session = await ctx.prisma.userSession.findUnique({
-        where: { token: refreshToken },
-        include: { user: true },
-      });
-
-      if (!session || !session.isActive) {
-        throw new Error('TOKEN_INVALID');
-      }
-
-      if (session.expiresAt < new Date()) {
-        throw new Error('TOKEN_EXPIRED');
-      }
-
-      if (!session.user.isActive) {
-        throw new Error('ACCOUNT_LOCKED');
-      }
-
-      // 验证刷新令牌
-      try {
-        jwt.verify(refreshToken, process.env.JWT_SECRET || 'default-secret');
-      } catch (error) {
-        throw new Error('TOKEN_INVALID');
-      }
-
-      // 生成新的访问令牌
-      const newAccessToken = generateAccessToken(
-        session.user.id,
-        session.user.email,
-        session.user.role
-      );
-      const newRefreshToken = generateRefreshToken();
-
-      const accessTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
-      const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-      // 更新会话
-      await ctx.prisma.userSession.update({
-        where: { id: session.id },
-        data: {
-          token: newRefreshToken,
-          expiresAt: refreshTokenExpiresAt,
-          lastUsedAt: new Date(),
-        },
-      });
-
-      return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        expiresAt: accessTokenExpiresAt,
-      };
-    }),
-
   // 获取当前用户信息
-  me: publicProcedure
+  me: protectedProcedure
     .query(async ({ ctx }) => {
       if (!ctx.user) {
         throw new Error('UNAUTHORIZED');
@@ -253,9 +41,19 @@ export const authRouter = router({
           name: true,
           role: true,
           emailVerified: true,
-          avatar: true,
+          // @ts-ignore
+          image: true,
+          isActive: true,
           createdAt: true,
           updatedAt: true,
+          // 获取OAuth账户信息
+          accounts: {
+            select: {
+              provider: true,
+              providerAccountId: true,
+              type: true,
+            },
+          },
         },
       });
 
@@ -267,7 +65,7 @@ export const authRouter = router({
     }),
 
   // 更新用户信息
-  updateProfile: publicProcedure
+  updateProfile: protectedProcedure
     .input(z.object({
       name: z.string().min(1).max(50).optional(),
       email: z.string().email().optional(),
@@ -300,7 +98,8 @@ export const authRouter = router({
           name: true,
           role: true,
           emailVerified: true,
-          avatar: true,
+          // @ts-ignore
+          image: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -309,10 +108,10 @@ export const authRouter = router({
       return user;
     }),
 
-  // 修改密码
-  changePassword: publicProcedure
+  // 设置/修改密码（仅适用于有密码的用户）
+  setPassword: protectedProcedure
     .input(z.object({
-      currentPassword: z.string().min(1, 'Current password cannot be empty'),
+      currentPassword: z.string().min(1, 'Current password cannot be empty').optional(),
       newPassword: z.string().min(6, 'New password must be at least 6 characters').max(100, 'New password cannot exceed 100 characters'),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -326,14 +125,20 @@ export const authRouter = router({
         select: { passwordHash: true },
       });
 
-      if (!user || !user.passwordHash) {
+      if (!user) {
         throw new Error('USER_NOT_FOUND');
       }
 
-      // 验证当前密码
-      const isValidCurrentPassword = await verifyPassword(input.currentPassword, user.passwordHash);
-      if (!isValidCurrentPassword) {
-        throw new Error('INVALID_CREDENTIALS');
+      // 如果用户已有密码，需要验证当前密码
+      if (user.passwordHash) {
+        if (!input.currentPassword) {
+          throw new Error('CURRENT_PASSWORD_REQUIRED');
+        }
+
+        const isValidCurrentPassword = await verifyPassword(input.currentPassword, user.passwordHash);
+        if (!isValidCurrentPassword) {
+          throw new Error('INVALID_CREDENTIALS');
+        }
       }
 
       // 哈希新密码
@@ -345,53 +150,81 @@ export const authRouter = router({
         data: { passwordHash: newPasswordHash },
       });
 
-      // 撤销所有现有会话（强制重新登录）
-      await ctx.prisma.userSession.updateMany({
-        where: { userId: ctx.user.id },
-        data: { isActive: false },
-      });
-
       return {
         success: true,
-        message: 'Password changed successfully, please log in again',
+        message: 'Password updated successfully',
       };
     }),
 
-  // 登出
-  logout: publicProcedure
-    .mutation(async ({ ctx }) => {
+  // 获取用户会话信息
+  sessions: protectedProcedure
+    .query(async ({ ctx }) => {
       if (!ctx.user) {
         throw new Error('UNAUTHORIZED');
       }
 
-      // 撤销当前用户的所有会话
-      await ctx.prisma.userSession.updateMany({
+      // @ts-ignore
+      const sessions = await ctx.prisma.session.findMany({
         where: { userId: ctx.user.id },
-        data: { isActive: false },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          sessionToken: true,
+          expires: true,
+          createdAt: true,
+        },
+      });
+
+      return sessions;
+    }),
+
+  // 撤销特定会话
+  revokeSession: protectedProcedure
+    .input(z.object({
+      sessionToken: z.string(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user) {
+        throw new Error('UNAUTHORIZED');
+      }
+
+      // @ts-ignore
+      const session = await ctx.prisma.session.findFirst({
+        where: {
+          sessionToken: input.sessionToken,
+          userId: ctx.user.id,
+        },
+      });
+
+      if (!session) {
+        throw new Error('SESSION_NOT_FOUND');
+      }
+
+      // @ts-ignore
+      await ctx.prisma.session.delete({
+        where: { sessionToken: input.sessionToken },
       });
 
       return {
         success: true,
-        message: 'Logout successful',
+        message: 'Session revoked successfully',
       };
     }),
 
   // 管理员：创建用户
-  createUser: publicProcedure
+  createUser: adminProcedure
     .input(z.object({
       email: z.string().email('Please enter a valid email address'),
       name: z.string().min(1, 'Name cannot be empty').max(50, 'Name cannot exceed 50 characters'),
       role: UserRoleSchema.default('USER'),
       password: z.string().min(6, 'Password must be at least 6 characters').optional(),
+      isActive: z.boolean().default(true),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (!ctx.user || ctx.user.role !== 'ADMIN') {
-        throw new Error('UNAUTHORIZED');
-      }
+      const { email, name, role, password, isActive } = input;
 
       // 检查邮箱是否已存在
       const existingUser = await ctx.prisma.user.findUnique({
-        where: { email: input.email },
+        where: { email },
       });
 
       if (existingUser) {
@@ -400,17 +233,18 @@ export const authRouter = router({
 
       // 哈希密码（如果提供）
       let passwordHash = null;
-      if (input.password) {
-        passwordHash = await hashPassword(input.password);
+      if (password) {
+        passwordHash = await hashPassword(password);
       }
 
       // 创建用户
       const user = await ctx.prisma.user.create({
         data: {
-          email: input.email,
-          name: input.name,
-          role: input.role,
+          email,
+          name,
+          role,
           passwordHash,
+          isActive,
         },
         select: {
           id: true,
@@ -419,6 +253,8 @@ export const authRouter = router({
           role: true,
           emailVerified: true,
           isActive: true,
+          // @ts-ignore
+          image: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -428,7 +264,7 @@ export const authRouter = router({
     }),
 
   // 管理员：获取用户列表
-  listUsers: publicProcedure
+  listUsers: adminProcedure
     .input(z.object({
       limit: z.number().min(1).max(100).default(20),
       cursor: z.string().nullish(),
@@ -437,10 +273,6 @@ export const authRouter = router({
       isActive: z.boolean().optional(),
     }))
     .query(async ({ input, ctx }) => {
-      if (!ctx.user || ctx.user.role !== 'ADMIN') {
-        throw new Error('UNAUTHORIZED');
-      }
-
       const { limit, cursor, search, role, isActive } = input;
 
       const where: any = {};
@@ -469,8 +301,18 @@ export const authRouter = router({
             role: true,
             emailVerified: true,
             isActive: true,
+            // @ts-ignore
+          image: true,
             createdAt: true,
             updatedAt: true,
+            // 包含账户信息
+            accounts: {
+              select: {
+                provider: true,
+                type: true,
+                createdAt: true,
+              },
+            },
           },
         }),
         ctx.prisma.user.count({ where }),
@@ -488,6 +330,59 @@ export const authRouter = router({
         page: Math.floor((cursor ? 1 : 0) + items.length / limit),
         pageSize: limit,
         hasNext: !!nextCursor,
+      };
+    }),
+
+  // 管理员：更新用户状态
+  updateUserStatus: adminProcedure
+    .input(z.object({
+      userId: z.string(),
+      isActive: z.boolean(),
+      role: UserRoleSchema.optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { userId, isActive, role } = input;
+
+      const updateData: any = { isActive };
+      if (role !== undefined) updateData.role = role;
+
+      const user = await ctx.prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          updatedAt: true,
+        },
+      });
+
+      return user;
+    }),
+
+  // 管理员：删除用户
+  deleteUser: adminProcedure
+    .input(z.object({
+      userId: z.string(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { userId } = input;
+
+      // 检查是否尝试删除自己
+      if (userId === ctx.user?.id) {
+        throw new Error('CANNOT_DELETE_SELF');
+      }
+
+      // 删除用户相关的所有数据
+      await ctx.prisma.user.delete({
+        where: { id: userId },
+      });
+
+      return {
+        success: true,
+        message: 'User deleted successfully',
       };
     }),
 });

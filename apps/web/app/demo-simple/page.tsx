@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import ApplicationShell from '@/components/shadcn-studio/application-shell';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -101,7 +102,7 @@ export default function SimpleDemoPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <ApplicationShell>
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">FastBuild 简化演示</h1>
@@ -318,6 +319,6 @@ export default function SimpleDemoPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ApplicationShell>
   );
 }

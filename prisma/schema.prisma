@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["metrics", "nativeDistinct", "fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -49,39 +50,80 @@ model Submission {
   @@map("submissions")
 }
 
+// Auth.js 用户模型 - 兼容现有的User模型
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  name          String
-  passwordHash  String?
-  role          UserRole  @default(USER)
-  isActive      Boolean   @default(true)
-  avatar        String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
 
-  // 关联
-  createdForms  Form[]       @relation("FormCreator")
-  submissions   Submission[] @relation("SubmissionAuthor")
-  sessions      UserSession[]
+  // 扩展字段以支持现有功能
+  passwordHash  String?
+  role          UserRole        @default(USER)
+  isActive      Boolean         @default(true)
+  avatar        String?         // 别名，与image字段保持同步
+
+  // 时间戳
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Auth.js 关联
+  accounts      Account[]
+  sessions      Session[]
+
+  // 业务逻辑关联
+  createdForms  Form[]          @relation("FormCreator")
+  submissions   Submission[]    @relation("SubmissionAuthor")
 
   @@map("users")
 }
 
-model UserSession {
-  id          String    @id @default(cuid())
-  userId      String
-  token       String    @unique
-  expiresAt   DateTime
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  lastUsedAt  DateTime  @default(now())
+// Auth.js 账户模型 - 用于存储第三方认证信息
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
-  // 关联到用户
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("user_sessions")
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// Auth.js 会话模型 - 替换原来的UserSession
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+// Auth.js 验证令牌模型
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 enum UserRole {
@@ -106,6 +148,12 @@ model MonitoringEvent {
   metadata  Json?    // 元数据（userAgent, url等）
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // 性能优化：复合索引
+  @@index([type, timestamp])
+  @@index([sessionId, timestamp])
+  @@index([userId, timestamp])
+  @@index([createdAt])
 
   @@map("monitoring_events")
 }
@@ -141,8 +189,14 @@ model PerformanceMetric {
   timestamp DateTime // 记录时间
   createdAt DateTime @default(now())
 
-  @@map("performance_metrics")
+  // 性能优化：复合索引
   @@index([name, timestamp])
+  @@index([path, timestamp])
+  @@index([sessionId, timestamp])
+  @@index([userId, timestamp])
+  @@index([createdAt])
+
+  @@map("performance_metrics")
 }
 
 model UserActivity {
@@ -156,7 +210,12 @@ model UserActivity {
   timestamp   DateTime // 操作时间
   createdAt   DateTime @default(now())
 
-  @@map("user_activities")
+  // 性能优化：复合索引
   @@index([userId, timestamp])
   @@index([action, timestamp])
+  @@index([sessionId, timestamp])
+  @@index([path, timestamp])
+  @@index([createdAt])
+
+  @@map("user_activities")
 }

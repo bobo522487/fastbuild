@@ -236,7 +236,7 @@ export type CreateSubmissionParams = z.infer<typeof CreateSubmissionParamsSchema
 
 // 提交更新参数
 export const UpdateSubmissionParamsSchema = z.object({
-  data: z.record(z.any>).optional(),
+  data: z.record(z.string(), z.any()).optional(),
   status: SubmissionStatusSchema.optional(),
   metadata: SubmissionMetadataSchema.optional()
 });

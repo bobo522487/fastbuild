@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import type { FormMetadata } from '@workspace/types';
+import { NetworkErrorAnalyzer, RetryHandler } from './NetworkErrorHandler';
 
 interface FormContextType {
   currentMetadata: FormMetadata | null;
@@ -84,23 +85,40 @@ export function useFormSubmission() {
         console.log('📋 Form Metadata:', metadata);
         console.log('📝 Form Data:', data);
 
-        // 这里可以添加 tRPC 调用
-        // await submissionRouter.create({
-        //   formId: metadata.id,
-        //   data,
-        // });
+        // 使用重试机制执行表单提交
+        const result = await RetryHandler.executeWithRetry(
+          async () => {
+            // 这里可以添加 tRPC 调用
+            // await submissionRouter.create({
+            //   formId: metadata.id,
+            //   data,
+            // });
 
-        console.log('✅ Form submitted successfully!');
+            console.log('✅ Form submitted successfully!');
 
-        // 模拟 API 调用延迟
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+            // 模拟 API 调用延迟
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        return { success: true };
+            return { success: true };
+          },
+          {
+            maxAttempts: 3,
+            baseDelay: 1000,
+            maxDelay: 5000,
+            backoffFactor: 2,
+            retryableErrors: ['network', 'server', 'timeout']
+          },
+          (error, attempt) => {
+            console.warn(`🔄 Form submission attempt ${attempt} failed:`, error);
+          }
+        );
+
+        return result;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Submission failed, please try again';
-        setError(errorMessage);
+        const networkErrorInfo = NetworkErrorAnalyzer.analyze(error);
+        setError(networkErrorInfo.message);
         console.error('❌ Form submission error:', error);
-        return { success: false, error: errorMessage };
+        return { success: false, error: networkErrorInfo.message };
       } finally {
         setIsLoading(false);
       }
@@ -132,15 +150,31 @@ export function useFormMetadata() {
   const loadMetadataFromJson = React.useCallback(
     async (jsonPath: string) => {
       try {
-        const response = await fetch(jsonPath);
-        if (!response.ok) {
-          throw new Error(`Failed to load form configuration: ${response.statusText}`);
-        }
-        const metadata = await response.json();
+        // 使用重试机制加载JSON配置
+        const metadata = await RetryHandler.executeWithRetry(
+          async () => {
+            const response = await fetch(jsonPath);
+            if (!response.ok) {
+              throw new Error(`Failed to load form configuration: ${response.statusText}`);
+            }
+            return await response.json();
+          },
+          {
+            maxAttempts: 3,
+            baseDelay: 1000,
+            maxDelay: 5000,
+            backoffFactor: 2,
+            retryableErrors: ['network', 'server', 'timeout']
+          },
+          (error, attempt) => {
+            console.warn(`🔄 JSON loading attempt ${attempt} failed:`, error);
+          }
+        );
+
         await loadMetadata(metadata);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '加载 JSON 配置文件失败';
-        setError(errorMessage);
+        const networkErrorInfo = NetworkErrorAnalyzer.analyze(error);
+        setError(networkErrorInfo.message);
         console.error('❌ Failed to load JSON metadata:', error);
       }
     },

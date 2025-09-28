@@ -1,62 +1,18 @@
 // 性能测试设置
-import { vi } from 'vitest';
+import { vi, describe, it, test, expect } from 'vitest';
+
+// 导入统一的模拟配置
+import { setupDatabaseMocks } from '../mocks/database';
+import { setupAuthMocks } from '../mocks/auth';
 
 // 模拟环境变量
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/fastbuild_test';
 process.env.JWT_SECRET = 'test-jwt-secret';
 
-// Mock Prisma
-vi.mock('@workspace/database', () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      findMany: vi.fn(),
-      count: vi.fn(),
-      updateMany: vi.fn(),
-    },
-    form: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      findMany: vi.fn(),
-      count: vi.fn(),
-    },
-    submission: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-      count: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-    },
-    userSession: {
-      create: vi.fn(),
-      update: vi.fn(),
-      updateMany: vi.fn(),
-      findUnique: vi.fn(),
-    },
-    $queryRaw: vi.fn(),
-    $disconnect: vi.fn(),
-  },
-}));
-
-// Mock bcryptjs
-vi.mock('bcryptjs', () => ({
-  hash: vi.fn(() => 'hashed-password'),
-  compare: vi.fn(() => Promise.resolve(true)),
-}));
-
-// Mock jsonwebtoken
-vi.mock('jsonwebtoken', () => ({
-  sign: vi.fn(() => 'mock-token'),
-  verify: vi.fn(() => ({ userId: 'test-user-id', email: 'test@example.com', role: 'USER' })),
-}));
+// 设置统一的模拟
+setupDatabaseMocks();
+setupAuthMocks();
 
 // 性能测试全局变量
 global.describe = describe;

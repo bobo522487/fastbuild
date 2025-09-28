@@ -13,11 +13,12 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@prisma/client": "^6.5.0"
+    "@prisma/client": "^6.16.2"
   },
   "devDependencies": {
+    "@types/node": "^20.19.9",
     "@workspace/typescript-config": "workspace:*",
-    "prisma": "^6.5.0",
+    "prisma": "^6.16.2",
     "typescript": "^5.7.3"
   }
 }

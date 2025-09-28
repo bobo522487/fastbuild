@@ -4,7 +4,7 @@
  */
 
 // 导出核心 tRPC 实例和中间件
-export { t, router, publicProcedure, protectedProcedure, adminProcedure, authProcedure, formProcedure, healthProcedure, middleware, mergeRouters } from '../middleware';
+export { t, router, publicProcedure, protectedProcedure, adminProcedure, authProcedure, formProcedure, healthProcedure, middleware, mergeRouters } from '../middleware/index';
 
 // 导出上下文类型
 export type { Context } from './context';

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { trpc } from '@/trpc/provider';
+import { monitoringService } from '@/lib/monitoring-service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
@@ -59,27 +61,36 @@ export default function MonitoringPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
 
+  // tRPC queries
+  const getEvents = trpc.monitoring.getEvents.useQuery({
+    limit: 100,
+    offset: 0,
+  });
+
+  const getStats = trpc.monitoring.getStats.useQuery({
+    groupBy: 'type',
+  });
+
+  const getCriticalErrors = trpc.monitoring.getCriticalErrors.useQuery({
+    limit: 50,
+    resolved: false,
+  });
+
+  const getPerformanceMetrics = trpc.monitoring.getPerformanceMetrics.useQuery({
+    limit: 100,
+  });
+
+  const resolveError = trpc.monitoring.resolveError.useMutation();
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsRes, errorsRes, performanceRes, activitiesRes] = await Promise.all([
-        fetch('/api/monitoring/stats'),
-        fetch('/api/monitoring/errors'),
-        fetch('/api/monitoring/performance'),
-        fetch('/api/monitoring/activities'),
+      await Promise.all([
+        getEvents.refetch(),
+        getStats.refetch(),
+        getCriticalErrors.refetch(),
+        getPerformanceMetrics.refetch(),
       ]);
-
-      const [statsData, errorsData, performanceData, activitiesData] = await Promise.all([
-        statsRes.json(),
-        errorsRes.json(),
-        performanceRes.json(),
-        activitiesRes.json(),
-      ]);
-
-      setStats(statsData);
-      setErrors(errorsData.errors || []);
-      setPerformance(performanceData.metrics || []);
-      setActivities(activitiesData.activities || []);
     } catch (error) {
       console.error('Error fetching monitoring data:', error);
     } finally {
@@ -87,16 +98,68 @@ export default function MonitoringPage() {
     }
   };
 
+  // 处理查询结果
+  useEffect(() => {
+    if (getEvents.data && getStats.data && getCriticalErrors.data && getPerformanceMetrics.data) {
+      // 构建统计数据
+      const eventStats = getStats.data.stats || [];
+      const totalEvents = getStats.data.totalCount || 0;
+      const errorCount = eventStats.find(s => s.type === 'error')?.count || 0;
+
+      setStats({
+        totalEvents,
+        errorCount,
+        performanceMetrics: eventStats.find(s => s.type === 'performance')?.count || 0,
+        userActivities: eventStats.find(s => s.type === 'user_action')?.count || 0,
+        criticalErrors: getCriticalErrors.data.total || 0,
+      });
+
+      // 处理错误数据
+      const errorEvents = getEvents.data.events.filter(e => e.type === 'error');
+      setErrors(errorEvents.map(e => ({
+        id: e.id,
+        level: e.data.severity || 'error',
+        message: e.data.message || 'Unknown error',
+        component: e.data.component,
+        path: e.metadata?.url || '/',
+        createdAt: e.timestamp.toISOString(),
+        resolved: false, // 需要从 errorLog 表获取
+      })));
+
+      // 处理性能数据
+      const performanceEvents = getEvents.data.events.filter(e => e.type === 'performance');
+      setPerformance(performanceEvents.map(e => ({
+        id: e.id,
+        name: e.data.name || 'Unknown',
+        value: e.data.value || 0,
+        unit: e.data.unit || 'ms',
+        path: e.metadata?.url || '/',
+        timestamp: e.timestamp.toISOString(),
+      })));
+
+      // 处理用户活动数据
+      const activityEvents = getEvents.data.events.filter(e => e.type === 'user_action');
+      setActivities(activityEvents.map(e => ({
+        id: e.id,
+        action: e.data.action || 'Unknown',
+        element: e.data.element,
+        path: e.metadata?.url || '/',
+        timestamp: e.timestamp.toISOString(),
+      })));
+    }
+  }, [getEvents.data, getStats.data, getCriticalErrors.data, getPerformanceMetrics.data]);
+
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 30000); // 每30秒刷新一次
     return () => clearInterval(interval);
   }, []);
 
-  const resolveError = async (errorId: string) => {
+  const handleResolveError = async (errorId: string) => {
     try {
-      await fetch(`/api/monitoring/errors/${errorId}/resolve`, {
-        method: 'POST',
+      await resolveError.mutateAsync({
+        errorId,
+        resolutionNote: 'Resolved from admin dashboard',
       });
       fetchData(); // 刷新数据
     } catch (error) {
@@ -106,8 +169,18 @@ export default function MonitoringPage() {
 
   const exportData = async () => {
     try {
-      const response = await fetch('/api/monitoring/export');
-      const blob = await response.blob();
+      const events = await getEvents.refetch();
+      const stats = await getStats.refetch();
+
+      const exportData = {
+        events: events.data?.events || [],
+        stats: stats.data?.stats || [],
+        exportedAt: new Date().toISOString(),
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json',
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -121,7 +194,7 @@ export default function MonitoringPage() {
     }
   };
 
-  if (loading) {
+  if (loading || getEvents.isLoading || getStats.isLoading || getCriticalErrors.isLoading || getPerformanceMetrics.isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="h-8 w-8 animate-spin" />
@@ -251,9 +324,10 @@ export default function MonitoringPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => resolveError(error.id)}
+                            onClick={() => handleResolveError(error.id)}
+                            disabled={resolveError.isLoading}
                           >
-                            Resolve
+                            {resolveError.isLoading ? 'Resolving...' : 'Resolve'}
                           </Button>
                         )}
                       </div>
@@ -328,9 +402,10 @@ export default function MonitoringPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => resolveError(error.id)}
+                          onClick={() => handleResolveError(error.id)}
+                          disabled={resolveError.isLoading}
                         >
-                          Mark Resolved
+                          {resolveError.isLoading ? 'Resolving...' : 'Mark Resolved'}
                         </Button>
                       )}
                     </div>

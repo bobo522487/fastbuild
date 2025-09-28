@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import ApplicationShell from '@/components/shadcn-studio/application-shell';
 import { FormProvider } from '@/components/forms/FormProvider';
 import { SimpleFormSubmitHandler } from '@/components/forms/SimpleFormSubmitHandler';
 import { exampleForms } from '@/examples/forms';
@@ -41,13 +42,14 @@ export default function DemoPage() {
 
   return (
     <FormProvider>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">FastBuild 动态表单演示</h1>
-          <p className="text-muted-foreground">
-            体验 Schema 驱动的动态表单生成和验证能力
-          </p>
-        </div>
+      <ApplicationShell>
+        <div className="space-y-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">FastBuild 动态表单演示</h1>
+            <p className="text-muted-foreground">
+              体验 Schema 驱动的动态表单生成和验证能力
+            </p>
+          </div>
 
         {/* 统计信息 */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -186,6 +188,7 @@ export default function DemoPage() {
           </Card>
         </div>
       </div>
+    </ApplicationShell>
     </FormProvider>
   );
 }

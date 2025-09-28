@@ -5,6 +5,7 @@ import { authRouter } from './auth';
 import { submissionRouter } from './submission';
 import { healthRouter } from './health';
 import { schemaRouter } from './schema';
+import { monitoringRouter } from './monitoring';
 
 /**
  * 主路由聚合器
@@ -30,6 +31,9 @@ export const appRouter = router({
 
   // Schema 编译和验证路由
   schema: schemaRouter,
+
+  // 监控系统路由
+  monitoring: monitoringRouter,
 });
 
 /**

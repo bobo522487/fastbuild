@@ -41,7 +41,7 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
     defaultOptions: {
       queries: {
         staleTime: 5 * 60 * 1000, // 5 分钟
-        gcTime: 10 * 60 * 1000, // 10 分钟
+        gcTime: 10 * 60 * 1000, // 10 分钟 (TanStack Query v5 使用 gcTime 而不是 cacheTime)
         retry: (failureCount, error: any) => {
           // 根据错误类型决定是否重试
           if (error?.data?.code === 'UNAUTHORIZED') {
@@ -78,10 +78,10 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
 
   const [trpcClient] = useState(() => {
     return trpc.createClient({
-      transformer: superjson,
       links: [
         httpBatchLink({
           url: getBaseUrl() + '/api/trpc',
+          transformer: superjson,
           headers: () => {
             const headers: Record<string, string> = {};
 

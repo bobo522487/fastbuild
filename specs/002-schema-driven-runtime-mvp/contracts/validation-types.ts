@@ -165,9 +165,9 @@ export interface AsyncValidationTask {
   validator: Validator;
   context: ValidationContext;
   priority: number;
-  createdAt: z.date();
-  startedAt?: z.date();
-  completedAt?: z.date();
+  createdAt: Date;
+  startedAt?: Date;
+  completedAt?: Date;
 }
 
 // 验证队列

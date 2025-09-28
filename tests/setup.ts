@@ -1,11 +1,30 @@
-// Test setup for tRPC infrastructure tests
-import { beforeEach, afterEach } from 'vitest';
-import { prisma } from '@workspace/database';
-import bcrypt from 'bcryptjs';
+/**
+ * Enhanced Test Setup for FastBuild Project
+ * Supports Auth.js, Prisma 6.16, and comprehensive testing
+ */
 
-// Mock environment variables
+import { beforeEach, afterEach, vi, describe, it, test, expect } from 'vitest';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+// Mock environment variables for testing
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'postgresql://fastbuild_user:fastbuild_password@172.18.0.2:5432/fastbuild';
+process.env.JWT_SECRET = 'test-jwt-secret';
+process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
+process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret';
+process.env.GITHUB_CLIENT_ID = 'test-github-client-id';
+process.env.GITHUB_CLIENT_SECRET = 'test-github-client-secret';
+
+// 创建测试用的 Prisma 客户端实例
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 // Mock console methods in tests to reduce noise
 console.log = vi.fn();
@@ -20,49 +39,139 @@ global.test = test;
 global.expect = expect;
 global.vi = vi;
 
+// Test database cleanup utilities
+const cleanupDatabase = async () => {
+  // 按照外键依赖关系清理数据
+  await prisma.monitoringEvent.deleteMany();
+  await prisma.performanceMetric.deleteMany();
+  await prisma.errorLog.deleteMany();
+  await prisma.userActivity.deleteMany();
+
+  await prisma.verificationToken.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+
+  await prisma.submission.deleteMany();
+  await prisma.form.deleteMany();
+  await prisma.user.deleteMany();
+};
+
 // 测试前设置
 beforeEach(async () => {
-  // 清空数据库（测试模式）
   if (process.env.NODE_ENV === 'test') {
-    await prisma.user.deleteMany();
-    await prisma.form.deleteMany();
-    await prisma.submission.deleteMany();
-    await prisma.userSession.deleteMany();
+    await cleanupDatabase();
   }
 });
 
 // 测试后清理
 afterEach(async () => {
-  // 清理测试数据
   if (process.env.NODE_ENV === 'test') {
-    await prisma.user.deleteMany();
-    await prisma.form.deleteMany();
-    await prisma.submission.deleteMany();
-    await prisma.userSession.deleteMany();
+    await cleanupDatabase();
   }
 });
 
-// 测试辅助函数
+// Enhanced test helper functions
 global.createTestUser = async (overrides = {}) => {
-  const password = await bcrypt.hash('testpassword123', 10);
+  const password = await bcrypt.hash('testpassword123', 12);
 
   return prisma.user.create({
     data: {
-      email: 'test@example.com',
+      email: `test-${Date.now()}@example.com`, // 使用时间戳确保邮箱唯一性
       name: 'Test User',
       passwordHash: password,
-      emailVerified: true,
+      emailVerified: new Date(),
       isActive: true,
       role: 'USER',
       ...overrides,
     },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      emailVerified: true,
+      isActive: true,
+      image: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
+};
+
+global.createTestAdmin = async (overrides = {}) => {
+  const password = await bcrypt.hash('adminpassword123', 12);
+
+  return prisma.user.create({
+    data: {
+      email: `admin-${Date.now()}@example.com`,
+      name: 'Admin User',
+      passwordHash: password,
+      emailVerified: new Date(),
+      isActive: true,
+      role: 'ADMIN',
+      ...overrides,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      emailVerified: true,
+      isActive: true,
+      image: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+};
+
+global.createTestOAuthUser = async (overrides = {}) => {
+  // 创建OAuth用户（无密码）
+  const user = await prisma.user.create({
+    data: {
+      email: `oauth-${Date.now()}@example.com`,
+      name: 'OAuth User',
+      emailVerified: new Date(),
+      isActive: true,
+      role: 'USER',
+      ...overrides,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      emailVerified: true,
+      isActive: true,
+      image: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  // 添加OAuth账户信息
+  await prisma.account.create({
+    data: {
+      userId: user.id,
+      type: 'oauth',
+      provider: 'google',
+      providerAccountId: `google-${user.id}`,
+      access_token: 'mock-access-token',
+      refresh_token: 'mock-refresh-token',
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'Bearer',
+    },
+  });
+
+  return user;
 };
 
 global.createTestForm = async (userId: string, overrides = {}) => {
   return prisma.form.create({
     data: {
       name: 'Test Form',
+      description: 'Test form description',
+      version: '1.0.0',
       metadata: {
         version: '1.0.0',
         fields: [
@@ -72,6 +181,15 @@ global.createTestForm = async (userId: string, overrides = {}) => {
             type: 'text',
             label: '姓名',
             required: true,
+            placeholder: '请输入姓名',
+          },
+          {
+            id: 'email',
+            name: 'email',
+            type: 'text',
+            label: '邮箱',
+            required: true,
+            placeholder: '请输入邮箱',
           },
         ],
       },
@@ -87,9 +205,50 @@ global.createTestSubmission = async (formId: string, userId?: string, data = {})
       formId,
       data: {
         name: 'Test Submission',
+        email: 'test@example.com',
         ...data,
       },
+      ipAddress: '127.0.0.1',
+      userAgent: 'Test Agent/1.0',
+      status: 'COMPLETED',
       ...(userId && { createdById: userId }),
     },
   });
 };
+
+global.createTestSession = async (userId: string) => {
+  return prisma.session.create({
+    data: {
+      userId,
+      sessionToken: `test-session-${Date.now()}`,
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24小时后过期
+    },
+  });
+};
+
+global.generateTestJWT = (userId: string, email: string, role: string) => {
+  return jwt.sign(
+    { userId, email, role },
+    process.env.JWT_SECRET || 'test-jwt-secret',
+    { expiresIn: '1h' }
+  );
+};
+
+global.createTestContext = async (user?: { id: string; email: string; role: string; isActive: boolean }) => {
+  // 创建一个简单的模拟上下文，避免导入依赖问题
+  return {
+    prisma,
+    user,
+  };
+};
+
+// 导出工厂函数供测试使用
+import { UserFactory, FormFactory, SubmissionFactory } from './factories';
+
+// 使工厂函数在全局可用
+global.UserFactory = UserFactory;
+global.FormFactory = FormFactory;
+global.SubmissionFactory = SubmissionFactory;
+
+// 导出 prisma 实例供测试使用
+export { prisma, UserFactory, FormFactory, SubmissionFactory };

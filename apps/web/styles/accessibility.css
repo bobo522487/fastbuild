@@ -1,0 +1,584 @@
+/*
+ * 可访问性样式 - 包含字体大小、间距、动画等控制
+ * 支持 WCAG 2.1 AA 级别的无障碍标准
+ */
+
+/* CSS变量定义 */
+:root {
+  --spacing-factor: 1;
+  --font-size-factor: 1;
+  --reduce-motion: no-preference;
+  --focus-outline-width: 2px;
+  --focus-outline-color: hsl(var(--primary));
+  --focus-outline-offset: 2px;
+  --interactive-min-size: 44px;
+  --text-min-size: 16px;
+  --border-min-width: 2px;
+}
+
+/* 基础字体大小控制 */
+html {
+  font-size: 100%; /* 基准大小 */
+  line-height: 1.5;
+}
+
+/* 字体大小类 */
+.font-size-sm {
+  font-size: 75% !important;
+}
+
+.font-size-base {
+  font-size: 100% !important;
+}
+
+.font-size-lg {
+  font-size: 125% !important;
+}
+
+.font-size-xl {
+  font-size: 150% !important;
+}
+
+.font-size-2xl {
+  font-size: 175% !important;
+}
+
+.font-size-3xl {
+  font-size: 200% !important;
+}
+
+/* 间距控制类 */
+.spacing-sm {
+  --spacing-factor: 0.75;
+}
+
+.spacing-base {
+  --spacing-factor: 1;
+}
+
+.spacing-lg {
+  --spacing-factor: 1.25;
+}
+
+.spacing-xl {
+  --spacing-factor: 1.5;
+}
+
+.spacing-2xl {
+  --spacing-factor: 1.75;
+}
+
+.spacing-3xl {
+  --spacing-factor: 2;
+}
+
+/* 应用间距因子到所有元素 */
+.spacing-sm *,
+.spacing-lg *,
+.spacing-xl *,
+.spacing-2xl *,
+.spacing-3xl * {
+  /* 内边距 */
+  padding: calc(1rem * var(--spacing-factor));
+
+  /* 外边距 */
+  margin: calc(1rem * var(--spacing-factor));
+
+  /* 间隙 */
+  gap: calc(1rem * var(--spacing-factor));
+}
+
+/* 动画控制 */
+.reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduce-motion {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* 增强的焦点样式 */
+*:focus,
+*:focus-visible {
+  outline: var(--focus-outline-width) solid var(--focus-outline-color) !important;
+  outline-offset: var(--focus-outline-offset) !important;
+  box-shadow: 0 0 0 4px hsla(var(--primary) / 0.2) !important;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 可点击元素的最小尺寸 */
+button,
+.input,
+.select,
+.textarea,
+.checkbox,
+.radio,
+[role="button"],
+[role="link"],
+[role="checkbox"],
+[role="radio"],
+[role="switch"],
+[role="combobox"],
+[role="listbox"],
+[role="textbox"] {
+  min-width: var(--interactive-min-size) !important;
+  min-height: var(--interactive-min-size) !important;
+  font-size: var(--text-min-size) !important;
+  touch-action: manipulation !important;
+}
+
+/* 表单元素增强 */
+.input,
+.textarea,
+.select {
+  border-width: var(--border-min-width) !important;
+  border-style: solid !important;
+  padding: calc(0.5rem * var(--spacing-factor)) calc(0.75rem * var(--spacing-factor)) !important;
+  font-size: calc(1rem * var(--font-size-factor)) !important;
+  line-height: 1.5 !important;
+}
+
+/* 标签增强 */
+label {
+  font-size: calc(1rem * var(--font-size-factor)) !important;
+  font-weight: 600 !important;
+  margin-bottom: calc(0.25rem * var(--spacing-factor)) !important;
+  display: block !important;
+}
+
+/* 错误消息增强 */
+.error-message,
+[role="alert"],
+[aria-invalid="true"] {
+  color: hsl(var(--destructive)) !important;
+  font-weight: 600 !important;
+  font-size: calc(0.875rem * var(--font-size-factor)) !important;
+  background-color: hsl(var(--destructive) / 0.1) !important;
+  border: 2px solid hsl(var(--destructive)) !important;
+  padding: calc(0.5rem * var(--spacing-factor)) !important;
+  margin: calc(0.5rem * var(--spacing-factor)) 0 !important;
+  border-radius: 0.25rem !important;
+}
+
+/* 成功消息增强 */
+.success-message,
+[aria-live="polite"] {
+  color: hsl(var(--success)) !important;
+  font-weight: 600 !important;
+  font-size: calc(0.875rem * var(--font-size-factor)) !important;
+  background-color: hsl(var(--success) / 0.1) !important;
+  border: 2px solid hsl(var(--success)) !important;
+  padding: calc(0.5rem * var(--spacing-factor)) !important;
+  margin: calc(0.5rem * var(--spacing-factor)) 0 !important;
+  border-radius: 0.25rem !important;
+}
+
+/* 警告消息增强 */
+.warning-message,
+[aria-atomic="true"] {
+  color: hsl(var(--warning)) !important;
+  font-weight: 600 !important;
+  font-size: calc(0.875rem * var(--font-size-factor)) !important;
+  background-color: hsl(var(--warning) / 0.1) !important;
+  border: 2px solid hsl(var(--warning)) !important;
+  padding: calc(0.5rem * var(--spacing-factor)) !important;
+  margin: calc(0.5rem * var(--spacing-factor)) 0 !important;
+  border-radius: 0.25rem !important;
+}
+
+/* 按钮增强 */
+.btn,
+button {
+  font-weight: 600 !important;
+  padding: calc(0.75rem * var(--spacing-factor)) calc(1.5rem * var(--spacing-factor)) !important;
+  font-size: calc(1rem * var(--font-size-factor)) !important;
+  border-width: var(--border-min-width) !important;
+  border-style: solid !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  touch-action: manipulation !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+.btn:hover,
+button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn:active,
+button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn:disabled,
+button:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* 链接增强 */
+a,
+[role="link"] {
+  color: hsl(var(--primary)) !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 2px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+a:hover,
+[role="link"]:hover {
+  color: hsl(var(--primary) / 0.8) !important;
+  text-decoration-thickness: 3px !important;
+}
+
+a:focus,
+[role="link"]:focus {
+  outline: var(--focus-outline-width) solid var(--focus-outline-color) !important;
+  outline-offset: var(--focus-outline-offset) !important;
+  border-radius: 0.25rem !important;
+}
+
+/* 表格增强 */
+table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: calc(1rem * var(--spacing-factor)) 0 !important;
+}
+
+th,
+td {
+  padding: calc(0.75rem * var(--spacing-factor)) !important;
+  border: var(--border-min-width) solid hsl(var(--border)) !important;
+  text-align: left !important;
+  font-size: calc(0.875rem * var(--font-size-factor)) !important;
+}
+
+th {
+  background-color: hsl(var(--muted)) !important;
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* 列表增强 */
+ul,
+ol {
+  margin: calc(1rem * var(--spacing-factor)) 0 !important;
+  padding-left: calc(2rem * var(--spacing-factor)) !important;
+}
+
+li {
+  margin: calc(0.5rem * var(--spacing-factor)) 0 !important;
+  font-size: calc(1rem * var(--font-size-factor)) !important;
+  line-height: 1.6 !important;
+}
+
+/* 代码增强 */
+code,
+pre {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+  font-size: calc(0.875rem * var(--font-size-factor)) !important;
+  background-color: hsl(var(--muted)) !important;
+  border: var(--border-min-width) solid hsl(var(--border)) !important;
+  padding: calc(0.25rem * var(--spacing-factor)) calc(0.5rem * var(--spacing-factor)) !important;
+  border-radius: 0.25rem !important;
+}
+
+pre {
+  padding: calc(1rem * var(--spacing-factor)) !important;
+  overflow-x: auto !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+}
+
+/* 图像增强 */
+img,
+svg,
+picture {
+  max-width: 100% !important;
+  height: auto !important;
+  border: var(--border-min-width) solid transparent !important;
+}
+
+img:focus,
+svg:focus,
+picture:focus {
+  border-color: var(--focus-outline-color) !important;
+  outline: var(--focus-outline-width) solid var(--focus-outline-color) !important;
+}
+
+/* 图标增强 */
+.icon,
+svg[role="img"] {
+  width: calc(1.25rem * var(--font-size-factor)) !important;
+  height: calc(1.25rem * var(--font-size-factor)) !important;
+  min-width: calc(1rem * var(--font-size-factor)) !important;
+  min-height: calc(1rem * var(--font-size-factor)) !important;
+}
+
+/* 卡片增强 */
+.card {
+  border: var(--border-min-width) solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  background-color: hsl(var(--card)) !important;
+  margin: calc(1rem * var(--spacing-factor)) 0 !important;
+  overflow: hidden !important;
+}
+
+.card-header {
+  padding: calc(1rem * var(--spacing-factor)) !important;
+  border-bottom: var(--border-min-width) solid hsl(var(--border)) !important;
+  background-color: hsl(var(--muted) / 0.5) !important;
+}
+
+.card-content {
+  padding: calc(1rem * var(--spacing-factor)) !important;
+}
+
+.card-footer {
+  padding: calc(1rem * var(--spacing-factor)) !important;
+  border-top: var(--border-min-width) solid hsl(var(--border)) !important;
+  background-color: hsl(var(--muted) / 0.5) !important;
+}
+
+/* 导航增强 */
+.nav,
+.navbar {
+  padding: calc(0.75rem * var(--spacing-factor)) calc(1rem * var(--spacing-factor)) !important;
+  background-color: hsl(var(--card)) !important;
+  border-bottom: var(--border-min-width) solid hsl(var(--border)) !important;
+}
+
+.nav-link {
+  padding: calc(0.5rem * var(--spacing-factor)) calc(0.75rem * var(--spacing-factor)) !important;
+  margin: 0 calc(0.25rem * var(--spacing-factor)) !important;
+  border-radius: 0.25rem !important;
+  text-decoration: none !important;
+  color: hsl(var(--foreground)) !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+  text-decoration: none !important;
+}
+
+/* 响应式网格 */
+.grid {
+  display: grid !important;
+  gap: calc(1rem * var(--spacing-factor)) !important;
+}
+
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+
+/* Flexbox 增强 */
+.flex {
+  display: flex !important;
+  gap: calc(1rem * var(--spacing-factor)) !important;
+}
+
+.flex-col {
+  flex-direction: column !important;
+}
+
+.flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+.items-center {
+  align-items: center !important;
+}
+
+.justify-center {
+  justify-content: center !important;
+}
+
+.justify-between {
+  justify-content: space-between !important;
+}
+
+/* 布局间距 */
+.container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 calc(1rem * var(--spacing-factor)) !important;
+}
+
+.section {
+  margin: calc(2rem * var(--spacing-factor)) 0 !important;
+  padding: calc(1.5rem * var(--spacing-factor)) !important;
+}
+
+/* 屏幕阅读器专用类 */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* 跳过链接 */
+.skip-link {
+  position: absolute !important;
+  top: -40px !important;
+  left: 0 !important;
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  padding: calc(0.5rem * var(--spacing-factor)) !important;
+  text-decoration: none !important;
+  border-radius: 0 0 0.25rem 0 !important;
+  z-index: 100 !important;
+  font-weight: 600 !important;
+}
+
+.skip-link:focus {
+  top: 0 !important;
+}
+
+/* 焦点指示器增强 */
+.focus-ring {
+  outline: var(--focus-outline-width) solid var(--focus-outline-color) !important;
+  outline-offset: var(--focus-outline-offset) !important;
+  box-shadow: 0 0 0 4px hsla(var(--primary) / 0.2) !important;
+}
+
+/* 高对比度模式覆盖 */
+@media (prefers-contrast: high) {
+  :root {
+    --focus-outline-width: 3px;
+    --border-min-width: 3px;
+    --interactive-min-size: 48px;
+    --text-min-size: 18px;
+  }
+
+  * {
+    border-width: var(--border-min-width) !important;
+    outline-width: var(--focus-outline-width) !important;
+  }
+}
+
+/* 减少动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --focus-outline-color: hsl(var(--primary-foreground));
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    color: black !important;
+    background: white !important;
+  }
+
+  a {
+    text-decoration: underline !important;
+    color: black !important;
+  }
+
+  .card {
+    border: 1pt solid black !important;
+    break-inside: avoid !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+  }
+
+  th,
+  td {
+    border: 1pt solid black !important;
+    background: white !important;
+  }
+}
+
+/* 移动设备优化 */
+@media (max-width: 768px) {
+  :root {
+    --spacing-factor: 0.875;
+    --font-size-factor: 0.9375;
+  }
+
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .flex {
+    flex-direction: column !important;
+  }
+
+  .container {
+    padding: 0 calc(0.75rem * var(--spacing-factor)) !important;
+  }
+
+  .section {
+    margin: calc(1.5rem * var(--spacing-factor)) 0 !important;
+    padding: calc(1rem * var(--spacing-factor)) !important;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) {
+  .btn:hover,
+  button:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  a:hover {
+    text-decoration-thickness: 2px !important;
+  }
+
+  .nav-link:hover {
+    background-color: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+}

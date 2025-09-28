@@ -1,0 +1,17 @@
+import { defineConfig } from 'vitest/config';
+import baseConfig from './vitest.base.config.mts';
+
+export default defineConfig({
+  ...baseConfig,
+  test: {
+    ...baseConfig.test,
+    environment: 'node',
+    setupFiles: ['./tests/setup.ts'],
+    include: ['tests/integration/**/*.test.ts'],
+    globals: true,
+    coverage: {
+      ...baseConfig.test?.coverage,
+      include: ['packages/api/src/**/*.ts'],
+    }
+  },
+});

@@ -47,11 +47,11 @@ class MemoryStore implements RateLimitStore {
    */
   cleanup(): void {
     const now = Date.now();
-    for (const [key, item] of this.store.entries()) {
+    Array.from(this.store.entries()).forEach(([key, item]) => {
       if (item.expires < now) {
         this.store.delete(key);
       }
-    }
+    });
   }
 }
 

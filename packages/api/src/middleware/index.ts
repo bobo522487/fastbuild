@@ -13,7 +13,6 @@ export { rateLimiters };
  * tRPC 实例配置
  */
 export const t = initTRPC.context<Context>().create({
-  transformer: superjson,
   errorFormatter({ shape, error, type, path, input, ctx }) {
     // 记录错误日志
     ErrorHandler.log(error, ctx);
