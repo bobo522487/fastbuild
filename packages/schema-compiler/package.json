@@ -1,0 +1,16 @@
+{
+  "name": "@workspace/schema-compiler",
+  "version": "0.0.0",
+  "private": true,
+  "license": "PROPRIETARY",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.2"
+  }
+}
