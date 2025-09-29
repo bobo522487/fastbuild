@@ -47,13 +47,7 @@
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [ ] Schema-First Architecture: Feature uses Zod Schema as single source of truth
-- [ ] Type Safety Non-Negotiable: End-to-end TypeScript + Zod validation implemented
-- [ ] Monorepo First: Code organized in appropriate workspace packages
-- [ ] Test-Driven Development: Tests written before implementation
-- [ ] Performance by Design: Performance targets defined (<100ms form render, <200ms API)
-- [ ] Zero Trust Data Processing: All input validated through Zod schemas
-- [ ] Design-Time/Runtime Separation: Clear separation between design and runtime components
+[Gates determined based on constitution file]
 
 ## Project Structure
 
@@ -158,7 +152,7 @@ directories captured above]
    - Quickstart test = story validation steps
 
 5. **Update agent file incrementally** (O(1) operation):
-   - Run `.specify/scripts/bash/update-agent-context.sh claude`
+   - Run `.specify/scripts/powershell/update-agent-context.ps1 -AgentType claude`
      **IMPORTANT**: Execute it exactly as specified above. Do not add or remove any arguments.
    - If exists: Add only NEW tech from current plan
    - Preserve manual additions between markers
