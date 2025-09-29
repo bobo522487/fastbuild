@@ -344,8 +344,7 @@ export function ResponsiveFormLayout({
           break;
         case 'number':
           fieldSchema = z.number({
-            required_error: `${field.label}不能为空`,
-            invalid_type_error: `${field.label}必须是有效的数字`,
+            message: `${field.label}必须是有效的数字`,
           })
           .min(Number.MIN_SAFE_INTEGER, `${field.label}不能太小`)
           .max(Number.MAX_SAFE_INTEGER, `${field.label}不能太大`);
@@ -356,8 +355,7 @@ export function ResponsiveFormLayout({
           break;
         case 'checkbox':
           fieldSchema = z.boolean({
-            required_error: `请选择${field.label}`,
-            invalid_type_error: `${field.label}必须是是/否选择`,
+            message: `请选择${field.label}`,
           });
           break;
         case 'date':

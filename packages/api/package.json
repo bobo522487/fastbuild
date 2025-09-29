@@ -12,19 +12,19 @@
     },
     "./trpc": {
       "types": "./dist/trpc/trpc.d.ts",
-      "default": "./trpc/trpc.js"
+      "default": "./dist/trpc/trpc.js"
     },
     "./trpc/context": {
       "types": "./dist/trpc/context.d.ts",
-      "default": "./trpc/context.js"
+      "default": "./dist/trpc/context.js"
     },
     "./trpc/routers": {
       "types": "./dist/trpc/routers/index.d.ts",
-      "default": "./trpc/routers/index.js"
+      "default": "./dist/trpc/routers/index.js"
     },
     "./middleware": {
       "types": "./dist/middleware/index.d.ts",
-      "default": "./middleware/index.js"
+      "default": "./dist/middleware/index.js"
     },
     "./middleware/index": {
       "types": "./dist/middleware/index.d.ts",
@@ -49,17 +49,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tanstack/react-query": "^4.36.1",
-    "@trpc/client": "^10.45.2",
-    "@trpc/next": "^10.45.2",
-    "@trpc/react-query": "^10.45.2",
-    "@trpc/server": "^10.45.2",
+    "@tanstack/react-query": "^5.40.0",
+    "@trpc/client": "^11.0.0",
+    "@trpc/next": "^11.0.0",
+    "@trpc/react-query": "^11.0.0",
+    "@trpc/server": "^11.0.0",
     "@workspace/database": "workspace:*",
     "@workspace/schema-compiler": "workspace:*",
     "jsonwebtoken": "^9.0.2",
-    "next-auth": "^5.0.0-beta.25",
+    "next-auth": "^5.0.0-beta.29",
     "superjson": "^2.2.1",
-    "zod": "^3.22.4"
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

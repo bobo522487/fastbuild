@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface LoadingTask {
   id: string;
@@ -23,7 +23,7 @@ export function useLoading(options: UseLoadingOptions = {}) {
     new Map(options.initialTasks?.map(task => [task.id, task]) || [])
   );
   const [globalLoading, setGlobalLoading] = useState(false);
-  const timeoutRef = React.useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const timeoutRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // 清理超时定时器
   useEffect(() => {

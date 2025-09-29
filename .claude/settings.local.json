@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell:*)",
+      "Bash(curl:*)",
+      "mcp__shadcn__view_items_in_registries",
+      "mcp__shadcn__get_item_examples_from_registries",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__evaluate_script"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

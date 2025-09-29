@@ -3,8 +3,17 @@ import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import type { IncomingMessage, ServerResponse } from 'http';
 import jwt from 'jsonwebtoken';
 
-// 注释掉NextAuth auth函数导入，避免循环依赖
-// 在实际使用中，认证应该由API包自身处理，而不是依赖web应用
+/**
+ * 扩展的用户信息类型
+ */
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+  role: 'ADMIN' | 'USER';
+  isActive: boolean;
+  emailVerified?: boolean;
+}
 
 /**
  * 上下文类型定义
@@ -14,12 +23,7 @@ export interface Context {
   req?: IncomingMessage;
   res?: ServerResponse;
   prisma: typeof prisma;
-  user?: {
-    id: string;
-    email: string;
-    role: 'ADMIN' | 'USER';
-    isActive: boolean;
-  };
+  user?: AuthUser;
 }
 
 /**
@@ -38,50 +42,52 @@ export async function createContext({
     prisma,
   };
 
-  const headers = req?.headers ?? {};
-  const authorization = typeof headers?.authorization === 'string' ? headers.authorization : undefined;
+  try {
+    // 简化实现，仅使用 JWT 认证
+    const headers = req?.headers ?? {};
+    const authorization = typeof headers?.authorization === 'string' ? headers.authorization : undefined;
 
-  if (!context.user && authorization?.startsWith('Bearer ')) {
-    const token = authorization.slice('Bearer '.length);
+    if (authorization?.startsWith('Bearer ')) {
+      const token = authorization.slice('Bearer '.length);
 
-    if (token.length === 0) {
-      return context;
-    }
+      if (token.length > 0) {
+        const secret = process.env.JWT_SECRET ?? 'default-secret';
 
-    const secret = process.env.JWT_SECRET ?? 'default-secret';
+        try {
+          const decoded = jwt.verify(token, secret) as { userId?: string; email?: string } | undefined;
 
-    try {
-      const decoded = jwt.verify(token, secret) as { userId?: string; email?: string } | undefined;
+          if (decoded?.userId) {
+            const user = await prisma.user.findUnique({
+              where: { id: decoded.userId },
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                isActive: true,
+                emailVerified: true,
+              },
+            });
 
-      if (!decoded?.userId) {
-        return context;
-      }
-
-      try {
-        const user = await prisma.user.findUnique({
-          where: { id: decoded.userId },
-          select: {
-            id: true,
-            email: true,
-            role: true,
-            isActive: true,
-          },
-        });
-
-        if (user && user.isActive) {
-          context.user = {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            isActive: user.isActive,
-          };
+            if (user && user.isActive) {
+              context.user = {
+                id: user.id,
+                email: user.email,
+                name: user.name || undefined,
+                role: user.role,
+                isActive: user.isActive,
+                emailVerified: user.emailVerified !== null,
+              };
+            }
+          }
+        } catch (error) {
+          console.warn('Invalid JWT token:', error);
         }
-      } catch (error) {
-        console.warn('Failed to load user for token:', error);
       }
-    } catch (error) {
-      console.warn('Invalid auth token:', error);
     }
+  } catch (error) {
+    // 认证失败，继续无用户状态
+    console.warn('Authentication failed:', error);
   }
 
   return context;
@@ -91,7 +97,7 @@ export async function createContext({
  * 创建内部上下文（用于服务器端操作）
  * 当不需要 HTTP 请求/响应时使用
  */
-export function createInnerContext(user?: Context['user']): Context {
+export function createInnerContext(user?: AuthUser): Context {
   return {
     prisma,
     user,

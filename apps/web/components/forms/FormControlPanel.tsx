@@ -12,11 +12,11 @@ import {
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Alert, AlertDescription } from '@workspace/ui/components/alert';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@workspace/ui/components/collapsible';
+// import {
+//   Collapsible,
+//   CollapsibleContent,
+//   CollapsibleTrigger,
+// } from '@workspace/ui/components/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -270,86 +270,89 @@ export function FormControlPanel({
 
         {/* 高级功能 */}
         {showAdvanced && (
-          <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full justify-between">
-                高级功能
-                {isAdvancedOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4 mt-4">
-              <AdvancedResetPanel
-                form={form}
-                metadata={metadata}
-              />
+          <>
+            {/* 暂时注释掉折叠组件，因为导入被注释了 */}
+            {/* <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}> */}
+              {/* <CollapsibleTrigger asChild> */}
+                {/* <Button variant="ghost" size="sm" className="w-full justify-between"> */}
+                  {/* 高级功能 */}
+                  {/* {isAdvancedOpen ? ( */}
+                    {/* <ChevronDown className="h-4 w-4" /> */}
+                  {/* ) : ( */}
+                    {/* <ChevronRight className="h-4 w-4" /> */}
+                  {/* )} */}
+                {/* </Button> */}
+              {/* </CollapsibleTrigger> */}
+              {/* <CollapsibleContent className="space-y-4 mt-4"> */}
+                <AdvancedResetPanel
+                  form={form}
+                  metadata={metadata}
+                />
 
-              {/* 开发者模式 */}
-              <div className="space-y-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDevMode(!showDevMode)}
-                  className="w-full justify-between"
-                >
-                  开发者模式
-                  {showDevMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+                {/* 开发者模式 */}
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowDevMode(!showDevMode)}
+                    className="w-full justify-between"
+                  >
+                    开发者模式
+                    {showDevMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
 
-                {showDevMode && (
-                  <div className="space-y-2 p-4 border rounded-lg bg-gray-50">
-                    <h5 className="text-sm font-medium">表单调试信息</h5>
-                    <div className="grid grid-cols-2 gap-4 text-xs">
-                      <div>
-                        <span className="text-gray-500">表单状态:</span>
-                        <span className="ml-2">{form.formState.isSubmitting ? '提交中' : '空闲'}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">验证状态:</span>
-                        <span className="ml-2">{isFormValid ? '通过' : '失败'}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">错误数量:</span>
-                        <span className="ml-2">{Object.keys(form.formState.errors).length}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">修改状态:</span>
-                        <span className="ml-2">{isFormDirty ? '已修改' : '未修改'}</span>
-                      </div>
-                    </div>
-
-                    {/* 活动操作 */}
-                    {operations.length > 0 && (
-                      <div className="mt-4">
-                        <h6 className="text-xs font-medium text-gray-600 mb-2">活动操作</h6>
-                        <div className="space-y-1">
-                          {operations.slice(0, 3).map((op) => (
-                            <div key={op.id} className="text-xs flex justify-between">
-                              <span>{op.name}</span>
-                              <span className="text-gray-500">{op.state}</span>
-                            </div>
-                          ))}
+                  {showDevMode && (
+                    <div className="space-y-2 p-4 border rounded-lg bg-gray-50">
+                      <h5 className="text-sm font-medium">表单调试信息</h5>
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <span className="text-gray-500">表单状态:</span>
+                          <span className="ml-2">{form.formState.isSubmitting ? '提交中' : '空闲'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">验证状态:</span>
+                          <span className="ml-2">{isFormValid ? '通过' : '失败'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">错误数量:</span>
+                          <span className="ml-2">{Object.keys(form.formState.errors).length}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">修改状态:</span>
+                          <span className="ml-2">{isFormDirty ? '已修改' : '未修改'}</span>
                         </div>
                       </div>
-                    )}
 
-                    {/* 草稿状态 */}
-                    {draftStatus !== 'unsaved' && (
-                      <Alert>
-                        <Database className="h-4 w-4" />
-                        <AlertDescription>
-                          草稿状态: {draftStatus === 'saved' ? '已保存' : '保存中...'}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+                      {/* 活动操作 */}
+                      {operations.length > 0 && (
+                        <div className="mt-4">
+                          <h6 className="text-xs font-medium text-gray-600 mb-2">活动操作</h6>
+                          <div className="space-y-1">
+                            {operations.slice(0, 3).map((op) => (
+                              <div key={op.id} className="text-xs flex justify-between">
+                                <span>{op.name}</span>
+                                <span className="text-gray-500">{op.state}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 草稿状态 */}
+                      {draftStatus !== 'unsaved' && (
+                        <Alert>
+                          <Database className="h-4 w-4" />
+                          <AlertDescription>
+                            草稿状态: {draftStatus === 'saved' ? '已保存' : '保存中...'}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
+                </div>
+              {/* </CollapsibleContent> */}
+            {/* </Collapsible> */}
+          </>
         )}
 
         {/* 全局状态指示器 */}

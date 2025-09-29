@@ -4,6 +4,23 @@
 
 FastBuild 采用统一的 tRPC 架构，提供类型安全的 API 调用和一致的错误处理。所有功能都通过 tRPC 端点提供，已完全弃用 REST API。
 
+### 前端页面集成
+
+FastBuild 的前端页面通过以下方式与 API 集成：
+
+**核心页面 API 调用**：
+- **工作台** (`/`): 调用 `form.list` 获取用户表单统计，`submission.getByFormId` 获取最近提交
+- **表单管理** (`/forms`): 调用 `form.list` 获取表单列表，支持搜索和筛选
+- **表单构建器** (`/builder`): 调用 `form.create` 创建新表单，`schema.compile` 编译表单 schema
+- **表单详情** (`/forms/[id]`): 调用 `form.getById` 获取表单详情，`form.update` 更新表单
+- **提交数据** (`/forms/[id]/submissions`): 调用 `submission.getByFormId` 获取提交数据，支持导出
+
+**数据流设计**：
+- 页面组件使用 tRPC React Hooks 进行数据获取
+- 统一的错误处理和加载状态管理
+- 智能缓存和数据预取策略
+- 实时数据同步和状态更新
+
 ### 核心特性
 
 - **类型安全**: 端到端的类型保障，从数据库到前端组件的完整类型链
@@ -538,22 +555,80 @@ const unsubscribe = errorHandler.onError((error) => {
 
 ## 使用示例
 
-### Hook 使用方式
+### 工作台页面示例
 ```typescript
 import { trpc } from '@/trpc/provider';
 
-function FormList() {
-  const { data: forms, isLoading, error } = trpc.form.list.useQuery();
+function Dashboard() {
+  const { data: forms, isLoading: formsLoading } = trpc.form.list.useQuery();
+  const { data: recentSubmissions } = trpc.submission.getByFormId.useQuery({
+    formId: 'recent',
+    limit: 5
+  });
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  // 计算统计数据
+  const totalForms = forms?.total || 0;
+  const totalSubmissions = forms?.items?.reduce((sum, form) =>
+    sum + (form.submissionCount || 0), 0) || 0;
 
   return (
-    <ul>
-      {forms?.map(form => (
-        <li key={form.id}>{form.name}</li>
-      ))}
-    </ul>
+    <div>
+      <h1>工作台</h1>
+      <div className="stats-grid">
+        <StatCard title="我的表单" value={totalForms} />
+        <StatCard title="总提交数" value={totalSubmissions} />
+      </div>
+    </div>
+  );
+}
+```
+
+### 表单管理页面示例
+```typescript
+function FormsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const { data: forms, isLoading } = trpc.form.list.useQuery({
+    search: searchTerm,
+    limit: 20
+  });
+
+  return (
+    <div>
+      <SearchInput value={searchTerm} onChange={setSearchTerm} />
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <FormList forms={forms?.items || []} />
+      )}
+    </div>
+  );
+}
+```
+
+### 表单详情页面示例
+```typescript
+function FormDetailPage({ formId }: { formId: string }) {
+  const { data: form, isLoading } = trpc.form.getById.useQuery({ id: formId });
+  const { data: submissions } = trpc.submission.getByFormId.useQuery({
+    formId,
+    limit: 10
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+  if (!form) return <NotFound />;
+
+  return (
+    <div>
+      <FormHeader form={form} />
+      <Tabs>
+        <Tab label="字段配置">
+          <FieldConfig fields={form.metadata.fields} />
+        </Tab>
+        <Tab label="提交数据">
+          <SubmissionsList submissions={submissions?.items || []} />
+        </Tab>
+      </Tabs>
+    </div>
   );
 }
 ```

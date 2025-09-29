@@ -60,8 +60,7 @@ export class OptimizedSchemaCompiler {
 
       case 'number':
         fieldSchema = z.number({
-          required_error: `${field.label}不能为空`,
-          invalid_type_error: `${field.label}必须是有效的数字`,
+          message: `${field.label}必须是有效的数字`,
         })
         .min(Number.MIN_SAFE_INTEGER, `${field.label}不能太小`)
         .max(Number.MAX_SAFE_INTEGER, `${field.label}不能太大`);
@@ -74,8 +73,7 @@ export class OptimizedSchemaCompiler {
 
       case 'checkbox':
         fieldSchema = z.boolean({
-          required_error: `请选择${field.label}`,
-          invalid_type_error: `${field.label}必须是是/否选择`,
+          message: `${field.label}必须是是/否选择`,
         });
         break;
 
@@ -255,7 +253,7 @@ export class SchemaValidationMonitor {
 
     const sorted = [...this.validationTimes].sort((a, b) => a - b);
     const index = Math.floor(sorted.length * (percentile / 100));
-    return sorted[index];
+    return sorted[index] || 0;
   }
 
   clear(): void {
@@ -285,8 +283,8 @@ export class SchemaValidationMonitor {
 export interface OptimizedValidatorProps {
   schema: z.ZodSchema<any>;
   data: any;
-  onValidationComplete?: (result: z.SafeParseReturnType<any, any>, time: number) => void;
-  children?: (isValid: boolean, errors?: z.ZodError<any>) => React.ReactNode;
+  onValidationComplete?: (result: ReturnType<z.ZodSchema<any>['safeParse']>, time: number) => void;
+  children?: (isValid: boolean, errors?: z.ZodError) => React.ReactNode;
 }
 
 export function OptimizedValidator({
@@ -296,7 +294,7 @@ export function OptimizedValidator({
   children,
 }: OptimizedValidatorProps) {
   const [isValid, setIsValid] = React.useState<boolean>(false);
-  const [errors, setErrors] = React.useState<z.ZodError<any> | undefined>();
+  const [errors, setErrors] = React.useState<z.ZodError | undefined>();
   const [validationTime, setValidationTime] = React.useState<number>(0);
 
   React.useEffect(() => {

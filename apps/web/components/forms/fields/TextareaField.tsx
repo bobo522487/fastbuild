@@ -211,10 +211,10 @@ export const TextareaField = React.memo(({ field, form, isVisible = true }: Text
   const validationRules = React.useMemo(() => {
     const rules: { min?: number; max?: number } = {};
     if (field.validation?.min !== undefined) {
-      rules.min = field.validation.min;
+      rules.min = Number(field.validation.min);
     }
     if (field.validation?.max !== undefined) {
-      rules.max = field.validation.max;
+      rules.max = Number(field.validation.max);
     }
     return rules;
   }, [field.validation]);
@@ -248,9 +248,10 @@ export const TextareaField = React.memo(({ field, form, isVisible = true }: Text
             <Textarea
               ref={textareaRef}
               placeholder={field.placeholder}
-              {...formField}
               value={formField.value || ''}
               onChange={handleInputChange}
+              name={formField.name}
+              onBlur={formField.onBlur}
               className={textareaClassName}
               disabled={form.formState.isSubmitting}
               aria-label={field.label}

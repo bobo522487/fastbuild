@@ -68,9 +68,10 @@ export const getResponsiveValue = <T,>(
     const currentIndex = breakpointOrder.indexOf(currentBreakpoint);
 
     for (let i = currentIndex; i < breakpointOrder.length; i++) {
-      const bp = breakpointOrder[i];
-      if (responsiveValue[bp] !== undefined) {
-        return responsiveValue[bp]!;
+      const bpKey = breakpointOrder[i] as string;
+      const value = (responsiveValue as any)[bpKey];
+      if (value !== undefined) {
+        return value as T;
       }
     }
 
@@ -366,8 +367,8 @@ export const ResponsiveFormLayout: React.FC<ResponsiveFormLayoutProps> = ({
     <div className={cn(layoutClasses, labelPositionClasses, className)}>
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child, {
-            className: cn(fieldWidthClasses, child.props.className),
+          return React.cloneElement(child as React.ReactElement<any>, {
+            className: cn(fieldWidthClasses, (child.props as any).className),
           });
         }
         return child;
@@ -389,12 +390,15 @@ export const useGestures = (
 
   const handleTouchStart = React.useCallback((event: React.TouchEvent) => {
     const touch = event.touches[0];
-    setStartX(touch.clientX);
-    setStartY(touch.clientY);
+    if (touch) {
+      setStartX(touch.clientX);
+      setStartY(touch.clientY);
+    }
   }, []);
 
   const handleTouchEnd = React.useCallback((event: React.TouchEvent) => {
     const touch = event.changedTouches[0];
+    if (!touch) return;
     const deltaX = touch.clientX - startX;
     const deltaY = touch.clientY - startY;
     const absDeltaX = Math.abs(deltaX);

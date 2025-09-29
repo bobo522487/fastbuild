@@ -10,12 +10,15 @@
   "types": "./src/index.ts",
   "scripts": {
     "db:generate": "prisma generate",
+    "prebuild": "pnpm db:generate",
     "build": "tsc"
   },
   "dependencies": {
-    "@prisma/client": "^6.16.2"
+    "@prisma/client": "^6.16.2",
+    "ioredis": "^5.4.1"
   },
   "devDependencies": {
+    "@types/ioredis": "^5.0.0",
     "@types/node": "^20.19.9",
     "@workspace/typescript-config": "workspace:*",
     "prisma": "^6.16.2",

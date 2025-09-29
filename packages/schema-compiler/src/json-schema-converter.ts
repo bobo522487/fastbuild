@@ -269,20 +269,28 @@ export class JsonSchemaConverter {
   } = {}): JsonSchema {
     const { title, description, includeExamples = true } = options;
 
+    // 在 Zod 4 中，我们需要使用不同的方法来获取 schema 类型信息
+    const schemaDef = (schema as any)._zod?.def || (schema as any)._def;
+    const typeName = schemaDef?.type;
+
     // 处理对象类型
-    if (schema._def.typeName === 'ZodObject') {
-      const shape = schema._def.shape();
+    if (typeName === 'object') {
+      // 在 Zod 4 中，我们需要使用不同的方式获取 shape
+      const shape = schemaDef?.shape || (schema as any).shape;
       const properties: Record<string, JsonSchema> = {};
       const required: string[] = [];
 
-      for (const [key, value] of Object.entries(shape)) {
-        properties[key] = this.convertZodSchemaToJsonSchema(value as z.ZodTypeAny, {
-          includeExamples: false, // 避免嵌套示例
-        });
+      if (shape) {
+        for (const [key, value] of Object.entries(shape)) {
+          properties[key] = this.convertZodSchemaToJsonSchema(value as z.ZodTypeAny, {
+            includeExamples: false, // 避免嵌套示例
+          });
 
-        // 检查是否为必填字段
-        if (!(value as any)._def.typeName?.includes('Optional')) {
-          required.push(key);
+          // 检查是否为必填字段
+          const valueDef = (value as any)._zod?.def || (value as any)._def;
+          if (valueDef?.type !== 'optional') {
+            required.push(key);
+          }
         }
       }
 
@@ -298,7 +306,7 @@ export class JsonSchemaConverter {
     }
 
     // 处理字符串类型
-    if (schema._def.typeName === 'ZodString') {
+    if (typeName === 'string') {
       const stringSchema: JsonSchema = {
         type: 'string',
         title,
@@ -306,7 +314,7 @@ export class JsonSchemaConverter {
       };
 
       // 处理字符串验证
-      const checks = (schema as any)._def.checks || [];
+      const checks = schemaDef?.checks || [];
       for (const check of checks) {
         switch (check.kind) {
           case 'min':
@@ -331,14 +339,14 @@ export class JsonSchemaConverter {
     }
 
     // 处理数字类型
-    if (schema._def.typeName === 'ZodNumber') {
+    if (typeName === 'number') {
       const numberSchema: JsonSchema = {
         type: 'number',
         title,
         description,
       };
 
-      const checks = (schema as any)._def.checks || [];
+      const checks = schemaDef?.checks || [];
       for (const check of checks) {
         switch (check.kind) {
           case 'min':
@@ -354,7 +362,7 @@ export class JsonSchemaConverter {
     }
 
     // 处理布尔类型
-    if (schema._def.typeName === 'ZodBoolean') {
+    if (typeName === 'boolean') {
       return {
         type: 'boolean',
         title,
@@ -363,7 +371,7 @@ export class JsonSchemaConverter {
     }
 
     // 处理日期类型
-    if (schema._def.typeName === 'ZodDate') {
+    if (typeName === 'date') {
       return {
         type: 'string',
         format: 'date-time',
@@ -373,18 +381,18 @@ export class JsonSchemaConverter {
     }
 
     // 处理枚举类型
-    if (schema._def.typeName === 'ZodEnum') {
+    if (typeName === 'enum') {
       return {
         type: 'string',
-        enum: (schema as any)._def.values,
+        enum: schemaDef?.values || [],
         title,
         description,
       };
     }
 
     // 处理联合类型
-    if (schema._def.typeName === 'ZodUnion') {
-      const options = (schema as any)._def.options;
+    if (typeName === 'union') {
+      const options = schemaDef?.options || [];
       const schemas = options.map((option: z.ZodTypeAny) =>
         this.convertZodSchemaToJsonSchema(option, { includeExamples: false })
       );
@@ -397,8 +405,8 @@ export class JsonSchemaConverter {
     }
 
     // 处理可选类型
-    if (schema._def.typeName === 'ZodOptional') {
-      const innerSchema = (schema as any)._def.innerType;
+    if (typeName === 'optional') {
+      const innerSchema = schemaDef?.innerType;
       const jsonSchema = this.convertZodSchemaToJsonSchema(innerSchema, {
         includeExamples: false,
       });

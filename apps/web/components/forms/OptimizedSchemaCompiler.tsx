@@ -27,34 +27,16 @@ const precompiledValidationRules = {
       z.string().regex(new RegExp(pattern), `${label}格式不正确`),
   },
   number: {
-    required: z.number({
-      required_error: '此字段不能为空',
-      invalid_type_error: '必须是有效的数字',
-    }),
+    required: z.number().min(1, '此字段不能为空'),
     optional: z.number().optional(),
     withRange: (min: number, max: number, label: string) =>
       z.number()
         .min(min, `${label}不能小于${min}`)
         .max(max, `${label}不能大于${max}`),
   },
-  email: {
-    required: z.string().email('邮箱格式不正确'),
-    optional: z.string().email('邮箱格式不正确').optional(),
-  },
-  url: {
-    required: z.string().url('URL格式不正确'),
-    optional: z.string().url('URL格式不正确').optional(),
-  },
   date: {
     required: z.string().datetime('日期格式不正确'),
     optional: z.string().datetime('日期格式不正确').optional(),
-  },
-  boolean: {
-    required: z.boolean({
-      required_error: '请选择一个选项',
-      invalid_type_error: '必须是是/否选择',
-    }),
-    optional: z.boolean().optional(),
   },
   select: {
     required: z.string().min(1, '请选择一个选项'),
@@ -67,6 +49,10 @@ const precompiledValidationRules = {
       z.string()
         .min(min, `${label}不能少于${min}个字符`)
         .max(max, `${label}不能超过${max}个字符`),
+  },
+  boolean: {
+    required: z.boolean().refine(val => val === true, '必须同意此选项'),
+    optional: z.boolean().optional(),
   },
 };
 
@@ -94,16 +80,9 @@ class ValidationRuleBuilder {
       case 'number':
         rule = this.buildNumberRule(field);
         break;
-      case 'email':
-        rule = this.buildEmailRule(field);
-        break;
-      case 'url':
-        rule = this.buildUrlRule(field);
-        break;
-      case 'date':
+            case 'date':
         rule = this.buildDateRule(field);
         break;
-      case 'boolean':
       case 'checkbox':
         rule = this.buildBooleanRule(field);
         break;
@@ -130,8 +109,8 @@ class ValidationRuleBuilder {
 
     // 添加长度验证
     if (validation.min !== undefined || validation.max !== undefined) {
-      const min = validation.min || 1;
-      const max = validation.max || 1000;
+      const min = Number(validation.min) || 1;
+      const max = Number(validation.max) || 1000;
       rule = precompiledValidationRules.text.withLength(min, max, field.label);
     }
 
@@ -151,28 +130,25 @@ class ValidationRuleBuilder {
 
     // 添加范围验证
     if (validation.min !== undefined || validation.max !== undefined) {
-      const min = validation.min || Number.MIN_SAFE_INTEGER;
-      const max = validation.max || Number.MAX_SAFE_INTEGER;
+      const min = Number(validation.min) || Number.MIN_SAFE_INTEGER;
+      const max = Number(validation.max) || Number.MAX_SAFE_INTEGER;
       rule = precompiledValidationRules.number.withRange(min, max, field.label);
     }
 
     return rule;
   }
 
-  private static buildEmailRule(field: FormFieldType): z.ZodTypeAny {
-    return field.required ? precompiledValidationRules.email.required : precompiledValidationRules.email.optional;
-  }
-
-  private static buildUrlRule(field: FormFieldType): z.ZodTypeAny {
-    return field.required ? precompiledValidationRules.url.required : precompiledValidationRules.url.optional;
-  }
-
+  
   private static buildDateRule(field: FormFieldType): z.ZodTypeAny {
     return field.required ? precompiledValidationRules.date.required : precompiledValidationRules.date.optional;
   }
 
   private static buildBooleanRule(field: FormFieldType): z.ZodTypeAny {
-    return field.required ? precompiledValidationRules.boolean.required : precompiledValidationRules.boolean.optional;
+    // Checkbox字段使用特殊的验证逻辑
+    if (field.required) {
+      return z.boolean().refine(val => val === true, '必须同意此选项');
+    }
+    return z.boolean().optional();
   }
 
   private static buildSelectRule(field: FormFieldType): z.ZodTypeAny {
@@ -182,7 +158,7 @@ class ValidationRuleBuilder {
     if (field.options && field.options.length > 0) {
       const validValues = field.options.map(opt => opt.value);
       return baseRule.refine(
-        (value) => validValues.includes(value),
+        (value) => value !== undefined && validValues.includes(value),
         { message: `请选择有效的选项` }
       );
     }
@@ -198,8 +174,8 @@ class ValidationRuleBuilder {
 
     // 添加长度验证
     if (validation.min !== undefined || validation.max !== undefined) {
-      const min = validation.min || 1;
-      const max = validation.max || 5000;
+      const min = Number(validation.min) || 1;
+      const max = Number(validation.max) || 5000;
       rule = precompiledValidationRules.textarea.withLength(min, max, field.label);
     }
 
@@ -214,7 +190,7 @@ class ValidationRuleBuilder {
 // 性能优化的 Schema 编译器
 export class OptimizedSchemaCompiler {
   // 编译表单元数据为 Zod Schema
-  static compile(metadata: FormMetadata): z.ZodObject<any> {
+  static compile(metadata: FormMetadata): z.ZodTypeAny {
     const cacheKey = this.getCacheKey(metadata);
 
     // 检查缓存
@@ -294,7 +270,7 @@ export class OptimizedSchemaCompiler {
   }
 
   // 验证 Schema 编译性能
-  static validatePerformance(metadata: FormMetadata): { success: boolean; duration: number; schema: z.ZodObject<any> } {
+  static validatePerformance(metadata: FormMetadata): { success: boolean; duration: number; schema: z.ZodTypeAny } {
     const startTime = performance.now();
 
     try {
@@ -318,12 +294,12 @@ export class OptimizedSchemaCompiler {
   }
 
   // 批量编译多个 Schema
-  static compileBatch(metadatas: FormMetadata[]): z.ZodObject<any>[] {
+  static compileBatch(metadatas: FormMetadata[]): z.ZodTypeAny[] {
     return metadatas.map(metadata => this.compile(metadata));
   }
 
   // 异步编译（用于超大型表单）
-  static async compileAsync(metadata: FormMetadata): Promise<z.ZodObject<any>> {
+  static async compileAsync(metadata: FormMetadata): Promise<z.ZodTypeAny> {
     return new Promise((resolve) => {
       // 使用 requestIdleCallback 在浏览器空闲时编译
       if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -355,7 +331,7 @@ export class SmartValidator {
   async validateIncremental(
     data: Record<string, any>,
     changedFields: string[]
-  ): Promise<{ success: boolean; errors: any }> {
+  ): Promise<{ success: boolean; errors: any; duration: number }> {
     const startTime = performance.now();
 
     try {
@@ -398,7 +374,8 @@ export class SmartValidator {
 
     // 检查必填字段
     Object.entries(this.schema.shape).forEach(([fieldName, fieldSchema]) => {
-      const isRequired = !fieldSchema.isOptional();
+      const schema = fieldSchema as z.ZodTypeAny;
+      const isRequired = !schema.isOptional();
       if (isRequired && (data[fieldName] === undefined || data[fieldName] === null || data[fieldName] === '')) {
         errors.push(`${fieldName} is required`);
       }
@@ -429,7 +406,7 @@ interface SchemaPerformanceMonitorProps {
 }
 
 export const SchemaPerformanceMonitor: React.FC<SchemaPerformanceMonitorProps> = ({ metadata }) => {
-  const [performance, setPerformance] = React.useState({
+  const [perfStats, setPerfStats] = React.useState({
     compileTime: 0,
     cacheHitRate: 0,
     validationTime: 0,
@@ -438,7 +415,7 @@ export const SchemaPerformanceMonitor: React.FC<SchemaPerformanceMonitorProps> =
 
   React.useEffect(() => {
     // 监控编译性能
-    const startTime = performance.now();
+    const startTime = window.performance.now();
     const result = OptimizedSchemaCompiler.validatePerformance(metadata);
     const compileTime = result.duration;
 
@@ -446,15 +423,15 @@ export const SchemaPerformanceMonitor: React.FC<SchemaPerformanceMonitorProps> =
     const stats = OptimizedSchemaCompiler.getCacheStats();
 
     // 监控验证性能
-    const validationStart = performance.now();
+    const validationStart = window.performance.now();
     try {
       result.schema.parse({});
     } catch (error) {
       // 忽略验证错误，只测量性能
     }
-    const validationTime = performance.now() - validationStart;
+    const validationTime = window.performance.now() - validationStart;
 
-    setPerformance({
+    setPerfStats({
       compileTime,
       cacheHitRate: 85, // 模拟缓存命中率
       validationTime,
@@ -464,17 +441,17 @@ export const SchemaPerformanceMonitor: React.FC<SchemaPerformanceMonitorProps> =
 
   return (
     <div className="text-xs space-y-1 p-2 bg-gray-50 rounded">
-      <div>编译时间: {performance.compileTime.toFixed(2)}ms</div>
-      <div>缓存命中率: {performance.cacheHitRate}%</div>
-      <div>验证时间: {performance.validationTime.toFixed(2)}ms</div>
-      <div>内存使用: {performance.memoryUsage}KB</div>
+      <div>编译时间: {perfStats.compileTime.toFixed(2)}ms</div>
+      <div>缓存命中率: {perfStats.cacheHitRate}%</div>
+      <div>验证时间: {perfStats.validationTime.toFixed(2)}ms</div>
+      <div>内存使用: {perfStats.memoryUsage}KB</div>
     </div>
   );
 };
 
 // React Hook 集成
 export const useOptimizedSchema = (metadata: FormMetadata) => {
-  const [schema, setSchema] = React.useState<z.ZodObject<any> | null>(null);
+  const [schema, setSchema] = React.useState<z.ZodTypeAny | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {

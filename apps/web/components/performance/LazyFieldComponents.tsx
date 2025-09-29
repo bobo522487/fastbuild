@@ -12,12 +12,12 @@ interface LazyFieldProps {
 }
 
 // 延迟加载的基础字段组件
-const LazyTextField = lazy(() => import('./LazyFields/LazyTextField'));
-const LazyNumberField = lazy(() => import('./LazyFields/LazyNumberField'));
-const LazyTextareaField = lazy(() => import('./LazyFields/LazyTextareaField'));
-const LazySelectField = lazy(() => import('./LazyFields/LazySelectField'));
-const LazyCheckboxField = lazy(() => import('./LazyFields/LazyCheckboxField'));
-const LazyDateField = lazy(() => import('./LazyFields/LazyDateField'));
+const LazyTextField = lazy(() => import('./LazyFields/LazyTextField').then(module => ({ default: module.LazyTextField })));
+const LazyNumberField = lazy(() => import('./LazyFields/LazyNumberField').then(module => ({ default: module.LazyNumberField })));
+const LazyTextareaField = lazy(() => import('./LazyFields/LazyTextareaField').then(module => ({ default: module.LazyTextareaField })));
+const LazySelectField = lazy(() => import('./LazyFields/LazySelectField').then(module => ({ default: module.LazySelectField })));
+const LazyCheckboxField = lazy(() => import('./LazyFields/LazyCheckboxField').then(module => ({ default: module.LazyCheckboxField })));
+const LazyDateField = lazy(() => import('./LazyFields/LazyDateField').then(module => ({ default: module.LazyDateField })));
 
 // 字段类型映射
 const fieldTypeComponents: Record<string, LazyExoticComponent<ComponentType<LazyFieldProps>>> = {
@@ -133,7 +133,7 @@ export function LazyFormSection({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry && entry.isIntersecting) {
           setIsLoaded(true);
           observer.disconnect();
         }
@@ -198,16 +198,16 @@ export function LazyFormSection({
   );
 }
 
-// 延迟加载的复杂组件
-const ComplexFormComponents = {
-  address: lazy(() => import('./LazyFields/LazyAddressField')),
-  fileUpload: lazy(() => import('./LazyFields/LazyFileUploadField')),
-  signature: lazy(() => import('./LazyFields/LazySignatureField')),
-  rating: lazy(() => import('./LazyFields/LazyRatingField')),
-  richText: lazy(() => import('./LazyFields/LazyRichTextField')),
-};
+// 暂时注释掉复杂组件，等文件创建后再启用
+// const ComplexFormComponents = {
+//   address: lazy(() => import('./LazyFields/LazyAddressField')),
+//   fileUpload: lazy(() => import('./LazyFields/LazyFileUploadField')),
+//   signature: lazy(() => import('./LazyFields/LazySignatureField')),
+//   rating: lazy(() => import('./LazyFields/LazyRatingField')),
+//   richText: lazy(() => import('./LazyFields/LazyRichTextField')),
+// };
 
-// 延迟加载的复杂字段组件
+// 延迟加载的复杂字段组件 - 暂时禁用
 export function LazyComplexField({
   fieldType,
   field,
@@ -221,43 +221,8 @@ export function LazyComplexField({
   isVisible?: boolean;
   onVisibilityChange?: (isVisible: boolean) => void;
 }) {
-  const [isClient, setIsClient] = React.useState(false);
-  const [shouldLoad, setShouldLoad] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (isVisible && isClient) {
-      setShouldLoad(true);
-    }
-  }, [isVisible, isClient]);
-
-  if (!isVisible || !isClient) {
-    return null;
-  }
-
-  const Component = ComplexFormComponents[fieldType as keyof typeof ComplexFormComponents];
-  if (!Component) {
-    console.warn(`Unsupported complex field type: ${fieldType}`);
-    return null;
-  }
-
-  if (!shouldLoad) {
-    return <FieldLoadingFallback />;
-  }
-
-  return (
-    <Suspense fallback={<FieldLoadingFallback />}>
-      <Component
-        field={field}
-        form={form}
-        isVisible={isVisible}
-        onVisibilityChange={onVisibilityChange}
-      />
-    </Suspense>
-  );
+  console.warn(`Complex field type ${fieldType} is not yet implemented`);
+  return <FieldLoadingFallback />;
 }
 
 // 预加载管理器
@@ -290,20 +255,9 @@ export class FieldPreloader {
   }
 
   async preloadComplexField(fieldType: string): Promise<void> {
-    if (this.preloadedComponents.has(`complex_${fieldType}`)) {
-      return;
-    }
-
-    const component = ComplexFormComponents[fieldType as keyof typeof ComplexFormComponents];
-    if (component) {
-      try {
-        // 触发预加载
-        await component;
-        this.preloadedComponents.add(`complex_${fieldType}`);
-      } catch (error) {
-        console.warn(`Failed to preload complex field type: ${fieldType}`, error);
-      }
-    }
+    // 暂时禁用复杂字段预加载
+    console.warn(`Complex field preloading for ${fieldType} is not yet implemented`);
+    return;
   }
 
   isPreloaded(fieldType: string): boolean {

@@ -91,12 +91,12 @@ class FieldErrorBoundary extends React.Component<
 }
 
 // 懒加载的字段组件
-const LazyTextField = lazy(() => import('./fields/TextField'));
-const LazyNumberField = lazy(() => import('./fields/NumberField'));
-const LazyTextareaField = lazy(() => import('./fields/TextareaField'));
-const LazySelectField = lazy(() => import('./fields/SelectField'));
-const LazyCheckboxField = lazy(() => import('./fields/CheckboxField'));
-const LazyDateField = lazy(() => import('./fields/DateField'));
+const LazyTextField = lazy(() => import('./fields/TextField').then(module => ({ default: module.TextField })));
+const LazyNumberField = lazy(() => import('./fields/NumberField').then(module => ({ default: module.NumberField })));
+const LazyTextareaField = lazy(() => import('./fields/TextareaField').then(module => ({ default: module.TextareaField })));
+const LazySelectField = lazy(() => import('./fields/SelectField').then(module => ({ default: module.SelectField })));
+const LazyCheckboxField = lazy(() => import('./fields/CheckboxField').then(module => ({ default: module.CheckboxField })));
+const LazyDateField = lazy(() => import('./fields/DateField').then(module => ({ default: module.DateField })));
 
 // 懒加载组件映射
 const LazyFieldComponents: Record<string, ComponentType<LazyFormFieldProps>> = {
@@ -122,7 +122,7 @@ const FieldPreloader = {
   preloadForForm: (metadata: any) => {
     const fieldTypes = new Set(metadata.fields.map((f: any) => f.type));
     fieldTypes.forEach(type => {
-      const component = LazyFieldComponents[type];
+      const component = LazyFieldComponents[type as keyof typeof LazyFieldComponents];
       if (component) {
         // @ts-ignore
         component._payload._result || component._payload._result;

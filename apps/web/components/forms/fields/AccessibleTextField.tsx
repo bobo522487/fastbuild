@@ -109,8 +109,8 @@ export const AccessibleTextField: React.FC<AccessibleTextFieldProps> = ({
       handleClear();
     }
 
-    // Enter: 提交表单（如果不在多行文本模式）
-    if (event.key === 'Enter' && type !== 'textarea' && !event.shiftKey) {
+    // Enter: 提交表单
+    if (event.key === 'Enter' && !event.shiftKey) {
       const form = event.currentTarget.form;
       if (form) {
         event.preventDefault();

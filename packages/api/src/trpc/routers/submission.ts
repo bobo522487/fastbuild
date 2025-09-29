@@ -14,7 +14,7 @@ export const submissionRouter = router({
   create: formProcedure
     .input(z.object({
       formId: z.string(),
-      data: z.record(z.any()),
+      data: z.record(z.string(), z.unknown()),
     }))
     .mutation(async ({ input, ctx }) => {
       // 检查表单是否存在
@@ -198,7 +198,7 @@ export const submissionRouter = router({
   update: protectedProcedure
     .input(z.object({
       id: z.string(),
-      data: z.record(z.any()).optional(),
+      data: z.record(z.string(), z.unknown()).optional(),
       status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
     }))
     .mutation(async ({ input, ctx }) => {

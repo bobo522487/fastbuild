@@ -25,9 +25,9 @@ const FormFieldSchema = z.object({
   condition: z.object({
     fieldId: z.string(),
     operator: z.enum(['equals', 'not_equals']),
-    value: z.any(),
+    value: z.unknown(),
   }).optional(),
-  defaultValue: z.any().optional(),
+  defaultValue: z.unknown().optional(),
 });
 
 // 表单元数据验证 Schema
@@ -81,7 +81,7 @@ export const schemaRouter = router({
    */
   validate: publicProcedure
     .input(z.object({
-      data: z.record(z.any()),
+      data: z.record(z.string(), z.unknown()),
       metadata: FormMetadataSchema,
     }))
     .mutation(async ({ input }) => {
@@ -114,7 +114,7 @@ export const schemaRouter = router({
   computeVisibility: publicProcedure
     .input(z.object({
       fields: z.array(FormFieldSchema),
-      values: z.record(z.any()),
+      values: z.record(z.string(), z.unknown()),
     }))
     .mutation(async ({ input }) => {
       try {
@@ -145,7 +145,7 @@ export const schemaRouter = router({
   batchValidate: publicProcedure
     .input(z.object({
       submissions: z.array(z.object({
-        data: z.record(z.any()),
+        data: z.record(z.string(), z.unknown()),
         metadata: FormMetadataSchema,
       })),
     }))

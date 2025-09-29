@@ -40,7 +40,7 @@ import { Badge } from '@workspace/ui/components/badge';
 import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { LoadingIndicator, FormLoadingIndicator, ButtonLoading } from './LoadingIndicator';
 import { FormResetHandler, useFormReset } from './FormResetHandler';
-import { EnhancedValidationSummary, ValidationErrorAnalyzer } from './EnhancedValidationSummary';
+// import { EnhancedValidationSummary, ValidationErrorAnalyzer } from './EnhancedValidationSummary';
 
 import type {
   FormMetadata,
@@ -409,7 +409,7 @@ const FormFieldComponents = React.useMemo(() => {
 }, []);
 
 // 性能优化：缓存 Schema 构建
-const buildOptimizedSchema = React.memo((metadata: FormMetadata) => {
+const buildOptimizedSchema = (metadata: FormMetadata) => {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   metadata.fields.forEach((field) => {
@@ -427,10 +427,7 @@ const buildOptimizedSchema = React.memo((metadata: FormMetadata) => {
           .max(2000, `${field.label}不能超过2000个字符`);
         break;
       case 'number':
-        fieldSchema = z.number({
-          required_error: `${field.label}不能为空`,
-          invalid_type_error: `${field.label}必须是有效的数字`,
-        })
+        fieldSchema = z.number()
         .min(Number.MIN_SAFE_INTEGER, `${field.label}不能太小`)
         .max(Number.MAX_SAFE_INTEGER, `${field.label}不能太大`);
         break;
@@ -439,10 +436,7 @@ const buildOptimizedSchema = React.memo((metadata: FormMetadata) => {
           .min(1, `请选择${field.label}`);
         break;
       case 'checkbox':
-        fieldSchema = z.boolean({
-          required_error: `请选择${field.label}`,
-          invalid_type_error: `${field.label}必须是是/否选择`,
-        });
+        fieldSchema = z.boolean();
         break;
       case 'date':
         fieldSchema = z.string()
@@ -463,7 +457,7 @@ const buildOptimizedSchema = React.memo((metadata: FormMetadata) => {
   });
 
   return z.object(shape);
-});
+}
 
 export function DynamicFormRenderer({
   metadata,
@@ -560,9 +554,19 @@ export function DynamicFormRenderer({
   }, [form, metadata]);
 
   // 性能优化：减少验证分析频率
+  // const validationSummary = React.useMemo(() => {
+  //   return ValidationErrorAnalyzer.analyzeForm(metadata, form);
+  // }, [form, metadata]);
+
+  // 简化的验证状态
   const validationSummary = React.useMemo(() => {
-    return ValidationErrorAnalyzer.analyzeForm(metadata, form);
-  }, [form, metadata]);
+    const { isValid } = form.formState;
+    return {
+      isValid,
+      errors: [],
+      warnings: [],
+    };
+  }, [form]);
 
   // 使用重置功能
   const { resetForm } = useFormReset(form, metadata);
@@ -646,8 +650,8 @@ export function DynamicFormRenderer({
             {/* 渲染所有字段 */}
             {renderFields}
 
-            {/* 增强验证摘要 */}
-            <EnhancedValidationSummary
+            {/* 增强验证摘要 - 暂时注释 */}
+            {/* <EnhancedValidationSummary
               metadata={metadata}
               form={form}
               isVisible={showValidationDetails || !validationSummary.isValid}
@@ -658,7 +662,7 @@ export function DynamicFormRenderer({
                   fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
               }}
-            />
+            /> */}
 
             {/* 提交按钮 */}
             <div className="flex items-center justify-between">
@@ -672,7 +676,6 @@ export function DynamicFormRenderer({
                 </Button>
               )}
               <ButtonLoading
-                type="submit"
                 isLoading={isSubmitting || isLoading}
                 disabled={!validationSummary.isValid}
                 loadingText="提交中..."

@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { Loader2, CheckCircle2, AlertCircle, XCircle, Clock, Wifi, WifiOff, Database, Shield } from 'lucide-react';
+import { LoadingStateIndicator, FullScreenLoading } from '../ui/loading-states';
 
-export type LoadingState = 'idle' | 'loading' | 'success' | 'error' | 'validating' | 'syncing' | 'offline' | 'retrying' | 'processing';
+// 重新导出统一的加载状态组件
+export type LoadingState = 'idle' | 'loading' | 'success' | 'error' | 'validating';
 
 export interface LoadingStatus {
   state: LoadingState;
@@ -33,6 +35,14 @@ export interface LoadingIndicatorProps {
   showProgress?: boolean;
 }
 
+export interface FormLoadingIndicatorProps {
+  isSubmitting: boolean;
+  isValidating: boolean;
+  submitCount?: number;
+  className?: string;
+}
+
+// 简化的加载状态指示器，使用shadcn loading-states组件
 export function LoadingIndicator({
   status,
   size = 'md',
@@ -77,30 +87,6 @@ export function LoadingIndicator({
             className={`animate-pulse ${sizeClasses[size]} text-yellow-600`}
           />
         );
-      case 'syncing':
-        return (
-          <Database
-            className={`${sizeClasses[size]} text-purple-600 animate-pulse`}
-          />
-        );
-      case 'offline':
-        return (
-          <WifiOff
-            className={`${sizeClasses[size]} text-orange-600`}
-          />
-        );
-      case 'retrying':
-        return (
-          <Clock
-            className={`${sizeClasses[size]} text-orange-600 animate-pulse`}
-          />
-        );
-      case 'processing':
-        return (
-          <Shield
-            className={`${sizeClasses[size]} text-indigo-600 animate-pulse`}
-          />
-        );
       default:
         return null;
     }
@@ -116,14 +102,6 @@ export function LoadingIndicator({
         return 'text-red-600';
       case 'validating':
         return 'text-yellow-600';
-      case 'syncing':
-        return 'text-purple-600';
-      case 'offline':
-        return 'text-orange-600';
-      case 'retrying':
-        return 'text-orange-600';
-      case 'processing':
-        return 'text-indigo-600';
       default:
         return 'text-gray-600';
     }
@@ -139,14 +117,6 @@ export function LoadingIndicator({
         return '失败';
       case 'validating':
         return '验证中...';
-      case 'syncing':
-        return '同步中...';
-      case 'offline':
-        return '离线模式';
-      case 'retrying':
-        return '重试中...';
-      case 'processing':
-        return '处理中...';
       default:
         return '';
     }
@@ -221,7 +191,7 @@ export class LoadingStateManager {
 
     // 更新所有操作的状态
     this.operations.forEach((operation, id) => {
-      if (operation.state === 'loading' || operation.state === 'processing') {
+      if (operation.state === 'loading' || operation.state === 'validating') {
         const duration = now.getTime() - operation.startTime.getTime();
 
         // 如果操作超过30秒，标记为异常
@@ -286,7 +256,7 @@ export class LoadingStateManager {
     const operation = this.operations.get(id);
     if (operation && operation.retryCount! < operation.maxRetries!) {
       operation.retryCount! += 1;
-      operation.state = 'retrying';
+      operation.state = 'loading';
       operation.startTime = new Date();
       this.notifyListeners();
       return true;
@@ -313,10 +283,10 @@ export class LoadingStateManager {
     }
 
     // 如果有重试中的操作，显示重试状态
-    const retryingOps = activeOps.filter(op => op.state === 'retrying');
+    const retryingOps = activeOps.filter(op => op.state === 'loading' && op.retryCount && op.retryCount > 0);
     if (retryingOps.length > 0) {
       return {
-        state: 'retrying',
+        state: 'loading',
         message: '重试中...',
         details: `正在重试 ${retryingOps.length} 个操作`,
       };
@@ -332,9 +302,9 @@ export class LoadingStateManager {
       };
     }
 
-    // 否则显示处理状态
+    // 否则显示加载状态
     return {
-      state: 'processing',
+      state: 'loading',
       message: '处理中...',
       details: `正在处理 ${activeOps.length} 个操作`,
     };
@@ -389,48 +359,38 @@ export function useGlobalLoading() {
   };
 }
 
-// 表单专用的加载状态组件
-
+// 表单专用的加载状态组件 - 使用shadcn loading-states
 export function FormLoadingIndicator({
   isSubmitting,
   isValidating,
   submitCount = 0,
   className = '',
 }: FormLoadingIndicatorProps) {
-  const getLoadingStatus = (): LoadingStatus => {
+  const getState = (): LoadingState => {
+    if (isSubmitting) return 'loading';
+    if (isValidating) return 'validating';
+    return 'idle';
+  };
+
+  const getMessage = () => {
     if (isSubmitting) {
-      return {
-        state: 'loading',
-        message: '提交中...',
-        details: submitCount > 0 ? `第 ${submitCount} 次提交尝试` : undefined,
-        timestamp: new Date(),
-      };
+      return submitCount > 0 ? `提交中... (第${submitCount}次尝试)` : '提交中...';
     }
-
-    if (isValidating) {
-      return {
-        state: 'validating',
-        message: '验证中...',
-        timestamp: new Date(),
-      };
-    }
-
-    return {
-      state: 'idle',
-      message: '',
-    };
+    if (isValidating) return '验证中...';
+    return '';
   };
 
   return (
-    <LoadingIndicator
-      status={getLoadingStatus()}
+    <LoadingStateIndicator
+      state={getState()}
+      message={getMessage()}
       size="sm"
       className={className}
     />
   );
 }
 
-// 页面级加载组件
+// 页面级加载组件 - 使用shadcn loading-states
 export interface PageLoadingProps {
   isLoading: boolean;
   message?: string;
@@ -646,3 +606,6 @@ function formatDuration(milliseconds: number): string {
     return `${minutes}m ${seconds}s`;
   }
 }
+
+// 重新导出shadcn加载状态组件以保持向后兼容性
+export { FullScreenLoading };

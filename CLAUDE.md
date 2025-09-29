@@ -60,16 +60,26 @@ The platform uses **Zod Schema as the single source of truth**. Form metadata is
 fastbuild/
 ├── apps/web/                 # Next.js application
 │   ├── app/                  # App Router pages
-│   ├── app/api/             # API routes (REST)
-│   └── components/          # App-specific components
+│   │   ├── page.tsx          # 工作台（首页仪表板）
+│   │   ├── builder/          # 表单构建器
+│   │   ├── forms/            # 表单管理
+│   │   │   ├── page.tsx      # 表单列表
+│   │   │   └── [id]/         # 表单详情和提交数据
+│   │   ├── demo/             # 功能演示
+│   │   ├── admin/monitoring/ # 系统监控
+│   │   └── api/              # API routes (REST)
+│   ├── components/           # App-specific components
+│   │   ├── layout/           # 简化布局组件
+│   │   └── forms/            # 表单组件
+│   └── lib/                  # 工具库
 ├── packages/
-│   ├── ui/                  # Shared shadcn/ui components
-│   ├── database/            # Prisma client and utilities
-│   ├── schema-compiler/     # Core form metadata → Zod conversion
-│   ├── typescript-config/   # Shared TypeScript config
-│   └── eslint-config/       # Shared ESLint config
-├── prisma/                  # Database schema
-└── docker-compose.yml       # PostgreSQL container
+│   ├── ui/                   # Shared shadcn/ui components
+│   ├── database/             # Prisma client and utilities
+│   ├── schema-compiler/      # Core form metadata → Zod conversion
+│   ├── typescript-config/    # Shared TypeScript config
+│   └── eslint-config/        # Shared ESLint config
+├── prisma/                   # Database schema
+└── docker-compose.yml        # PostgreSQL container
 ```
 
 ### Key Packages
@@ -206,6 +216,22 @@ Current REST API endpoints:
 - `GET/PUT/DELETE /api/forms/[id]` - Individual form management
 - `GET/POST /api/forms/[id]/submissions` - Form submissions
 
+### Frontend Pages
+**Core Application Pages**:
+- `/` - 工作台（首页仪表板）：显示用户表单统计、快速操作、最近活动
+- `/builder` - 表单构建器：可视化表单创建和设计界面
+- `/forms` - 表单管理：表单列表、搜索、筛选、统计概览
+- `/forms/[id]` - 表单详情：字段配置、预览、设置
+- `/forms/[id]/submissions` - 表单提交数据：数据查看、分析、导出
+
+**Supporting Pages**:
+- `/demo` - 功能演示：展示表单渲染和验证功能
+- `/admin/monitoring` - 系统监控：性能监控、错误追踪、系统状态
+
+**Navigation Structure**:
+- 核心功能：工作台、表单管理、表单构建器
+- 演示与监控：功能演示、系统监控
+
 ## Code Patterns
 
 ### Import Patterns
@@ -242,15 +268,25 @@ import { buildZodSchema } from "@workspace/schema-compiler"
 - Schema compiler package
 - Basic REST API routes
 - Docker containerization
+- Frontend page structure reorganization
+- Unified navigation system
+- User dashboard (工作台)
+- Form management pages
+- Form builder landing page
+- Form detail and submission views
 
 🔄 **In Progress**:
-- Form designer UI implementation
-- Dynamic form renderer
+- Visual form builder implementation
+- Dynamic form renderer optimization
 - Advanced field types and validation
 - Conditional field logic
+- Real-time form preview
+- Data analytics and export features
 
 📋 **Next Steps**:
-- Implement drag-and-drop form designer
-- Complete dynamic form rendering system
+- Complete drag-and-drop form designer
+- Implement form template system
 - Add comprehensive validation rules
-- Implement form versioning and history
+- Real-time collaboration features
+- Advanced analytics and reporting
+- Form versioning and history tracking

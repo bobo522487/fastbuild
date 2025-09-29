@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
-import ApplicationShell from '@/components/shadcn-studio/application-shell'
+import SimpleLayout from '@/components/layout/SimpleLayout'
 
 // 统计卡片组件
 const StatCard = ({ title, value, description, trend, icon: Icon }: {
@@ -50,43 +50,43 @@ const QuickActionCard = ({ title, description, href, icon: Icon, badge }: {
 
 export default function HomePage() {
   return (
-    <ApplicationShell>
+    <SimpleLayout>
       <div className="space-y-8">
         {/* 欢迎标题 */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">欢迎来到 FastBuild</h1>
+          <h1 className="text-3xl font-bold tracking-tight">工作台</h1>
           <p className="text-muted-foreground">
-            Schema驱动的动态表单平台 - 快速构建、验证和管理表单
+            管理您的表单和查看数据统计
           </p>
         </div>
 
         {/* 统计概览 */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="总表单数"
-            value="12"
-            description="+2 较上周"
+            title="我的表单"
+            value="8"
+            description="+2 本周新增"
             trend="up"
             icon={() => <span className="text-lg">📋</span>}
           />
           <StatCard
             title="今日提交"
-            value="48"
-            description="+12 较昨日"
+            value="24"
+            description="+5 较昨日"
             trend="up"
             icon={() => <span className="text-lg">📊</span>}
           />
           <StatCard
-            title="活跃用户"
-            value="156"
-            description="+8 较昨日"
+            title="总提交数"
+            value="342"
+            description="所有表单累计"
             trend="up"
-            icon={() => <span className="text-lg">👥</span>}
+            icon={() => <span className="text-lg">📈</span>}
           />
           <StatCard
-            title="成功率"
-            value="98.5%"
-            description="表单提交成功率"
+            title="完成率"
+            value="96.2%"
+            description="表单完成率"
             trend="up"
             icon={() => <span className="text-lg">✅</span>}
           />
@@ -101,37 +101,19 @@ export default function HomePage() {
               description="使用可视化构建器创建新的表单"
               href="/builder"
               icon={() => <span className="text-2xl">🛠️</span>}
-              badge="新功能"
+              badge="开始"
             />
             <QuickActionCard
-              title="表单演示"
+              title="表单管理"
+              description="查看和管理所有表单"
+              href="/forms"
+              icon={() => <span className="text-2xl">📋</span>}
+            />
+            <QuickActionCard
+              title="功能演示"
               description="体验动态表单的渲染和验证功能"
               href="/demo"
               icon={() => <span className="text-2xl">🎭</span>}
-            />
-            <QuickActionCard
-              title="查看数据"
-              description="分析表单提交数据和用户行为"
-              href="/analytics"
-              icon={() => <span className="text-2xl">📈</span>}
-            />
-            <QuickActionCard
-              title="表单模板"
-              description="使用预设模板快速开始"
-              href="/templates"
-              icon={() => <span className="text-2xl">📄</span>}
-            />
-            <QuickActionCard
-              title="简化演示"
-              description="查看基础表单功能演示"
-              href="/demo-simple"
-              icon={() => <span className="text-2xl">🎯</span>}
-            />
-            <QuickActionCard
-              title="系统监控"
-              description="查看系统性能和健康状态"
-              href="/admin/monitoring"
-              icon={() => <span className="text-2xl">🖥️</span>}
             />
           </div>
         </div>
@@ -170,88 +152,40 @@ export default function HomePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>系统状态</CardTitle>
-              <CardDescription>当前系统运行状态</CardDescription>
+              <CardTitle>我的表单</CardTitle>
+              <CardDescription>最近创建的表单</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">服务状态</span>
-                  <Badge variant="default" className="bg-green-100 text-green-800">
-                    正常运行
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">响应时间</span>
-                  <span className="text-sm text-muted-foreground">45ms</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">数据库连接</span>
-                  <Badge variant="default" className="bg-green-100 text-green-800">
-                    已连接
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">内存使用</span>
-                  <span className="text-sm text-muted-foreground">256MB / 1GB</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">版本信息</span>
-                  <span className="text-sm text-muted-foreground">v1.0.0 MVP</span>
+                {[
+                  { name: '用户反馈表', submissions: 24, created: '2天前', status: '已发布' },
+                  { name: '活动报名表', submissions: 18, created: '3天前', status: '已发布' },
+                  { name: '产品调查', submissions: 32, created: '1周前', status: '已发布' },
+                  { name: '联系表单', submissions: 45, created: '2周前', status: '草稿' },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-muted-foreground">{item.submissions} 提交</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{item.created}</span>
+                      <Badge variant={item.status === '已发布' ? 'default' : 'secondary'}>
+                        {item.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-2">
+                  <Button size="sm" asChild className="w-full">
+                    <Link href="/forms">查看所有表单</Link>
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* 快速开始指南 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>快速开始指南</CardTitle>
-            <CardDescription>帮助您快速上手 FastBuild 平台</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xl">1️⃣</span>
-                </div>
-                <h3 className="font-semibold">创建表单</h3>
-                <p className="text-sm text-muted-foreground">
-                  使用可视化构建器或JSON Schema创建表单
-                </p>
-                <Button size="sm" asChild>
-                  <Link href="/builder">开始创建</Link>
-                </Button>
-              </div>
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xl">2️⃣</span>
-                </div>
-                <h3 className="font-semibold">体验演示</h3>
-                <p className="text-sm text-muted-foreground">
-                  查看演示页面了解功能特性
-                </p>
-                <Button size="sm" asChild>
-                  <Link href="/demo">查看演示</Link>
-                </Button>
-              </div>
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xl">3️⃣</span>
-                </div>
-                <h3 className="font-semibold">分析数据</h3>
-                <p className="text-sm text-muted-foreground">
-                  查看表单提交情况和数据分析
-                </p>
-                <Button size="sm" asChild>
-                  <Link href="/analytics">查看数据</Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-    </ApplicationShell>
+    </SimpleLayout>
   )
 }

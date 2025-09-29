@@ -177,6 +177,7 @@ export interface AccessibleCheckboxGroupProps {
   defaultValue?: string[];
   required?: boolean;
   disabled?: boolean;
+  hasError?: boolean;
   onChange?: (selectedValues: string[]) => void;
   orientation?: 'horizontal' | 'vertical';
 }
@@ -190,6 +191,7 @@ export const AccessibleCheckboxGroup: React.FC<AccessibleCheckboxGroupProps> = (
   defaultValue,
   required = false,
   disabled = false,
+  hasError = false,
   onChange,
   orientation = 'vertical',
 }) => {
@@ -252,6 +254,7 @@ export const AccessibleCheckboxGroup: React.FC<AccessibleCheckboxGroupProps> = (
             checked={selectedValues.includes(option.value)}
             defaultChecked={option.checked}
             disabled={disabled || option.disabled}
+            hasError={hasError}
             onCheckedChange={(checked) => handleOptionChange(option.value, checked === true)}
           />
         ))}

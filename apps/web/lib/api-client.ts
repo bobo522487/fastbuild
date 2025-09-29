@@ -14,43 +14,43 @@ export class ApiClient {
     /**
      * 获取表单列表
      */
-    list: async (input?: Parameters<typeof trpc.form.list.query>[0]) => {
-      return await withRetry(() => trpc.form.list.query(input));
+    list: async (input?: any) => {
+      return await withRetry(() => trpc.form.list.query(input) as Promise<any>);
     },
 
     /**
      * 根据ID获取表单
      */
-    getById: async (input: Parameters<typeof trpc.form.getById.query>[0]) => {
-      return await withRetry(() => trpc.form.getById.query(input));
+    getById: async (input: any) => {
+      return await withRetry(() => trpc.form.getById.query(input) as Promise<any>);
     },
 
     /**
      * 创建表单
      */
-    create: async (input: Parameters<typeof trpc.form.create.mutate>[0]) => {
-      return await withRetry(() => trpc.form.create.mutate(input));
+    create: async (input: any) => {
+      return await withRetry(() => trpc.form.create.mutate(input) as Promise<any>);
     },
 
     /**
      * 更新表单
      */
-    update: async (input: Parameters<typeof trpc.form.update.mutate>[0]) => {
-      return await withRetry(() => trpc.form.update.mutate(input));
+    update: async (input: any) => {
+      return await withRetry(() => trpc.form.update.mutate(input) as Promise<any>);
     },
 
     /**
      * 删除表单
      */
-    delete: async (input: Parameters<typeof trpc.form.delete.mutate>[0]) => {
-      return await withRetry(() => trpc.form.delete.mutate(input));
+    delete: async (input: any) => {
+      return await withRetry(() => trpc.form.delete.mutate(input) as Promise<any>);
     },
 
     /**
      * 获取表单提交数据
      */
-    getSubmissions: async (input: Parameters<typeof trpc.form.getSubmissions.query>[0]) => {
-      return await withRetry(() => trpc.form.getSubmissions.query(input));
+    getSubmissions: async (input: any) => {
+      return await withRetry(() => trpc.form.getSubmissions.query(input) as Promise<any>);
     },
   };
 
@@ -61,64 +61,64 @@ export class ApiClient {
     /**
      * 用户登录
      */
-    login: async (input: Parameters<typeof trpc.auth.login.mutate>[0]) => {
-      return await withRetry(() => trpc.auth.login.mutate(input));
+    login: async (input: any) => {
+      return await withRetry(() => trpc.auth.login.mutate(input) as Promise<any>);
     },
 
     /**
      * 用户注册
      */
-    register: async (input: Parameters<typeof trpc.auth.register.mutate>[0]) => {
-      return await withRetry(() => trpc.auth.register.mutate(input));
+    register: async (input: any) => {
+      return await withRetry(() => trpc.auth.register.mutate(input) as Promise<any>);
     },
 
     /**
      * 刷新令牌
      */
-    refreshToken: async (input: Parameters<typeof trpc.auth.refreshToken.mutate>[0]) => {
-      return await withRetry(() => trpc.auth.refreshToken.mutate(input));
+    refreshToken: async (input: any) => {
+      return await withRetry(() => trpc.auth.refreshToken.mutate(input) as Promise<any>);
     },
 
     /**
      * 获取当前用户信息
      */
     me: async () => {
-      return await withRetry(() => trpc.auth.me.query());
+      return await withRetry(() => trpc.auth.me.query() as Promise<any>);
     },
 
     /**
      * 更新用户资料
      */
-    updateProfile: async (input: Parameters<typeof trpc.auth.updateProfile.mutate>[0]) => {
-      return await withRetry(() => trpc.auth.updateProfile.mutate(input));
+    updateProfile: async (input: any) => {
+      return await withRetry(() => trpc.auth.updateProfile.mutate(input) as Promise<any>);
     },
 
     /**
      * 修改密码
      */
-    changePassword: async (input: Parameters<typeof trpc.auth.changePassword.mutate>[0]) => {
-      return await withRetry(() => trpc.auth.changePassword.mutate(input));
+    changePassword: async (input: any) => {
+      return await withRetry(() => trpc.auth.changePassword.mutate(input) as Promise<any>);
     },
 
     /**
      * 用户登出
      */
     logout: async () => {
-      return await withRetry(() => trpc.auth.logout.mutate());
+      return await withRetry(() => trpc.auth.logout.mutate() as Promise<any>);
     },
 
     /**
      * 创建用户（管理员功能）
      */
-    createUser: async (input: Parameters<typeof trpc.auth.createUser.mutate>[0]) => {
-      return await withRetry(() => trpc.auth.createUser.mutate(input));
+    createUser: async (input: any) => {
+      return await withRetry(() => trpc.auth.createUser.mutate(input) as Promise<any>);
     },
 
     /**
      * 获取用户列表（管理员功能）
      */
-    listUsers: async (input?: Parameters<typeof trpc.auth.listUsers.query>[0]) => {
-      return await withRetry(() => trpc.auth.listUsers.query(input));
+    listUsers: async (input?: any) => {
+      return await withRetry(() => trpc.auth.listUsers.query(input) as Promise<any>);
     },
   };
 
@@ -129,50 +129,50 @@ export class ApiClient {
     /**
      * 提交表单
      */
-    create: async (input: Parameters<typeof trpc.submission.create.mutate>[0]) => {
-      return await withRetry(() => trpc.submission.create.mutate(input));
+    create: async (input: any) => {
+      return await withRetry(() => trpc.submission.create.mutate(input) as Promise<any>);
     },
 
     /**
      * 获取提交详情
      */
-    getById: async (input: Parameters<typeof trpc.submission.getById.query>[0]) => {
-      return await withRetry(() => trpc.submission.getById.query(input));
+    getById: async (input: any) => {
+      return await withRetry(() => trpc.submission.getById.query(input) as Promise<any>);
     },
 
     /**
      * 根据表单ID获取提交列表
      */
-    getByFormId: async (input: Parameters<typeof trpc.submission.getByFormId.query>[0]) => {
-      return await withRetry(() => trpc.submission.getByFormId.query(input));
+    getByFormId: async (input: any) => {
+      return await withRetry(() => trpc.submission.getByFormId.query(input) as Promise<any>);
     },
 
     /**
      * 更新提交
      */
-    update: async (input: Parameters<typeof trpc.submission.update.mutate>[0]) => {
-      return await withRetry(() => trpc.submission.update.mutate(input));
+    update: async (input: any) => {
+      return await withRetry(() => trpc.submission.update.mutate(input) as Promise<any>);
     },
 
     /**
      * 删除提交
      */
-    delete: async (input: Parameters<typeof trpc.submission.delete.mutate>[0]) => {
-      return await withRetry(() => trpc.submission.delete.mutate(input));
+    delete: async (input: any) => {
+      return await withRetry(() => trpc.submission.delete.mutate(input) as Promise<any>);
     },
 
     /**
      * 获取提交统计
      */
-    getStats: async (input: Parameters<typeof trpc.submission.getStats.query>[0]) => {
-      return await withRetry(() => trpc.submission.getStats.query(input));
+    getStats: async (input: any) => {
+      return await withRetry(() => trpc.submission.getStats.query(input) as Promise<any>);
     },
 
     /**
      * 批量删除提交
      */
-    bulkDelete: async (input: Parameters<typeof trpc.submission.bulkDelete.mutate>[0]) => {
-      return await withRetry(() => trpc.submission.bulkDelete.mutate(input));
+    bulkDelete: async (input: any) => {
+      return await withRetry(() => trpc.submission.bulkDelete.mutate(input) as Promise<any>);
     },
   };
 
@@ -184,21 +184,21 @@ export class ApiClient {
      * 基础健康检查
      */
     check: async () => {
-      return await withRetry(() => trpc.health.check.query());
+      return await withRetry(() => trpc.health.check.query() as Promise<any>);
     },
 
     /**
      * 数据库健康检查
      */
     database: async () => {
-      return await withRetry(() => trpc.health.database.query());
+      return await withRetry(() => trpc.health.database.query() as Promise<any>);
     },
 
     /**
      * 系统信息
      */
     info: async () => {
-      return await withRetry(() => trpc.health.info.query());
+      return await withRetry(() => trpc.health.info.query() as Promise<any>);
     },
   };
 
@@ -209,22 +209,22 @@ export class ApiClient {
     /**
      * 编译表单 Schema
      */
-    compile: async (input: Parameters<typeof trpc.schema.compile.mutate>[0]) => {
-      return await withRetry(() => trpc.schema.compile.mutate(input));
+    compile: async (input: any) => {
+      return await withRetry(() => trpc.schema.compile.mutate(input) as Promise<any>);
     },
 
     /**
      * 验证表单数据
      */
-    validate: async (input: Parameters<typeof trpc.schema.validate.mutate>[0]) => {
-      return await withRetry(() => trpc.schema.validate.mutate(input));
+    validate: async (input: any) => {
+      return await withRetry(() => trpc.schema.validate.mutate(input) as Promise<any>);
     },
 
     /**
      * 获取字段类型定义
      */
     getFieldTypes: async () => {
-      return await withRetry(() => trpc.schema.getFieldTypes.query());
+      return await withRetry(() => trpc.schema.getFieldTypes.query() as Promise<any>);
     },
   };
 }

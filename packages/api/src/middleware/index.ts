@@ -3,11 +3,18 @@ import superjson from 'superjson';
 import type { Context } from '../trpc/context';
 import { ErrorHandler, ErrorCode, logRequest, logResponse } from './errorHandler';
 import { rateLimiters } from './rateLimiter';
+import { createEnhancedSecurityMiddleware, CommonValidators } from './enhanced-security';
+import { z } from 'zod';
 
 /**
  * 速率限制器导出
  */
 export { rateLimiters };
+
+/**
+ * 安全工具导出
+ */
+export { createEnhancedSecurityMiddleware, CommonValidators };
 
 /**
  * tRPC 实例配置
@@ -55,6 +62,38 @@ function getHttpStatus(code: string): number {
 }
 
 /**
+ * 增强安全中间件
+ */
+export const enhancedSecurityMiddleware = createEnhancedSecurityMiddleware({
+  enableInputValidation: true,
+  enableSecurityScanning: true,
+  enableUserAgentAnalysis: true,
+  enableCSRFProtection: process.env.NODE_ENV === 'production', // 只在生产环境启用CSRF保护
+  customValidators: {
+    '/auth.login': z.object({
+      email: CommonValidators.email,
+      password: CommonValidators.password,
+    }),
+    '/auth.register': z.object({
+      email: CommonValidators.email,
+      password: CommonValidators.password,
+      username: CommonValidators.username,
+    }),
+    '/forms.create': z.object({
+      name: z.string().min(1).max(200),
+      metadata: z.object({
+        version: z.string(),
+        fields: z.array(z.unknown()),
+      }),
+    }),
+    '/submissions.create': z.object({
+      formId: CommonValidators.id,
+      data: z.record(z.string(), z.unknown()),
+    }),
+  },
+});
+
+/**
  * 公共路由（无需认证）
  */
 export const publicProcedure = t.procedure.use(
@@ -81,7 +120,7 @@ export const publicProcedure = t.procedure.use(
       throw trpcError;
     }
   }
-);
+).use(enhancedSecurityMiddleware);
 
 /**
  * 受保护路由（需要认证）
@@ -147,16 +186,31 @@ export const middleware = t.middleware;
 export const mergeRouters = t.mergeRouters;
 
 /**
- * 认证路由（严格速率限制）
+ * 认证路由（严格速率限制 + 安全检查）
  */
-export const authProcedure = publicProcedure.use(rateLimiters.auth);
+export const authProcedure = publicProcedure
+  .use(rateLimiters.auth);
 
 /**
- * 表单路由（中等速率限制）
+ * 表单路由（中等速率限制 + 安全检查）
  */
-export const formProcedure = publicProcedure.use(rateLimiters.form);
+export const formProcedure = publicProcedure
+  .use(rateLimiters.form);
 
 /**
  * 健康检查路由（宽松速率限制）
  */
-export const healthProcedure = publicProcedure.use(rateLimiters.health);
+export const healthProcedure = publicProcedure
+  .use(rateLimiters.health);
+
+/**
+ * 安全路由（增强安全措施）
+ */
+export const secureProcedure = publicProcedure.use(
+  createEnhancedSecurityMiddleware({
+    enableInputValidation: true,
+    enableSecurityScanning: true,
+    enableUserAgentAnalysis: true,
+    enableCSRFProtection: true,
+  })
+);

@@ -18,7 +18,7 @@ export function SimpleFormSubmitHandler({
   onError,
   className,
 }: SimpleFormSubmitHandlerProps) {
-  const { submitForm, isLoading } = useFormSubmission();
+  const { submitForm } = useFormSubmission();
   const [submitHistory, setSubmitHistory] = React.useState<Array<{
     data: Record<string, any>;
     timestamp: Date;
@@ -51,8 +51,8 @@ export function SimpleFormSubmitHandler({
           console.log('✅ Form submission successful:', submissionRecord);
           onSuccess?.(data);
         } else {
-          console.error('❌ Form submission failed:', result.error);
-          onError?.(result.error || 'Submission failed');
+          console.error('❌ Form submission failed:', 'error' in result ? result.error : 'Unknown error');
+          onError?.('error' in result ? result.error : 'Submission failed');
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Submission failed, please try again';
@@ -76,7 +76,6 @@ export function SimpleFormSubmitHandler({
       <DynamicFormRenderer
         metadata={metadata}
         onSubmit={handleSubmit}
-        isLoading={isLoading}
         className={className}
       />
 

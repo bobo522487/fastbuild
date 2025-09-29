@@ -278,8 +278,7 @@ const createCachedSchema = React.cache((metadata: FormMetadata) => {
         break;
       case 'number':
         fieldSchema = z.number({
-          required_error: `${field.label}不能为空`,
-          invalid_type_error: `${field.label}必须是有效的数字`,
+          message: `${field.label}必须是有效的数字`,
         })
         .min(Number.MIN_SAFE_INTEGER, `${field.label}不能太小`)
         .max(Number.MAX_SAFE_INTEGER, `${field.label}不能太大`);
@@ -290,8 +289,7 @@ const createCachedSchema = React.cache((metadata: FormMetadata) => {
         break;
       case 'checkbox':
         fieldSchema = z.boolean({
-          required_error: `请选择${field.label}`,
-          invalid_type_error: `${field.label}必须是是/否选择`,
+          message: `${field.label}必须是是/否选择`,
         });
         break;
       case 'date':
@@ -527,7 +525,6 @@ export function OptimizedFormRenderer({
 
             {/* 提交按钮 */}
             <ButtonLoading
-              type="submit"
               isLoading={isSubmitting || isLoading}
               disabled={!formValidationStatus.isValid}
               loadingText="提交中..."

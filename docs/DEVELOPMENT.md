@@ -63,6 +63,32 @@ FormMetadata → SchemaCompiler → Zod Schema → DynamicFormRenderer → FormS
 3. **运行时**：动态表单渲染器使用 Schema + React Hook Form
 4. **持久化**：表单存储在 `Form` 表，提交存储在 `Submission` 表
 
+### 前端页面架构
+
+**统一的用户界面**：
+- 基于 ApplicationShell 统一布局
+- 集成导航系统和面包屑
+- 响应式设计，支持多设备访问
+
+**页面路由结构**：
+- `/` - 工作台：用户仪表板，显示个人统计和快速操作
+- `/builder` - 表单构建器：可视化表单创建工具
+- `/forms` - 表单管理：表单列表、搜索、筛选功能
+- `/forms/[id]` - 表单详情：字段配置、预览、设置管理
+- `/forms/[id]/submissions` - 提交数据：数据查看、分析、导出功能
+- `/demo` - 功能演示：展示表单渲染和验证能力
+- `/admin/monitoring` - 系统监控：性能监控和错误追踪
+
+**导航菜单组织**：
+- 核心功能：工作台、表单管理、表单构建器
+- 演示与监控：功能演示、系统监控
+
+**设计原则**：
+- 用户为中心：从用户工作流程出发设计页面结构
+- 功能完整：覆盖表单创建、管理、数据分析全流程
+- 界面统一：保持一致的设计风格和交互模式
+- 性能优化：懒加载、虚拟化等性能优化策略
+
 ### API 架构
 
 基于 `specs/002-schema-driven-runtime-mvp/contracts/api-types.ts` 的类型定义：
@@ -89,18 +115,31 @@ FormMetadata → SchemaCompiler → Zod Schema → DynamicFormRenderer → FormS
 fastbuild/
 ├── apps/web/                    # Next.js 应用
 │   ├── app/                     # App Router 页面
-│   │   ├── api/trpc/[trpc]/     # tRPC API 入口
-│   │   ├── admin/monitoring/    # 监控管理界面
-│   │   ├── demo*/               # 演示页面
-│   │   └── page.tsx             # 首页
+│   │   ├── page.tsx             # 工作台（首页仪表板）
+│   │   ├── builder/             # 表单构建器
+│   │   │   └── page.tsx         # 可视化表单创建界面
+│   │   ├── forms/               # 表单管理
+│   │   │   ├── page.tsx         # 表单列表和搜索
+│   │   │   └── [id]/            # 动态表单页面
+│   │   │       ├── page.tsx     # 表单详情和设置
+│   │   │       └── submissions/ # 提交数据管理
+│   │   │           └── page.tsx # 数据查看和导出
+│   │   ├── demo/                # 功能演示
+│   │   │   └── page.tsx         # 表单渲染演示
+│   │   ├── admin/monitoring/    # 系统监控
+│   │   │   └── page.tsx         # 性能监控界面
+│   │   └── api/                 # API 路由
+│   │       └── trpc/[trpc]/     # tRPC API 入口
 │   ├── components/              # 应用组件
-│   │   ├── performance/         # 性能优化组件
-│   │   ├── accessibility/       # 可访问性组件
+│   │   ├── layout/             # 简化布局组件
+│   │   │   ├── SimpleLayout.tsx # 主应用布局
+│   │   │   └── Navigation.tsx   # 导航组件
 │   │   ├── forms/              # 表单相关组件
-│   │   └── providers.tsx       # 全局提供者
+│   │   ├── performance/         # 性能优化组件
+│   │   └── accessibility/       # 可访问性组件
 │   ├── lib/                    # 工具库
 │   │   ├── monitoring-service.ts # 监控服务
-│   │   └── monitoring.ts       # 监控工具
+│   │   └── monitoring.ts        # 监控工具
 │   ├── trpc/                   # tRPC 客户端
 │   │   └── provider.tsx        # tRPC Provider
 │   └── package.json

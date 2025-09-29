@@ -22,9 +22,9 @@ const FormFieldSchema = z.object({
   condition: z.object({
     fieldId: z.string(),
     operator: z.enum(['equals', 'not_equals']),
-    value: z.any(),
+    value: z.unknown(),
   }).optional(),
-  defaultValue: z.any().optional(),
+  defaultValue: z.unknown().optional(),
 });
 
 const FormMetadataSchema = z.object({
@@ -68,11 +68,9 @@ export const formRouter = router({
           skip: cursor ? 1 : 0,
           orderBy: { createdAt: 'desc' },
           include: {
-            createdBy: {
+            _count: {
               select: {
-                id: true,
-                name: true,
-                email: true,
+                submissions: true,
               },
             },
           },
@@ -104,11 +102,9 @@ export const formRouter = router({
       const form = await ctx.prisma.form.findUnique({
         where: { id: input.id },
         include: {
-          createdBy: {
+          _count: {
             select: {
-              id: true,
-              name: true,
-              email: true,
+              submissions: true,
             },
           },
         },
@@ -139,11 +135,9 @@ export const formRouter = router({
           createdById: ctx.user.id,
         },
         include: {
-          createdBy: {
+          _count: {
             select: {
-              id: true,
-              name: true,
-              email: true,
+              submissions: true,
             },
           },
         },
@@ -185,11 +179,9 @@ export const formRouter = router({
         where: { id: input.id },
         data: updateData,
         include: {
-          createdBy: {
+          _count: {
             select: {
-              id: true,
-              name: true,
-              email: true,
+              submissions: true,
             },
           },
         },

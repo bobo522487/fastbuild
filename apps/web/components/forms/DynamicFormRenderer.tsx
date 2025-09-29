@@ -40,7 +40,7 @@ import { Badge } from '@workspace/ui/components/badge';
 import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { LoadingIndicator, FormLoadingIndicator, ButtonLoading } from './LoadingIndicator';
 import { FormResetHandler, useFormReset } from './FormResetHandler';
-import { EnhancedValidationSummary, ValidationErrorAnalyzer } from './EnhancedValidationSummary';
+// import { EnhancedValidationSummary, ValidationErrorAnalyzer } from './EnhancedValidationSummary';
 
 import type {
   FormMetadata,
@@ -371,10 +371,7 @@ export function DynamicFormRenderer({
             .max(2000, `${field.label}不能超过2000个字符`);
           break;
         case 'number':
-          fieldSchema = z.number({
-            required_error: `${field.label}不能为空`,
-            invalid_type_error: `${field.label}必须是有效的数字`,
-          })
+          fieldSchema = z.number()
           .min(Number.MIN_SAFE_INTEGER, `${field.label}不能太小`)
           .max(Number.MAX_SAFE_INTEGER, `${field.label}不能太大`);
           break;
@@ -383,10 +380,7 @@ export function DynamicFormRenderer({
             .min(1, `请选择${field.label}`);
           break;
         case 'checkbox':
-          fieldSchema = z.boolean({
-            required_error: `请选择${field.label}`,
-            invalid_type_error: `${field.label}必须是是/否选择`,
-          });
+          fieldSchema = z.boolean();
           break;
         case 'date':
           fieldSchema = z.string()
@@ -515,10 +509,15 @@ export function DynamicFormRenderer({
     };
   }, [form, metadata]);
 
-  // 获取增强验证分析
+  // 简化的验证状态
   const validationSummary = React.useMemo(() => {
-    return ValidationErrorAnalyzer.analyzeForm(metadata, form);
-  }, [form, metadata]);
+    const { isValid } = form.formState;
+    return {
+      isValid,
+      errors: [],
+      warnings: [],
+    };
+  }, [form]);
 
   // 监听字段值变化以更新可见性
   const watchedValues = form.watch();
@@ -604,34 +603,9 @@ export function DynamicFormRenderer({
               );
             })}
 
-  
-            {/* 增强验证摘要 */}
-            <EnhancedValidationSummary
-              metadata={metadata}
-              form={form}
-              isVisible={showValidationDetails || !validationSummary.isValid}
-              onFieldFocus={(fieldName) => {
-                const fieldElement = document.querySelector(`[name="${fieldName}"]`) as HTMLElement;
-                if (fieldElement) {
-                  fieldElement.focus();
-                  fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-              }}
-            />
-
-            {/* 提交按钮 */}
-            <div className="flex items-center justify-between">
-              {!validationSummary.isValid && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowValidationDetails(!showValidationDetails)}
-                >
-                  {showValidationDetails ? '隐藏详情' : '查看错误详情'}
-                </Button>
-              )}
+              {/* 提交按钮 */}
+            <div className="flex items-center justify-end">
               <ButtonLoading
-                type="submit"
                 isLoading={isSubmitting || isLoading}
                 disabled={!validationSummary.isValid}
                 loadingText="提交中..."

@@ -11,6 +11,7 @@ import {
 } from '@workspace/types';
 import { ErrorHandler } from './error-handler';
 import { PerformanceOptimizer } from './performance-optimizer';
+import { AdvancedPerformanceOptimizer, getGlobalPerformanceOptimizer } from './advanced-performance-optimizer';
 
 // 默认选项
 const DEFAULT_OPTIONS: Required<SchemaCompilerOptions> = {
@@ -67,6 +68,7 @@ export class SchemaCompiler {
   private options: Required<SchemaCompilerOptions>;
   private errorHandler: ErrorHandler;
   private performanceOptimizer: PerformanceOptimizer;
+  private advancedOptimizer: AdvancedPerformanceOptimizer;
 
   constructor(options: SchemaCompilerOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -75,6 +77,7 @@ export class SchemaCompiler {
       enableCache: this.options.enableCache,
       cacheSize: this.options.cacheMaxSize,
     });
+    this.advancedOptimizer = getGlobalPerformanceOptimizer();
 
     if (this.options.enableCache && !schemaCache) {
       schemaCache = new LRUCache(this.options.cacheMaxSize);
@@ -224,23 +227,8 @@ export class SchemaCompiler {
    * 计算字段可见性
    */
   computeVisibility(fields: FormField[], values: Record<string, any>): VisibilityMap {
-    const visibility: VisibilityMap = {};
-
-    for (const field of fields) {
-      if (!field.condition) {
-        visibility[field.id] = true;
-        continue;
-      }
-
-      const targetValue = values[field.condition.fieldId];
-      const isVisible = field.condition.operator === 'equals'
-        ? targetValue === field.condition.value
-        : targetValue !== field.condition.value;
-
-      visibility[field.id] = isVisible;
-    }
-
-    return visibility;
+    // 使用高级性能优化器的可见性计算
+    return this.advancedOptimizer.computeVisibilityOptimized(fields, values);
   }
 
   /**

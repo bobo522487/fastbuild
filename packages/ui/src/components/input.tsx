@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+const Input = React.memo(function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input
       type={type}
@@ -16,6 +16,17 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       {...props}
     />
   )
-}
+}, (prevProps, nextProps) => {
+  // 自定义比较函数，只有关键属性变化时才重新渲染
+  return (
+    prevProps.type === nextProps.type &&
+    prevProps.className === nextProps.className &&
+    prevProps.value === nextProps.value &&
+    prevProps.placeholder === nextProps.placeholder &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.readOnly === nextProps.readOnly &&
+    prevProps.required === nextProps.required
+  );
+})
 
 export { Input }

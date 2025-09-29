@@ -33,6 +33,8 @@ export interface FormFieldAccessibilityProps extends AccessibilityProps, ErrorSt
   disabled?: boolean;
   readOnly?: boolean;
   hint?: string;
+  descriptionId?: string;
+  hintId?: string;
 }
 
 // 生成唯一的错误ID
@@ -84,7 +86,7 @@ export const AccessibleFieldWrapper: React.FC<{
   const childWithProps = React.useMemo(() => {
     if (!React.isValidElement(children)) return children;
 
-    return React.cloneElement(children, {
+    return React.cloneElement(children as React.ReactElement<any>, {
       id,
       'aria-invalid': hasError,
       'aria-errormessage': hasError ? errorId : undefined,

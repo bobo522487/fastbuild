@@ -47,7 +47,7 @@ export function LoadingOverlay({ config = {}, className = '' }: LoadingOverlayPr
 
   const getStatusMessage = () => {
     if (runningTasks.length === 1) {
-      return runningTasks[0].message || message;
+      return runningTasks[0]?.message || message;
     }
     if (runningTasks.length > 1) {
       return `正在执行 ${runningTasks.length} 个任务...`;
@@ -56,7 +56,7 @@ export function LoadingOverlay({ config = {}, className = '' }: LoadingOverlayPr
   };
 
   const status = {
-    state: getStatusState(),
+    state: getStatusState() as 'idle' | 'loading' | 'success' | 'error' | 'validating',
     message: getStatusMessage(),
     progress: totalProgress,
     details: showDetails ? `${stats.completed}/${stats.total} 任务完成` : undefined,

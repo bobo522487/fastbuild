@@ -88,18 +88,22 @@ export function useFormSubmission() {
         // 使用重试机制执行表单提交
         const result = await RetryHandler.executeWithRetry(
           async () => {
-            // 这里可以添加 tRPC 调用
-            // await submissionRouter.create({
-            //   formId: metadata.id,
-            //   data,
-            // });
+            // 动态导入 API 客户端以避免循环依赖
+            const { ApiClient } = await import('@/lib/api-client');
 
-            console.log('✅ Form submitted successfully!');
+            // 提交表单数据到服务器
+            const submission = await ApiClient.submission.create({
+              formId: metadata.id,
+              data,
+            });
 
-            // 模拟 API 调用延迟
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            console.log('✅ Form submitted successfully!', submission);
 
-            return { success: true };
+            return {
+              success: true,
+              submissionId: submission.submissionId,
+              message: submission.message
+            };
           },
           {
             maxAttempts: 3,

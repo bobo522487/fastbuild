@@ -34,6 +34,12 @@ export interface FormResetHistory {
   resetType: 'full' | 'partial' | 'defaults' | 'validation';
 }
 
+export interface FormResetStats {
+  totalResets: number;
+  recentResets: number;
+  resetTypes: Record<string, number>;
+}
+
 export interface FormResetManagerProps {
   metadata: FormMetadata;
   onReset?: (data: Record<string, any>, options: FormResetOptions) => void;
@@ -42,6 +48,7 @@ export interface FormResetManagerProps {
 }
 
 export interface FormResetButtonProps {
+  children: React.ReactNode;
   onReset: () => void;
   isDirty?: boolean;
   variant?: 'default' | 'outline' | 'ghost' | 'destructive';
@@ -341,7 +348,20 @@ export function FormResetManager({
 }
 
 // 创建Context用于跨组件访问重置功能
-const ResetContext = React.createContext<ReturnType<typeof FormResetManager>['resetApi'] | null>(null);
+interface ResetApiType {
+  setInitialData: (data: Record<string, any>) => void;
+  updateData: (data: Record<string, any>) => void;
+  performReset: (options?: FormResetOptions, reason?: string) => Promise<void>;
+  resetToDefaults: (reason?: string) => Promise<void>;
+  clearAll: (reason?: string) => Promise<void>;
+  resetValidationOnly: () => void;
+  undoLastReset: () => void;
+  clearHistory: () => void;
+  getResetStats: () => FormResetStats;
+  context: FormResetContext;
+}
+
+const ResetContext = React.createContext<ResetApiType | null>(null);
 
 // Hook用于访问重置功能
 export function useFormReset() {

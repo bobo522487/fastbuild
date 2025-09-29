@@ -34,7 +34,7 @@ const buttonVariants = cva(
   }
 )
 
-function Button({
+const Button = React.memo(function Button({
   className,
   variant,
   size,
@@ -53,6 +53,17 @@ function Button({
       {...props}
     />
   )
-}
+}, (prevProps, nextProps) => {
+  // 自定义比较函数，只有关键属性变化时才重新渲染
+  return (
+    prevProps.variant === nextProps.variant &&
+    prevProps.size === nextProps.size &&
+    prevProps.className === nextProps.className &&
+    prevProps.children === nextProps.children &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.type === nextProps.type &&
+    prevProps.asChild === nextProps.asChild
+  );
+})
 
 export { Button, buttonVariants }

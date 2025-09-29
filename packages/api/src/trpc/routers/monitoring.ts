@@ -21,7 +21,7 @@ export const monitoringRouter = router({
         timestamp: z.date(),
         userId: z.string().optional(),
         sessionId: z.string(),
-        data: z.record(z.any()),
+        data: z.record(z.string(), z.unknown()),
       })).min(1).max(1000),
     }))
     .mutation(async ({ input }) => {

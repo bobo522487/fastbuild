@@ -114,9 +114,9 @@ export class PerformanceMonitor {
     return {
       renderTime: sum.renderTime / count,
       componentCount: sum.componentCount / count,
-      memoryUsage: sum.memoryUsage / count,
-      validationTime: sum.validationTime / count,
-      networkTime: sum.networkTime / count,
+      memoryUsage: sum.memoryUsage ? sum.memoryUsage / count : undefined,
+      validationTime: sum.validationTime ? sum.validationTime / count : undefined,
+      networkTime: sum.networkTime ? sum.networkTime / count : undefined,
       timestamp: Date.now(),
     };
   }
@@ -194,7 +194,7 @@ export interface PerformanceMonitorProps {
   onPerformanceWarning?: (metrics: PerformanceMetrics) => void;
 }
 
-export function PerformanceMonitor({
+export function PerformanceMonitorComponent({
   componentId,
   children,
   showMetrics = false,
@@ -276,7 +276,6 @@ export function useFormPerformanceMonitor(formId: string, fieldCount: number) {
       fieldCount,
       renderTime,
       validationTime: validationTime || 0,
-      networkTime: networkTime || 0,
       timestamp: Date.now(),
       metadata: {
         hasConditionalFields: fieldCount > 5,

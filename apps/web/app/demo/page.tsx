@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ApplicationShell from '@/components/shadcn-studio/application-shell';
+import SimpleLayout from '@/components/layout/SimpleLayout';
 import { FormProvider } from '@/components/forms/FormProvider';
 import { SimpleFormSubmitHandler } from '@/components/forms/SimpleFormSubmitHandler';
 import { exampleForms } from '@/examples/forms';
@@ -40,7 +40,7 @@ export default function DemoPage() {
 
   return (
     <FormProvider>
-      <ApplicationShell>
+      <SimpleLayout>
         <div className="space-y-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">FastBuild 动态表单演示</h1>
@@ -186,7 +186,7 @@ export default function DemoPage() {
           </Card>
         </div>
       </div>
-    </ApplicationShell>
+    </SimpleLayout>
     </FormProvider>
   );
 }

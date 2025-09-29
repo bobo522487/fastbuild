@@ -239,7 +239,7 @@ export function useFormReset(form: UseFormReturn<any>, metadata: FormMetadata) {
       const lastReset = resetHistory[resetHistory.length - 1];
       // 这里可以实现更复杂的撤销逻辑
       // 目前只是简单的重新重置
-      resetForm(`撤销重置 (${lastReset.reason || '手动重置'})`);
+      resetForm(`撤销重置 (${lastReset?.reason || '手动重置'})`);
     }
   }, [resetHistory, resetForm]);
 
@@ -258,7 +258,7 @@ export function useFormReset(form: UseFormReturn<any>, metadata: FormMetadata) {
     ).length;
 
     const totalResets = resetHistory.length;
-    const lastResetTime = resetHistory.length > 0 ? resetHistory[resetHistory.length - 1].timestamp : null;
+    const lastResetTime = resetHistory.length > 0 ? resetHistory[resetHistory.length - 1]?.timestamp : null;
 
     return {
       todayResets,

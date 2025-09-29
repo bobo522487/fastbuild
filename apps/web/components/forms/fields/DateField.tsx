@@ -181,7 +181,7 @@ const SmartDatePicker = React.memo(({
           isCurrentMonth: currentDate.getMonth() === month,
           isToday: currentDate.toDateString() === new Date().toDateString(),
           isSelected: currentDate.toDateString() === parseDate(value)?.toDateString(),
-          isDisabled: currentDate < minDate || currentDate > maxDate,
+          isDisabled: (minDate && currentDate < minDate) || (maxDate && currentDate > maxDate),
         });
         currentDate.setDate(currentDate.getDate() + 1);
       }

@@ -1,6 +1,6 @@
-export { contactFormMetadata } from './contact-form';
-export { userRegistrationMetadata } from './user-registration';
-export { surveyFormMetadata } from './survey-form';
+import { contactFormMetadata } from './contact-form';
+import { userRegistrationMetadata } from './user-registration';
+import { surveyFormMetadata } from './survey-form';
 
 export const exampleForms = [
   {

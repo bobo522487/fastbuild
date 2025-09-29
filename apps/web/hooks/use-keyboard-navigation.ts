@@ -25,6 +25,7 @@ export class NavigationManager {
   private shortcuts: Map<string, () => void> = new Map();
   private navigationHistory: Element[] = [];
   private enabled: boolean = true;
+  private cleanup: (() => void) | null = null;
 
   constructor(
     container: HTMLElement,
@@ -141,8 +142,8 @@ export class NavigationManager {
 
     document.addEventListener('keydown', handleKeyDown);
 
-    // 返回清理函数
-    return () => {
+    // 添加清理方法
+    this.cleanup = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }
@@ -198,10 +199,12 @@ export class NavigationManager {
 
   private updateCurrentIndex(): void {
     const activeElement = document.activeElement;
-    const index = this.elements.indexOf(activeElement);
-    if (index !== -1) {
-      this.currentIndex = index;
-      this.addToHistory(activeElement);
+    if (activeElement) {
+      const index = this.elements.indexOf(activeElement);
+      if (index !== -1) {
+        this.currentIndex = index;
+        this.addToHistory(activeElement);
+      }
     }
   }
 
@@ -373,6 +376,7 @@ export class NavigationManager {
     this.navigationHistory = [];
     this.currentIndex = -1;
     this.enabled = false;
+    this.cleanup?.();
   }
 }
 

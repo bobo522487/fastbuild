@@ -152,7 +152,7 @@ export class ErrorHandler {
     const messages = localization?.messages ?? {};
     const errors: ErrorMessage[] = [];
 
-    for (const issue of error.errors) {
+    for (const issue of error.issues) {
       const typedIssue = issue as (typeof issue) & {
         expected?: string;
         received?: string;
@@ -175,10 +175,12 @@ export class ErrorHandler {
         } else {
           message = `${fieldName}${messages['required'] || messages['invalid_type']}`;
         }
-      } else if (typedIssue.code === 'invalid_string' && field?.label) {
-        if (typedIssue.validation === 'email') {
+      } else if (typedIssue.code === 'invalid_format' && field?.label) {
+        // 在 Zod 4 中，validation 属性可能在不同的位置
+        const validation = (typedIssue as any).validation || (typedIssue as any).expected;
+        if (validation === 'email') {
           message = `${field.label}格式无效`;
-        } else if (typedIssue.validation === 'url') {
+        } else if (validation === 'url') {
           message = `${field.label}URL格式无效`;
         } else {
           message = `${field.label}${message}`;
