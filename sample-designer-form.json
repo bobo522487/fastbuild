@@ -1,0 +1,134 @@
+[
+  {
+    "type": "input",
+    "field": "name",
+    "title": "姓名",
+    "name": "name",
+    "info": "请输入您的真实姓名",
+    "$required": true,
+    "props": {
+      "placeholder": "请输入姓名",
+      "maxlength": 50
+    },
+    "col": {
+      "span": 12
+    },
+    "_fc_id": "name_field",
+    "_fc_drag_tag": "input"
+  },
+  {
+    "type": "input",
+    "field": "email",
+    "title": "邮箱",
+    "name": "email",
+    "info": "我们将向此邮箱发送确认邮件",
+    "$required": true,
+    "props": {
+      "placeholder": "请输入邮箱地址",
+      "type": "email"
+    },
+    "col": {
+      "span": 12
+    },
+    "_fc_id": "email_field",
+    "_fc_drag_tag": "input"
+  },
+  {
+    "type": "select",
+    "field": "gender",
+    "title": "性别",
+    "name": "gender",
+    "info": "请选择您的性别",
+    "$required": true,
+    "props": {
+      "placeholder": "请选择性别",
+      "options": [
+        {
+          "label": "男",
+          "value": "male"
+        },
+        {
+          "label": "女",
+          "value": "female"
+        },
+        {
+          "label": "其他",
+          "value": "other"
+        }
+      ]
+    },
+    "col": {
+      "span": 8
+    },
+    "_fc_id": "gender_field",
+    "_fc_drag_tag": "select"
+  },
+  {
+    "type": "inputNumber",
+    "field": "age",
+    "title": "年龄",
+    "name": "age",
+    "info": "请输入您的年龄",
+    "$required": false,
+    "props": {
+      "placeholder": "请输入年龄",
+      "min": 0,
+      "max": 150
+    },
+    "col": {
+      "span": 8
+    },
+    "_fc_id": "age_field",
+    "_fc_drag_tag": "inputNumber"
+  },
+  {
+    "type": "date",
+    "field": "birthday",
+    "title": "生日",
+    "name": "birthday",
+    "info": "请选择您的出生日期",
+    "$required": false,
+    "props": {
+      "placeholder": "请选择出生日期"
+    },
+    "col": {
+      "span": 8
+    },
+    "_fc_id": "birthday_field",
+    "_fc_drag_tag": "date"
+  },
+  {
+    "type": "textarea",
+    "field": "bio",
+    "title": "个人简介",
+    "name": "bio",
+    "info": "请简单介绍一下自己",
+    "$required": false,
+    "props": {
+      "placeholder": "请输入个人简介",
+      "rows": 4,
+      "maxlength": 500
+    },
+    "col": {
+      "span": 24
+    },
+    "_fc_id": "bio_field",
+    "_fc_drag_tag": "textarea"
+  },
+  {
+    "type": "checkbox",
+    "field": "newsletter",
+    "title": "订阅邮件",
+    "name": "newsletter",
+    "info": "订阅我们的邮件通讯获取最新信息",
+    "$required": false,
+    "props": {
+      "defaultChecked": false
+    },
+    "col": {
+      "span": 24
+    },
+    "_fc_id": "newsletter_field",
+    "_fc_drag_tag": "checkbox"
+  }
+]

@@ -613,7 +613,9 @@ export class SchemaCompiler {
       'number': 'input',
       'select': 'select',
       'checkbox': 'checkbox',
-      'date': 'date-picker'
+      'date': 'date-picker',
+      'radio': 'radio',
+      'file': 'file-upload'
     };
     return componentMap[fieldType] || 'input';
   }
@@ -725,6 +727,9 @@ export * from './json-schema-converter';
 
 // 导出性能优化工具
 export * from './performance-optimizer';
+
+// 导出设计器JSON转换工具
+export * from './designer-json-converter';
 
 // 默认导出
 export default SchemaCompiler;

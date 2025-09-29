@@ -3,7 +3,7 @@ import type { ZodObject } from 'zod';
 /**
  * 表单字段类型定义
  */
-export type FieldType = 'text' | 'number' | 'select' | 'date' | 'checkbox' | 'textarea';
+export type FieldType = 'text' | 'number' | 'select' | 'date' | 'checkbox' | 'textarea' | 'radio' | 'file';
 
 /**
  * 条件运算符
@@ -29,6 +29,7 @@ export interface SelectOption {
   label: string;
   value: string;
   group?: string;
+  disabled?: boolean;
 }
 
 /**
@@ -439,6 +440,151 @@ export interface FormDesignerProps {
   onSave: (metadata: FormMetadata) => void;
   previewMode?: boolean;
   className?: string;
+}
+
+// ========================================
+// 设计器类型扩展
+// ========================================
+
+/**
+ * 设计器UI配置 - 支持布局控制
+ */
+export interface DesignerUIConfig {
+  /** 列布局配置 */
+  col?: {
+    span: number;        // 基于24列网格的跨度
+    offset?: number;     // 列偏移
+    push?: number;       // 向右推送
+    pull?: number;       // 向左拉动
+  };
+  /** 显示控制 */
+  display?: boolean;     // 是否显示
+  hidden?: boolean;      // 是否隐藏
+  /** 组件属性 */
+  props?: {
+    readonly?: boolean;  // 只读状态
+    disabled?: boolean;  // 禁用状态
+    maxlength?: number;  // 最大长度
+    minlength?: number;  // 最小长度
+    pattern?: string;    // 正则表达式
+    placeholder?: string; // 占位符
+    // ... 其他组件属性
+  };
+  /** 样式类名 */
+  className?: string;
+  /** 响应式配置 */
+  responsive?: {
+    sm?: DesignerUIConfig;
+    md?: DesignerUIConfig;
+    lg?: DesignerUIConfig;
+    xl?: DesignerUIConfig;
+  };
+}
+
+/**
+ * 扩展的表单字段定义 - 兼容设计器JSON
+ */
+export interface DesignerFormField extends FormField {
+  /** 设计器特有字段 */
+  _fc_id?: string;           // 组件ID
+  _fc_drag_tag?: string;     // 拖拽标签
+  info?: string;             // 字段描述信息
+  $ui?: DesignerUIConfig;    // UI配置
+  /** 兼容性字段 */
+  $required?: boolean;       // 必填标记（兼容设计器JSON）
+  title?: string;           // 字段标题（兼容设计器JSON）
+  description?: string;      // 字段描述
+}
+
+/**
+ * 设计器表单元数据
+ */
+export interface DesignerFormMetadata extends FormMetadata {
+  /** 布局配置 */
+  layout?: {
+    type: 'grid' | 'flex';     // 布局类型
+    columns?: number;          // 总列数，默认24
+    gap?: number;             // 间距
+    gutter?: number;          // 槽宽
+  };
+  /** 扩展字段列表 */
+  fields: DesignerFormField[];
+  /** 设计器配置 */
+  designer?: {
+    version?: string;         // 设计器版本
+    theme?: string;           // 设计主题
+    responsive?: boolean;     // 是否响应式
+  };
+  /** UI配置 */
+  ui?: {
+    layout?: {
+      type: 'grid' | 'flex';
+      spacing?: string;
+      columns?: number;
+    };
+    showLabels?: boolean;
+    showDescriptions?: boolean;
+    showValidation?: boolean;
+  };
+  /** 标题 */
+  title?: string;
+  /** 描述 */
+  description?: string;
+}
+
+/**
+ * 设计器JSON字段类型
+ */
+export interface DesignerJsonField {
+  type: string;              // 组件类型
+  field: string;             // 字段ID
+  title: string;             // 字段标题
+  info?: string;             // 字段描述
+  $required?: boolean;        // 必填标记
+  props?: Record<string, any>; // 组件属性
+  name: string;              // 字段名
+  display?: boolean;         // 是否显示
+  hidden?: boolean;          // 是否隐藏
+  _fc_id?: string;           // 组件ID
+  _fc_drag_tag?: string;     // 拖拽标签
+  col?: {                    // 列配置
+    span: number;            // 列跨度
+    offset?: number;
+    push?: number;
+    pull?: number;
+  };
+  // 其他自定义属性
+  [key: string]: any;
+}
+
+/**
+ * 设计器表单渲染器 Props
+ */
+export interface DesignerFormRendererProps {
+  /** 设计器JSON数据 */
+  designerJson: DesignerJsonField[];
+  /** 提交处理函数 */
+  onSubmit: (data: Record<string, any>) => Promise<void>;
+  /** 加载状态 */
+  isLoading?: boolean;
+  /** 自定义类名 */
+  className?: string;
+  /** 最大内容宽度 */
+  maxContentWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  /** 布局配置 */
+  layout?: 'auto' | 'grid' | 'flex';
+}
+
+/**
+ * 设计器类型映射配置
+ */
+export interface DesignerTypeMapping {
+  [designerType: string]: {
+    fieldType: FieldType;
+    defaultProps?: Record<string, any>;
+    validator?: (value: any) => boolean;
+    transformer?: (value: any) => any;
+  };
 }
 
 // ========================================

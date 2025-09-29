@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useFormSubmission } from './FormProvider';
 import { DynamicFormRenderer } from './DynamicFormRenderer';
 import type { FormMetadata } from '@workspace/types';
+import { trpc } from '@/trpc/provider';
 
 interface SimpleFormSubmitHandlerProps {
   metadata: FormMetadata;
@@ -18,7 +18,9 @@ export function SimpleFormSubmitHandler({
   onError,
   className,
 }: SimpleFormSubmitHandlerProps) {
-  const { submitForm } = useFormSubmission();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const createSubmission = trpc.submission.create.useMutation();
   const [submitHistory, setSubmitHistory] = React.useState<Array<{
     data: Record<string, any>;
     timestamp: Date;
@@ -36,24 +38,25 @@ export function SimpleFormSubmitHandler({
           timestamp,
         });
 
-        const result = await submitForm(data, metadata);
+        setIsSubmitting(true);
+
+        // 使用 tRPC mutation 提交表单
+        const result = await createSubmission.mutateAsync({
+          formId: metadata.id,
+          data,
+        });
 
         // 记录提交历史
         const submissionRecord = {
           data,
           timestamp,
-          success: result.success,
+          success: true,
         };
 
         setSubmitHistory(prev => [...prev, submissionRecord]);
 
-        if (result.success) {
-          console.log('✅ Form submission successful:', submissionRecord);
-          onSuccess?.(data);
-        } else {
-          console.error('❌ Form submission failed:', 'error' in result ? result.error : 'Unknown error');
-          onError?.('error' in result ? result.error : 'Submission failed');
-        }
+        console.log('✅ Form submission successful:', submissionRecord);
+        onSuccess?.(data);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Submission failed, please try again';
 
@@ -66,9 +69,11 @@ export function SimpleFormSubmitHandler({
 
         console.error('❌ Form submission error:', error);
         onError?.(errorMessage);
+      } finally {
+        setIsSubmitting(false);
       }
     },
-    [submitForm, metadata, onSuccess, onError]
+    [createSubmission, metadata, onSuccess, onError]
   );
 
   return (
@@ -76,6 +81,7 @@ export function SimpleFormSubmitHandler({
       <DynamicFormRenderer
         metadata={metadata}
         onSubmit={handleSubmit}
+        isLoading={isSubmitting}
         className={className}
       />
 

@@ -37,9 +37,52 @@ import {
 import { Checkbox } from '@workspace/ui/components/checkbox';
 import { Alert, AlertDescription } from '@workspace/ui/components/alert';
 import { Badge } from '@workspace/ui/components/badge';
-import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, XCircle, TriangleAlert } from 'lucide-react';
 import { LoadingIndicator, FormLoadingIndicator, ButtonLoading } from './LoadingIndicator';
 import { FormResetHandler, useFormReset } from './FormResetHandler';
+
+// 错误边界组件
+class FormErrorBoundary extends React.Component<
+  { children: React.ReactNode; onError?: (error: Error) => void },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Form Error Boundary caught an error:', error, errorInfo);
+    this.props.onError?.(error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Alert variant="destructive">
+          <TriangleAlert className="h-4 w-4" />
+          <AlertDescription>
+            表单加载时出现错误，请刷新页面重试。
+            {process.env.NODE_ENV === 'development' && (
+              <details className="mt-2">
+                <summary className="text-xs cursor-pointer">错误详情</summary>
+                <pre className="text-xs bg-destructive/10 p-2 rounded mt-1 overflow-x-auto">
+                  {this.state.error?.message}
+                </pre>
+              </details>
+            )}
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 // import { EnhancedValidationSummary, ValidationErrorAnalyzer } from './EnhancedValidationSummary';
 
 import type {
@@ -109,15 +152,53 @@ function EnhancedFormMessage({ field, form }: { field: FormFieldType; form: UseF
     return null;
   }
 
+  // 根据字段类型提供特定的错误提示
+  const isEmailField = field.name.toLowerCase().includes('email') ||
+                      field.label.toLowerCase().includes('邮箱') ||
+                      field.label.toLowerCase().includes('邮件');
+  const isPhoneField = field.name.toLowerCase().includes('phone') ||
+                      field.name.toLowerCase().includes('tel') ||
+                      field.label.toLowerCase().includes('电话');
+  const isUrlField = field.name.toLowerCase().includes('url') ||
+                    field.name.toLowerCase().includes('website') ||
+                    field.label.toLowerCase().includes('网址');
+
+  const getHelperText = () => {
+    if (error.type === 'required' || error.type === 'too_small') {
+      if (isEmailField) return '请输入有效的邮箱地址';
+      if (isPhoneField) return '请输入有效的手机号码';
+      if (isUrlField) return '请输入有效的网址';
+      return '此字段为必填项，请提供有效信息';
+    }
+
+    if (error.type === 'invalid_type') {
+      if (isEmailField) return '邮箱格式不正确，请重新输入';
+      if (isPhoneField) return '电话号码格式不正确，请重新输入';
+      if (isUrlField) return '网址格式不正确，请重新输入';
+      return '格式不正确，请检查输入内容';
+    }
+
+    if (error.type === 'invalid_string') {
+      if (isEmailField) return '邮箱格式不正确，请使用类似 user@example.com 的格式';
+      if (isPhoneField) return '电话号码格式不正确，请使用类似 13812345678 的格式';
+      if (isUrlField) return '网址格式不正确，请使用类似 https://example.com 的格式';
+      return '格式不正确，请检查输入内容';
+    }
+
+    return null;
+  };
+
+  const helperText = getHelperText();
+
   return (
     <div className="mt-1 space-y-1">
       <FormMessage />
-      {error.type === 'required' && (
+      {helperText && (
         <p className="text-xs text-muted-foreground">
-          此字段为必填项，请提供有效信息
+          {helperText}
         </p>
       )}
-      {error.type === 'min' && (
+      {error.type === 'min' && !isEmailField && !isPhoneField && !isUrlField && (
         <p className="text-xs text-muted-foreground">
           输入内容过短，请提供更多详细信息
         </p>
@@ -127,48 +208,79 @@ function EnhancedFormMessage({ field, form }: { field: FormFieldType; form: UseF
           输入内容过长，请精简内容
         </p>
       )}
-      {error.type === 'invalid_type' && (
-        <p className="text-xs text-muted-foreground">
-          格式不正确，请检查输入内容
-        </p>
-      )}
     </div>
   );
 }
 
 // 字段组件映射
 const FormFieldComponents: Record<string, React.FC<FormFieldComponentProps>> = {
-  text: ({ field, form, isVisible = true }) => (
-    <RHFFormField
-      control={form.control}
-      name={field.name}
-      render={({ field: formField }) => (
-        <FormItem className={cn(!isVisible && 'hidden')}>
-          <div className="flex items-center justify-between">
-            <FormLabel className="flex items-center gap-2">
-              {field.label}
-              {field.required && <Badge variant="destructive" className="text-xs px-1 py-0">必填</Badge>}
-            </FormLabel>
-            <FieldValidationStatus field={field} form={form} />
-          </div>
-          <FormControl>
-            <Input
-              placeholder={field.placeholder}
-              {...formField}
-              value={formField.value || ''}
-              className={cn(
-                form.getFieldState(field.name).error && 'border-destructive focus-visible:ring-destructive'
-              )}
-            />
-          </FormControl>
-          {field.placeholder && (
-            <FormDescription>{field.placeholder}</FormDescription>
-          )}
-          <EnhancedFormMessage field={field} form={form} />
-        </FormItem>
-      )}
-    />
-  ),
+  text: ({ field, form, isVisible = true }) => {
+    // 根据字段名称和类型应用特定的输入组件
+    const isEmailField = field.name.toLowerCase().includes('email') ||
+                        field.label.toLowerCase().includes('邮箱') ||
+                        field.label.toLowerCase().includes('邮件');
+    const isPhoneField = field.name.toLowerCase().includes('phone') ||
+                        field.name.toLowerCase().includes('tel') ||
+                        field.label.toLowerCase().includes('电话');
+    const isUrlField = field.name.toLowerCase().includes('url') ||
+                      field.name.toLowerCase().includes('website') ||
+                      field.label.toLowerCase().includes('网址');
+
+    const inputType = isEmailField ? 'email' :
+                     isPhoneField ? 'tel' :
+                     isUrlField ? 'url' : 'text';
+
+    return (
+      <RHFFormField
+        control={form.control}
+        name={field.name}
+        render={({ field: formField }) => (
+          <FormItem className={cn(!isVisible && 'hidden')}>
+            <div className="flex items-center justify-between">
+              <FormLabel className="flex items-center gap-2">
+                {field.label}
+                {field.required && <Badge variant="destructive" className="text-xs px-1 py-0">必填</Badge>}
+                {isEmailField && (
+                  <span className="text-xs text-muted-foreground">(例: user@example.com)</span>
+                )}
+                {isPhoneField && (
+                  <span className="text-xs text-muted-foreground">(例: 13812345678)</span>
+                )}
+                {isUrlField && (
+                  <span className="text-xs text-muted-foreground">(例: https://example.com)</span>
+                )}
+              </FormLabel>
+              <FieldValidationStatus field={field} form={form} />
+            </div>
+            <FormControl>
+              <Input
+                type={inputType}
+                placeholder={field.placeholder}
+                {...formField}
+                value={formField.value || ''}
+                className={cn(
+                  form.getFieldState(field.name).error && 'border-destructive focus-visible:ring-destructive'
+                )}
+                onChange={(e) => {
+                  if (isPhoneField) {
+                    // 只允许数字
+                    const value = e.target.value.replace(/\D/g, '');
+                    formField.onChange(value);
+                  } else {
+                    formField.onChange(e.target.value);
+                  }
+                }}
+              />
+            </FormControl>
+            {field.placeholder && (
+              <FormDescription>{field.placeholder}</FormDescription>
+            )}
+            <EnhancedFormMessage field={field} form={form} />
+          </FormItem>
+        )}
+      />
+    );
+  },
 
   number: ({ field, form, isVisible = true }) => (
     <RHFFormField
@@ -359,41 +471,93 @@ export function DynamicFormRenderer({
     metadata.fields.forEach((field) => {
       let fieldSchema: z.ZodTypeAny;
 
+      // 根据字段名称和类型应用特定的验证规则
+      const isEmailField = field.name.toLowerCase().includes('email') ||
+                          field.label.toLowerCase().includes('邮箱') ||
+                          field.label.toLowerCase().includes('邮件');
+      const isPhoneField = field.name.toLowerCase().includes('phone') ||
+                          field.name.toLowerCase().includes('tel') ||
+                          field.label.toLowerCase().includes('电话');
+      const isUrlField = field.name.toLowerCase().includes('url') ||
+                        field.name.toLowerCase().includes('website') ||
+                        field.label.toLowerCase().includes('网址');
+
       switch (field.type) {
         case 'text':
-          fieldSchema = z.string()
-            .min(1, `${field.label}不能为空`)
-            .max(500, `${field.label}不能超过500个字符`);
+          if (isEmailField) {
+            // 邮箱字段验证
+            fieldSchema = z.string()
+              .email(`${field.label}格式不正确，请输入有效的邮箱地址`)
+              .max(100, `${field.label}不能超过100个字符`);
+            if (field.required) {
+              fieldSchema = fieldSchema.min(1, `${field.label}不能为空`);
+            }
+          } else if (isPhoneField) {
+            // 电话字段验证
+            fieldSchema = z.string()
+              .regex(/^1[3-9]\d{9}$/, `${field.label}格式不正确，请输入有效的手机号码`)
+              .max(20, `${field.label}不能超过20个字符`);
+            if (field.required) {
+              fieldSchema = fieldSchema.min(1, `${field.label}不能为空`);
+            }
+          } else if (isUrlField) {
+            // 网址字段验证
+            fieldSchema = z.string()
+              .url(`${field.label}格式不正确，请输入有效的网址`)
+              .max(200, `${field.label}不能超过200个字符`);
+            if (field.required) {
+              fieldSchema = fieldSchema.min(1, `${field.label}不能为空`);
+            }
+          } else {
+            // 普通文本字段验证
+            fieldSchema = z.string()
+              .max(500, `${field.label}不能超过500个字符`);
+            if (field.required) {
+              fieldSchema = fieldSchema.min(1, `${field.label}不能为空`);
+            }
+          }
           break;
         case 'textarea':
           fieldSchema = z.string()
-            .min(1, `${field.label}不能为空`)
             .max(2000, `${field.label}不能超过2000个字符`);
+          if (field.required) {
+            fieldSchema = fieldSchema.min(1, `${field.label}不能为空`);
+          }
           break;
         case 'number':
-          fieldSchema = z.number()
-          .min(Number.MIN_SAFE_INTEGER, `${field.label}不能太小`)
-          .max(Number.MAX_SAFE_INTEGER, `${field.label}不能太大`);
+          fieldSchema = z.number().nullable();
+          if (field.required) {
+            fieldSchema = z.number({
+              required_error: `${field.label}不能为空`,
+              invalid_type_error: `${field.label}必须是有效的数字`
+            });
+          }
           break;
         case 'select':
-          fieldSchema = z.string()
-            .min(1, `请选择${field.label}`);
+          fieldSchema = z.string();
+          if (field.required) {
+            fieldSchema = fieldSchema.min(1, `请选择${field.label}`);
+          }
           break;
         case 'checkbox':
           fieldSchema = z.boolean();
           break;
         case 'date':
           fieldSchema = z.string()
-            .min(1, `请选择${field.label}`)
-            .datetime(`${field.label}必须是有效的日期`);
+            .regex(/^\d{4}-\d{2}-\d{2}$/, `${field.label}格式不正确，请选择有效日期`);
+          if (field.required) {
+            fieldSchema = fieldSchema.min(1, `请选择${field.label}`);
+          }
           break;
         default:
-          fieldSchema = z.string()
-            .min(1, `${field.label}不能为空`);
+          fieldSchema = z.string();
+          if (field.required) {
+            fieldSchema = fieldSchema.min(1, `${field.label}不能为空`);
+          }
       }
 
       // 处理必填字段
-      if (field.required) {
+      if (field.required && field.type !== 'number') {
         shape[field.name] = fieldSchema;
       } else {
         shape[field.name] = fieldSchema.optional();
@@ -405,13 +569,77 @@ export function DynamicFormRenderer({
 
   // 初始化表单
   const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    mode: 'onChange', // 实时验证
+    resolver: async (data, context, options) => {
+      try {
+        // 如果是初始化验证且没有用户交互，跳过验证
+        const hasUserInteraction = Object.keys(data).some(key => {
+          const value = data[key];
+          // 检查是否有实际的用户输入（不仅仅是默认值）
+          return value !== undefined && value !== null &&
+                 (typeof value === 'string' ? value.trim() !== '' : true);
+        });
+
+        // 如果没有用户交互且不是提交模式，跳过验证
+        if (!hasUserInteraction && options?.mode !== 'submit') {
+          return { values: data, errors: {} };
+        }
+
+        // 在提交时进行完整验证
+        if (options?.mode === 'submit') {
+          return zodResolver(schema)(data, context, options);
+        }
+
+        // 其他情况下进行轻度验证
+        try {
+          return await zodResolver(schema)(data, context, options);
+        } catch (validationError) {
+          // 如果是必填字段为空的错误，且没有用户交互，则忽略
+          if (validationError.name === 'ZodError') {
+            const isEmptyFieldErrors = validationError.errors.every(err =>
+              err.code === 'too_small' && err.minimum === 1
+            );
+            if (isEmptyFieldErrors && !hasUserInteraction) {
+              return { values: data, errors: {} };
+            }
+          }
+          throw validationError;
+        }
+      } catch (error) {
+        // 只在真正的验证错误时记录日志
+        if (error.name === 'ZodError' && error.errors.length > 0) {
+          const isEmptyFieldErrors = error.errors.every(err =>
+            err.code === 'too_small' && err.minimum === 1
+          );
+          if (!isEmptyFieldErrors) {
+            console.warn('Form validation error:', error.message);
+          }
+        }
+        return { values: data, errors: {} };
+      }
+    },
+    mode: 'onBlur', // 失去焦点时验证，避免初始验证
     reValidateMode: 'onChange', // 用户交互时重新验证
+    shouldFocusError: true,
+    shouldUseNativeValidation: false,
+    criteriaMode: 'firstError',
+    delayError: 300, // 延迟错误显示，避免频繁验证
     defaultValues: React.useMemo(() => {
       const values: Record<string, any> = {};
       metadata.fields.forEach((field) => {
-        values[field.name] = field.defaultValue || '';
+        // 根据字段类型设置合适的默认值
+        switch (field.type) {
+          case 'checkbox':
+            values[field.name] = field.defaultValue ?? false;
+            break;
+          case 'number':
+            values[field.name] = field.defaultValue ?? null;
+            break;
+          case 'select':
+            values[field.name] = field.defaultValue ?? '';
+            break;
+          default:
+            values[field.name] = field.defaultValue ?? '';
+        }
       });
       return values;
     }, [metadata]),
@@ -530,94 +758,98 @@ export function DynamicFormRenderer({
   const { resetForm } = useFormReset(form, metadata);
 
   return (
-    <Card className={cn('w-full max-w-2xl mx-auto', className)}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>动态表单</CardTitle>
-            <CardDescription>
-              版本 {metadata.version} • {metadata.fields.length} 个字段
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <FormResetHandler
-              form={form}
-              metadata={metadata}
-              onReset={() => {
-                setShowValidationDetails(false);
-                console.log('表单已重置');
-              }}
-            />
-            {validationSummary.errors.length > 0 && (
-              <Badge variant="destructive" className="text-xs">
-                {validationSummary.errors.length} 个错误
-              </Badge>
-            )}
-            {validationSummary.warnings.length > 0 && (
-              <Badge variant="outline" className="text-xs">
-                {validationSummary.warnings.length} 个建议
-              </Badge>
-            )}
-            {formValidationStatus.isDirty && validationSummary.isValid && (
-              <Badge variant="default" className="text-xs bg-green-600">
-                验证通过
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {/* 表单进度条 */}
-        {formValidationStatus.requiredFields > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span>完成进度</span>
-              <span>{formValidationStatus.filledRequiredFields}/{formValidationStatus.requiredFields} 必填字段</span>
+    <FormErrorBoundary onError={(error) => {
+      console.error('Form rendering error:', error);
+    }}>
+      <Card className={cn('w-full max-w-2xl mx-auto', className)}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>动态表单</CardTitle>
+              <CardDescription>
+                版本 {metadata.version} • {metadata.fields.length} 个字段
+              </CardDescription>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${formValidationStatus.progressPercentage}%` }}
+            <div className="flex items-center gap-2">
+              <FormResetHandler
+                form={form}
+                metadata={metadata}
+                onReset={() => {
+                  setShowValidationDetails(false);
+                  console.log('表单已重置');
+                }}
               />
+              {validationSummary.errors.length > 0 && (
+                <Badge variant="destructive" className="text-xs">
+                  {validationSummary.errors.length} 个错误
+                </Badge>
+              )}
+              {validationSummary.warnings.length > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {validationSummary.warnings.length} 个建议
+                </Badge>
+              )}
+              {formValidationStatus.isDirty && validationSummary.isValid && (
+                <Badge variant="default" className="text-xs bg-green-600">
+                  验证通过
+                </Badge>
+              )}
             </div>
           </div>
-        )}
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* 渲染所有字段 */}
-            {metadata.fields.map((field) => {
-              const FieldComponent = FormFieldComponents[field.type];
-              if (!FieldComponent) {
-                console.warn(`Unsupported field type: ${field.type}`);
-                return null;
-              }
 
-              return (
-                <FieldComponent
-                  key={field.id}
-                  field={field}
-                  form={form}
-                  isVisible={fieldVisibility[field.id]}
+          {/* 表单进度条 */}
+          {formValidationStatus.requiredFields > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>完成进度</span>
+                <span>{formValidationStatus.filledRequiredFields}/{formValidationStatus.requiredFields} 必填字段</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${formValidationStatus.progressPercentage}%` }}
                 />
-              );
-            })}
-
-              {/* 提交按钮 */}
-            <div className="flex items-center justify-end">
-              <ButtonLoading
-                isLoading={isSubmitting || isLoading}
-                disabled={!validationSummary.isValid}
-                loadingText="提交中..."
-                className="ml-auto"
-              >
-                提交表单
-              </ButtonLoading>
+              </div>
             </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          )}
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* 渲染所有字段 */}
+              {metadata.fields.map((field) => {
+                const FieldComponent = FormFieldComponents[field.type];
+                if (!FieldComponent) {
+                  console.warn(`Unsupported field type: ${field.type}`);
+                  return null;
+                }
+
+                return (
+                  <FieldComponent
+                    key={field.id}
+                    field={field}
+                    form={form}
+                    isVisible={fieldVisibility[field.id]}
+                  />
+                );
+              })}
+
+                {/* 提交按钮 */}
+              <div className="flex items-center justify-end">
+                <ButtonLoading
+                  isLoading={isSubmitting || isLoading}
+                  disabled={!validationSummary.isValid}
+                  loadingText="提交中..."
+                  className="ml-auto"
+                >
+                  提交表单
+                </ButtonLoading>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </FormErrorBoundary>
   );
 }
 
