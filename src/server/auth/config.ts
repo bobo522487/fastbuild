@@ -5,7 +5,7 @@ import GitHubProvider from "next-auth/providers/github";
 import { z } from "zod";
 
 import { env } from "~/env";
-import { hashPassword, verifyPassword } from "~/lib/auth";
+import { verifyPassword } from "~/server/auth/password";
 import { db } from "~/server/db";
 
 /**
@@ -18,15 +18,8 @@ declare module "next-auth" {
 	interface Session extends DefaultSession {
 		user: {
 			id: string;
-			// ...other properties
-			// role: UserRole;
 		} & DefaultSession["user"];
 	}
-
-	// interface User {
-	//   // ...other properties
-	//   // role: UserRole;
-	// }
 }
 
 /**
@@ -35,6 +28,12 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+	adapter: PrismaAdapter(db),
+	session: {
+		strategy: "jwt",
+		maxAge: 60 * 60 * 24 * 7, // 7 days
+		updateAge: 60 * 60 * 4, // refresh token every 4 hours at most
+	},
 	providers: [
 		GitHubProvider({
 			clientId: env.AUTH_GITHUB_ID,
@@ -75,14 +74,18 @@ export const authConfig = {
 			},
 		}),
 	],
-	adapter: PrismaAdapter(db),
 	callbacks: {
-		session: ({ session, user }) => ({
-			...session,
-			user: {
-				...session.user,
-				id: user.id,
-			},
-		}),
+		session: ({ session, token }) => {
+			if (session.user && token.sub) {
+				session.user.id = token.sub;
+			}
+			return session;
+		},
+		jwt: ({ token, user }) => {
+			if (user) {
+				token.sub = user.id;
+			}
+			return token;
+		},
 	},
 } satisfies NextAuthConfig;

@@ -832,32 +832,118 @@ export function LoginForm() {
 // src/components/project/project-list.tsx
 "use client";
 
-import { useState } from "react";
-import { api } from "~/trpc/react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { useToast } from "~/hooks/use-toast";
+
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  visibility: string;
+  owner: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  members: Array<{
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    role: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PaginatedProjectsResponse {
+  success: boolean;
+  data: Project[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
 
 export function ProjectList() {
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const [projects, setProjects] = useState<PaginatedProjectsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const { data: projects, isLoading, error } = api.project.getProjects.useQuery({
-    page,
-    limit,
-  });
+  const fetchProjects = async (pageNum: number) => {
+    setIsLoading(true);
+    setError(null);
 
-  const createProject = api.project.createProject.useMutation({
-    onSuccess: () => {
+    try {
+      const response = await fetch(`/api/projects?page=${pageNum}&limit=10`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Failed to fetch projects');
+      }
+
+      setProjects(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast({
+        title: "获取项目失败",
+        description: err instanceof Error ? err.message : "未知错误",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects(page);
+  }, [page]);
+
+  const createProject = async (projectData: { name: string; slug: string; description?: string }) => {
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(projectData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Failed to create project');
+      }
+
+      toast({
+        title: "项目创建成功",
+        description: `项目 "${projectData.name}" 已创建`,
+      });
+
       // 刷新项目列表
-      void utils.project.getProjects.invalidate();
-    },
-  });
-
-  const utils = api.useUtils();
+      await fetchProjects(page);
+    } catch (err) {
+      toast({
+        title: "创建项目失败",
+        description: err instanceof Error ? err.message : "未知错误",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) return <div>加载中...</div>;
-  if (error) return <div>错误: {error.message}</div>;
+  if (error) return <div>错误: {error}</div>;
+  if (!projects) return <div>暂无项目数据</div>;
 
   return (
     <div className="space-y-6">
@@ -866,6 +952,11 @@ export function ProjectList() {
         <Button
           onClick={() => {
             // 打开创建项目对话框
+            createProject({
+              name: "新项目",
+              slug: `new-project-${Date.now()}`,
+              description: "通过API创建的新项目"
+            });
           }}
         >
           创建新项目
@@ -873,18 +964,18 @@ export function ProjectList() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects?.map((project) => (
+        {projects.data.map((project) => (
           <Card key={project.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg">{project.title}</CardTitle>
+                  <CardTitle className="text-lg">{project.name}</CardTitle>
                   <CardDescription className="mt-1">
                     {project.description || "暂无描述"}
                   </CardDescription>
                 </div>
-                <Badge variant={project.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                  {project.status}
+                <Badge variant={project.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
+                  {project.visibility}
                 </Badge>
               </div>
             </CardHeader>
@@ -907,17 +998,17 @@ export function ProjectList() {
         <Button
           variant="outline"
           onClick={() => setPage(page - 1)}
-          disabled={page === 1}
+          disabled={!projects.pagination.hasPrev}
         >
           上一页
         </Button>
         <span className="py-2 px-4">
-          第 {page} 页
+          第 {page} 页，共 {projects.pagination.totalPages} 页
         </span>
         <Button
           variant="outline"
           onClick={() => setPage(page + 1)}
-          disabled={(projects?.length ?? 0) < limit}
+          disabled={!projects.pagination.hasNext}
         >
           下一页
         </Button>

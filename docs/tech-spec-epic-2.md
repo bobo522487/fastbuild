@@ -36,7 +36,7 @@ graph TD
     end
 
     subgraph "API层"
-        D[元数据tRPC Router] --> E[Zod Schema验证]
+        D[元数据REST API] --> E[Zod Schema验证]
         E --> F[权限中间件]
     end
 
@@ -293,218 +293,553 @@ WHERE isActive = true;
 
 ### 元数据管理API
 ```typescript
-// src/server/api/routers/metadata.ts
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { z } from "zod";
-import { MetadataEngine } from "~/lib/metadata/engine";
-import { metadataSchemas } from "~/lib/metadata/schemas";
+// src/app/api/metadata/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { getCurrentUser } from '~/lib/auth'
+import { MetadataEngine } from '~/lib/metadata/engine'
+import { ApiResponse, PaginatedResponse } from '~/lib/api-response'
 
-export const metadataRouter = createTRPCRouter({
-  // 获取元数据列表
-  getMetadataList: protectedProcedure
-    .input(z.object({
-      projectId: z.string(),
-      type: z.enum(['TABLE', 'VIEW', 'APPLICATION', 'COMPONENT']).optional(),
-      page: z.number().default(1),
-      limit: z.number().default(20),
-      search: z.string().optional(),
-    }))
-    .query(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
+const listMetadataSchema = z.object({
+  projectId: z.string(),
+  type: z.enum(['TABLE', 'VIEW', 'APPLICATION', 'COMPONENT']).optional(),
+  page: z.coerce.number().default(1),
+  limit: z.coerce.number().default(20),
+  search: z.string().optional(),
+})
 
-      return await engine.queryMetadata({
-        projectId: input.projectId,
-        type: input.type,
-        pagination: {
-          page: input.page,
-          limit: input.limit,
+const createMetadataSchema = z.object({
+  type: z.enum(['TABLE', 'VIEW', 'APPLICATION', 'COMPONENT']),
+  name: z.string().min(1).max(100),
+  slug: z.string().min(1).max(100),
+  schema: z.any(),
+  data: z.any(),
+  projectId: z.string(),
+})
+
+const updateMetadataSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  slug: z.string().min(1).max(100).optional(),
+  schema: z.any().optional(),
+  data: z.any().optional(),
+  createVersion: z.coerce.boolean().default(true),
+  changeLog: z.string().optional(),
+})
+
+const validateMetadataSchema = z.object({
+  schemaVersion: z.number().optional(),
+})
+
+// GET /api/metadata - 获取元数据列表
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
+
+    const { searchParams } = new URL(request.url)
+    const validatedQuery = listMetadataSchema.parse({
+      projectId: searchParams.get('projectId'),
+      type: searchParams.get('type'),
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+      search: searchParams.get('search'),
+    })
+
+    // 检查项目权限
+    await checkProjectPermission(user.id, validatedQuery.projectId, 'MEMBER')
+
+    const engine = new MetadataEngine()
+    const result = await engine.queryMetadata({
+      projectId: validatedQuery.projectId,
+      type: validatedQuery.type,
+      pagination: {
+        page: validatedQuery.page,
+        limit: validatedQuery.limit,
+      },
+      search: validatedQuery.search,
+    })
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: result.metadata,
+        pagination: result.pagination,
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as PaginatedResponse<typeof result.metadata>,
+      { status: 200 }
+    )
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid query parameters',
+            details: error.errors
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch metadata'
         },
-        search: input.search,
-      });
-    }),
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
 
-  // 获取单个元数据
-  getMetadata: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      includeVersions: z.boolean().default(false),
-      includeReferences: z.boolean().default(false),
-    }))
-    .query(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
+// POST /api/metadata - 创建元数据
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
 
-      return await engine.getMetadata(input.id, {
-        includeVersions: input.includeVersions,
-        includeReferences: input.includeReferences,
-      });
-    }),
+    const body = await request.json()
+    const validatedData = createMetadataSchema.parse(body)
 
-  // 创建元数据
-  createMetadata: protectedProcedure
-    .input(z.object({
-      type: z.enum(['TABLE', 'VIEW', 'APPLICATION', 'COMPONENT']),
-      name: z.string().min(1).max(100),
-      slug: z.string().min(1).max(100),
-      schema: z.any(), // JSON schema
-      data: z.any(), // 元数据内容
-      projectId: z.string(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      // 检查项目权限
-      await checkProjectPermission(ctx.session.user.id, input.projectId, 'MEMBER');
+    // 检查项目权限
+    await checkProjectPermission(user.id, validatedData.projectId, 'MEMBER')
 
-      const engine = new MetadataEngine(ctx.db);
+    const engine = new MetadataEngine()
 
-      // 验证schema
-      const schemaValidator = metadataSchemas[input.type];
-      const validationResult = schemaValidator.safeParse(input.data);
+    // 验证schema
+    const schemaValidator = metadataSchemas[validatedData.type]
+    const validationResult = schemaValidator.safeParse(validatedData.data)
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: `元数据验证失败: ${validationResult.error.message}`,
+            details: validationResult.error.errors
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 400 }
+      )
+    }
+
+    const metadata = await engine.createMetadata({
+      ...validatedData,
+      createdBy: user.id,
+      updatedBy: user.id,
+    })
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: metadata,
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 201 }
+    )
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid input data',
+            details: error.errors
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create metadata'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
+```
+
+```typescript
+// src/app/api/metadata/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { getCurrentUser } from '~/lib/auth'
+import { MetadataEngine } from '~/lib/metadata/engine'
+import { ApiResponse } from '~/lib/api-response'
+
+// GET /api/metadata/[id] - 获取单个元数据
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
+
+    const { searchParams } = new URL(request.url)
+    const includeVersions = searchParams.get('includeVersions') === 'true'
+    const includeReferences = searchParams.get('includeReferences') === 'true'
+
+    const engine = new MetadataEngine()
+    const metadata = await engine.getMetadata(params.id, {
+      includeVersions,
+      includeReferences,
+    })
+
+    if (!metadata) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Metadata not found'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 404 }
+      )
+    }
+
+    // 检查项目权限
+    await checkProjectPermission(user.id, metadata.projectId, 'MEMBER')
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: metadata,
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 200 }
+    )
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch metadata'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
+
+// PUT /api/metadata/[id] - 更新元数据
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const validatedData = updateMetadataSchema.parse(body)
+
+    const engine = new MetadataEngine()
+
+    // 获取现有元数据并检查权限
+    const existing = await engine.getMetadata(params.id)
+    if (!existing) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Metadata not found'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 404 }
+      )
+    }
+
+    await checkProjectPermission(user.id, existing.projectId, 'MEMBER')
+
+    // 如果提供了新数据，验证schema
+    if (validatedData.data) {
+      const schemaValidator = metadataSchemas[existing.type]
+      const validationResult = schemaValidator.safeParse(validatedData.data)
 
       if (!validationResult.success) {
-        throw new Error(`元数据验证失败: ${validationResult.error.message}`);
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: `元数据验证失败: ${validationResult.error.message}`,
+              details: validationResult.error.errors
+            },
+            meta: {
+              timestamp: new Date().toISOString(),
+              requestId: crypto.randomUUID()
+            }
+          } as ApiResponse,
+          { status: 400 }
+        )
       }
+    }
 
-      return await engine.createMetadata({
-        ...input,
-        createdBy: ctx.session.user.id,
-        updatedBy: ctx.session.user.id,
-      });
-    }),
+    const updatedMetadata = await engine.updateMetadata(params.id, {
+      ...validatedData,
+      updatedBy: user.id,
+    })
 
-  // 更新元数据
-  updateMetadata: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      name: z.string().min(1).max(100).optional(),
-      slug: z.string().min(1).max(100).optional(),
-      schema: z.any().optional(),
-      data: z.any().optional(),
-      createVersion: z.boolean().default(true),
-      changeLog: z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
-
-      // 获取现有元数据并检查权限
-      const existing = await engine.getMetadata(input.id);
-      if (!existing) {
-        throw new Error("元数据不存在");
-      }
-
-      await checkProjectPermission(ctx.session.user.id, existing.projectId, 'MEMBER');
-
-      // 如果提供了新数据，验证schema
-      if (input.data) {
-        const schemaValidator = metadataSchemas[existing.type];
-        const validationResult = schemaValidator.safeParse(input.data);
-
-        if (!validationResult.success) {
-          throw new Error(`元数据验证失败: ${validationResult.error.message}`);
+    return NextResponse.json(
+      {
+        success: true,
+        data: updatedMetadata,
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
         }
-      }
-
-      return await engine.updateMetadata(input.id, {
-        ...input,
-        updatedBy: ctx.session.user.id,
-      });
-    }),
-
-  // 删除元数据
-  deleteMetadata: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
-
-      // 检查权限
-      const existing = await engine.getMetadata(input.id);
-      if (!existing) {
-        throw new Error("元数据不存在");
-      }
-
-      await checkProjectPermission(ctx.session.user.id, existing.projectId, 'ADMIN');
-
-      // 检查依赖关系
-      const references = await engine.getReferences(input.id);
-      if (references.length > 0) {
-        throw new Error("无法删除：存在其他元数据引用此项");
-      }
-
-      return await engine.deleteMetadata(input.id);
-    }),
-
-  // 验证元数据
-  validateMetadata: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      schemaVersion: z.number().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
-
-      return await engine.validateMetadata(input.id, {
-        schemaVersion: input.schemaVersion,
-        validatedBy: ctx.session.user.id,
-      });
-    }),
-
-  // 获取版本历史
-  getVersionHistory: protectedProcedure
-    .input(z.object({
-      metadataId: z.string(),
-      page: z.number().default(1),
-      limit: z.number().default(10),
-    }))
-    .query(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
-
-      return await engine.getVersionHistory(input.metadataId, {
-        page: input.page,
-        limit: input.limit,
-      });
-    }),
-
-  // 比较版本
-  compareVersions: protectedProcedure
-    .input(z.object({
-      metadataId: z.string(),
-      fromVersion: z.number(),
-      toVersion: z.number(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
-
-      return await engine.compareVersions(
-        input.metadataId,
-        input.fromVersion,
-        input.toVersion
-      );
-    }),
-
-  // 回滚到指定版本
-  rollbackToVersion: protectedProcedure
-    .input(z.object({
-      metadataId: z.string(),
-      version: z.number(),
-      changeLog: z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const engine = new MetadataEngine(ctx.db);
-
-      // 检查权限
-      const existing = await engine.getMetadata(input.metadataId);
-      if (existing) {
-        await checkProjectPermission(ctx.session.user.id, existing.projectId, 'ADMIN');
-      }
-
-      return await engine.rollbackToVersion(
-        input.metadataId,
-        input.version,
+      } as ApiResponse,
+      { status: 200 }
+    )
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
         {
-          changeLog: input.changeLog,
-          updatedBy: ctx.session.user.id,
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid input data',
+            details: error.errors
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to update metadata'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
         }
-      );
-    }),
-});
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/metadata/[id] - 删除元数据
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
+
+    const engine = new MetadataEngine()
+
+    // 检查权限
+    const existing = await engine.getMetadata(params.id)
+    if (!existing) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Metadata not found'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 404 }
+      )
+    }
+
+    await checkProjectPermission(user.id, existing.projectId, 'ADMIN')
+
+    // 检查依赖关系
+    const references = await engine.getReferences(params.id)
+    if (references.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'DEPENDENCY_ERROR',
+            message: '无法删除：存在其他元数据引用此项'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 409 }
+      )
+    }
+
+    await engine.deleteMetadata(params.id)
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: { deleted: true },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 200 }
+    )
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to delete metadata'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
 ```
 
 ### 元数据Schema定义

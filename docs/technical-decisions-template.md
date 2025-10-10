@@ -13,7 +13,7 @@ This document captures technical decisions, preferences, and constraints discove
 **Inferred Skill Level: Intermediate**
 
 **Evidence:**
-- **Technology Stack Choice**: T3 Stack (Next.js + tRPC + Prisma + TypeScript) indicates comfort with modern full-stack TypeScript development
+- **Technology Stack Choice**: Next.js + Prisma + TypeScript indicates comfort with modern full-stack TypeScript development
 - **Architecture Patterns**: Monolithic architecture with modular boundaries suggests understanding of trade-offs between simplicity and scalability
 - **Tooling Preferences**: Biome for linting, pnpm for package management show familiarity with modern development tooling
 - **Database Design**: JSONB-first approach with PostgreSQL demonstrates understanding of NoSQL vs SQL trade-offs
@@ -35,7 +35,7 @@ This document captures technical decisions, preferences, and constraints discove
 
 #### Technical Stack Preferences
 - **Frontend**: React ecosystem with Next.js for full-stack capabilities
-- **Backend**: tRPC for type-safe APIs over traditional REST
+- **Backend**: REST APIs for standard HTTP contracts
 - **Database**: PostgreSQL with JSONB for flexibility
 - **ORM**: Prisma for type-safe database access
 - **Styling**: Tailwind CSS for utility-first styling
@@ -72,7 +72,7 @@ This document captures technical decisions, preferences, and constraints discove
 - **Database**: PostgreSQL required for JSONB support and ACID compliance
 - **Deployment**: Vercel platform for optimal Next.js experience
 - **Authentication**: NextAuth.js for multiple provider support
-- **API Design**: tRPC for type safety between frontend and backend
+- **API Design**: REST APIs with OpenAPI documentation for type safety
 
 #### Business Constraints
 - **Timeline**: MVP delivery within 3-4 months
@@ -87,10 +87,10 @@ This document captures technical decisions, preferences, and constraints discove
 - **Benefits**: SSR/SSG flexibility, excellent TypeScript support, Vercel optimization
 - **Trade-offs**: Framework lock-in, but acceptable for benefits
 
-#### tRPC 11.6.0
-- **Rationale**: Type-safe API contracts without OpenAPI overhead
-- **Benefits**: End-to-end type safety, auto-completion, reduced runtime errors
-- **Trade-offs**: tRPC-specific client required
+#### REST API with OpenAPI 3.0
+- **Rationale**: Standard HTTP contracts with automatic documentation
+- **Benefits**: Universal compatibility, excellent tooling support, clear contracts
+- **Trade-offs**: Less type safety than tRPC but better interoperability
 
 #### Prisma 6.17.0
 - **Rationale**: Type-safe database access with excellent migration tools
@@ -112,7 +112,7 @@ This document captures technical decisions, preferences, and constraints discove
 ### Core Technology Stack
 - **Framework**: Next.js 15.5.4 (latest stable)
 - **Language**: TypeScript 5.9.3 (strict mode)
-- **API Layer**: tRPC 11.6.0 (type-safe contracts)
+- **API Layer**: REST API with OpenAPI 3.0 (standard contracts)
 - **Database**: PostgreSQL 16 with JSONB
 - **ORM**: Prisma 6.17.0 (schema-first)
 - **Authentication**: NextAuth.js 5.0.0-beta.25
@@ -124,7 +124,7 @@ This document captures technical decisions, preferences, and constraints discove
 - **Pattern**: Modular monolithic architecture
 - **Repository Strategy**: Single repository (monorepo-lite)
 - **Data Architecture**: JSONB-first with relational constraints
-- **API Design**: tRPC with Zod validation
+- **API Design**: REST API with Zod validation and OpenAPI documentation
 - **State Management**: TanStack Query for server state
 - **Testing**: Jest + Playwright comprehensive coverage
 

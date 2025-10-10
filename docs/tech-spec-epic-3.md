@@ -41,7 +41,7 @@ graph TD
     end
 
     subgraph "预览API层"
-        H[预览tRPC Router] --> I[缓存中间件]
+        H[预览REST API] --> I[缓存中间件]
         I --> J[权限检查]
         J --> K[数据源适配器]
     end
@@ -1142,104 +1142,418 @@ interface FieldConfig {
 
 ## 预览API设计
 
-### 预览服务tRPC路由
+### 预览服务REST API
 ```typescript
-// src/server/api/routers/preview.ts
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { z } from "zod";
-import { PreviewService } from "~/lib/preview/preview-service";
-import { MetadataParser } from "~/lib/interpreter/metadata-parser";
+// src/app/api/preview/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { getCurrentUser } from '~/lib/auth'
+import { PreviewService } from '~/lib/preview/preview-service'
+import { ApiResponse } from '~/lib/api-response'
 
-export const previewRouter = createTRPCRouter({
-  // 创建预览会话
-  createPreviewSession: protectedProcedure
-    .input(z.object({
-      metadataId: z.string(),
-      version: z.number().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const previewService = new PreviewService(ctx.db);
+const createPreviewSessionSchema = z.object({
+  metadataId: z.string(),
+  version: z.number().optional(),
+})
 
-      return await previewService.createSession({
-        metadataId: input.metadataId,
-        version: input.version,
-        userId: ctx.session.user.id,
-      });
-    }),
+const updatePreviewDataSchema = z.object({
+  data: z.any(),
+  path: z.string().optional(),
+})
 
-  // 获取预览内容
-  getPreviewContent: protectedProcedure
-    .input(z.object({
-      sessionId: z.string(),
-      path: z.string().optional(),
-    }))
-    .query(async ({ ctx, input }) => {
-      const previewService = new PreviewService(ctx.db);
+const executePreviewActionSchema = z.object({
+  action: z.string(),
+  data: z.any(),
+})
 
-      return await previewService.getPreviewContent(input.sessionId, {
-        path: input.path,
-        userId: ctx.session.user.id,
-      });
-    }),
+// POST /api/preview - 创建预览会话
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
 
-  // 更新预览数据
-  updatePreviewData: protectedProcedure
-    .input(z.object({
-      sessionId: z.string(),
-      data: z.any(),
-      path: z.string().optional(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const previewService = new PreviewService(ctx.db);
+    const body = await request.json()
+    const validatedData = createPreviewSessionSchema.parse(body)
 
-      return await previewService.updateData(input.sessionId, {
-        data: input.data,
-        path: input.path,
-        userId: ctx.session.user.id,
-      });
-    }),
+    const previewService = new PreviewService()
+    const session = await previewService.createSession({
+      metadataId: validatedData.metadataId,
+      version: validatedData.version,
+      userId: user.id,
+    })
 
-  // 执行预览操作
-  executePreviewAction: protectedProcedure
-    .input(z.object({
-      sessionId: z.string(),
-      action: z.string(),
-      data: z.any(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const previewService = new PreviewService(ctx.db);
+    return NextResponse.json(
+      {
+        success: true,
+        data: session,
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 201 }
+    )
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid input data',
+            details: error.errors
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 400 }
+      )
+    }
 
-      return await previewService.executeAction(input.sessionId, {
-        action: input.action,
-        data: input.data,
-        userId: ctx.session.user.id,
-      });
-    }),
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create preview session'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
+```
 
-  // 获取预览状态
-  getPreviewStatus: protectedProcedure
-    .input(z.object({
-      sessionId: z.string(),
-    }))
-    .query(async ({ ctx, input }) => {
-      const previewService = new PreviewService(ctx.db);
+```typescript
+// src/app/api/preview/[sessionId]/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { getCurrentUser } from '~/lib/auth'
+import { PreviewService } from '~/lib/preview/preview-service'
+import { ApiResponse } from '~/lib/api-response'
 
-      return await previewService.getSessionStatus(input.sessionId);
-    }),
+// GET /api/preview/[sessionId] - 获取预览内容或状态
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { sessionId: string } }
+) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
 
-  // 销毁预览会话
-  destroyPreviewSession: protectedProcedure
-    .input(z.object({
-      sessionId: z.string(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const previewService = new PreviewService(ctx.db);
+    const { searchParams } = new URL(request.url)
+    const isStatusRequest = searchParams.get('status') === 'true'
+    const path = searchParams.get('path') || undefined
 
-      return await previewService.destroySession(input.sessionId, {
-        userId: ctx.session.user.id,
-      });
-    }),
-});
+    const previewService = new PreviewService()
+
+    if (isStatusRequest) {
+      // 获取预览状态
+      const status = await previewService.getSessionStatus(params.sessionId)
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: status,
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 200 }
+      )
+    } else {
+      // 获取预览内容
+      const content = await previewService.getPreviewContent(params.sessionId, {
+        path,
+        userId: user.id,
+      })
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: content,
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 200 }
+      )
+    }
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to get preview content'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
+
+// PUT /api/preview/[sessionId] - 更新预览数据
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { sessionId: string } }
+) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const validatedData = updatePreviewDataSchema.parse(body)
+
+    const previewService = new PreviewService()
+    const result = await previewService.updateData(params.sessionId, {
+      data: validatedData.data,
+      path: validatedData.path,
+      userId: user.id,
+    })
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: result,
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 200 }
+    )
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid input data',
+            details: error.errors
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to update preview data'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
+
+// POST /api/preview/[sessionId]/actions - 执行预览操作
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { sessionId: string } }
+) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const validatedData = executePreviewActionSchema.parse(body)
+
+    const previewService = new PreviewService()
+    const result = await previewService.executeAction(params.sessionId, {
+      action: validatedData.action,
+      data: validatedData.data,
+      userId: user.id,
+    })
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: result,
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 200 }
+    )
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid input data',
+            details: error.errors
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to execute preview action'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/preview/[sessionId] - 销毁预览会话
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { sessionId: string } }
+) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: crypto.randomUUID()
+          }
+        } as ApiResponse,
+        { status: 401 }
+      )
+    }
+
+    const previewService = new PreviewService()
+    const result = await previewService.destroySession(params.sessionId, {
+      userId: user.id,
+    })
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: { deleted: result },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 200 }
+    )
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to destroy preview session'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: crypto.randomUUID()
+        }
+      } as ApiResponse,
+      { status: 500 }
+    )
+  }
+}
 ```
 
 ### 预览服务实现

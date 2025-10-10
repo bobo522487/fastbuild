@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { hashPassword } from "~/lib/auth";
+import { hashPassword } from "~/server/auth/password";
 import { db } from "~/server/db";
 
 const registerSchema = z.object({

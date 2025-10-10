@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/story-1.4" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.4</storyId>
+    <title>项目管理基础功能</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/home/bobo/project/test/fastbuild/docs/stories/story-1.4.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>用户</asA>
+    <iWant>能够创建、配置和管理项目</iWant>
+    <soThat>拥有完整的项目管理能力，包括权限控制和页面管理</soThat>
+    <tasks>项目创建和删除功能;项目配置页面;基础的页面管理;项目权限控制</tasks>
+  </story>
+
+  <acceptanceCriteria>1. 项目创建和删除功能
+2. 项目配置页面
+3. 基础的页面管理
+4. 项目权限控制</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="/home/bobo/project/test/fastbuild/docs/tech-spec-epic-1.md" title="Epic 1 技术规格" section="架构设计">
+        <snippet>Epic 1 "基础平台与项目初始化" 是 FastBuild 低代码开发平台的基础实施阶段，涵盖项目管理、权限控制和基础API设计</snippet>
+      </doc>
+      <doc path="/home/bobo/project/test/fastbuild/docs/solution-architecture.md" title="解决方案架构" section="数据架构">
+        <snippet>采用企业级数据模型，Project、ProjectMember模型支持多租户和基于角色的访问控制(RBAC)</snippet>
+      </doc>
+      <doc path="/home/bobo/project/test/fastbuild/docs/epic-stories.md" title="Epic故事分解" section="项目管理">
+        <snippet>故事1.4专注于项目管理基础功能的实现，包括CRUD操作、权限控制和配置管理</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact path="/home/bobo/project/test/fastbuild/src/app/api/projects/route.ts" kind="API Route" symbol="GET,POST" lines="1-331" reason="项目列表查询和创建的核心API端点，实现完整的分页、搜索和验证逻辑">
+        <snippet>GET /api/projects?page=1&limit=10&search=keyword&visibility=PUBLIC&sort=createdAt&order=desc - 获取用户项目列表</snippet>
+        <snippet>POST /api/projects - 创建新项目，包含项目名称、slug、描述和可见性设置</snippet>
+      </artifact>
+      <artifact path="/home/bobo/project/test/fastbuild/src/app/api/projects/[id]/route.ts" kind="API Route" symbol="GET,PUT,DELETE" lines="1-405" reason="单个项目的查询、更新和删除操作，包含权限检查和审计日志">
+        <snippet>GET /api/projects/[id] - 获取单个项目详情，包含成员信息和统计数据</snippet>
+        <snippet>PUT /api/projects/[id] - 更新项目信息，只有OWNER和ADMIN角色可以操作</snippet>
+        <snippet>DELETE /api/projects/[id] - 删除项目，只有OWNER角色可以操作，需要检查依赖关系</snippet>
+      </artifact>
+      <artifact path="/home/bobo/project/test/fastbuild/src/components/project/project-list.tsx" kind="React Component" symbol="ProjectList" lines="1-100" reason="项目列表的前端组件，展示用户可访问的所有项目">
+        <snippet>支持分页、搜索、排序和筛选功能的项目列表界面</snippet>
+      </artifact>
+      <artifact path="/home/bobo/project/test/fastbuild/src/components/project/project-form.tsx" kind="React Component" symbol="ProjectForm" lines="1-100" reason="项目创建和编辑的表单组件，包含数据验证和提交逻辑">
+        <snippet>使用react-hook-form和zod验证的项目表单组件</snippet>
+      </artifact>
+      <artifact path="/home/bobo/project/test/fastbuild/src/components/project/member-management.tsx" kind="React Component" symbol="MemberManagement" lines="1-100" reason="项目成员管理组件，支持邀请成员和分配角色">
+        <snippet>项目成员邀请、角色分配和权限管理界面</snippet>
+      </artifact>
+      <artifact path="/home/bobo/project/test/fastbuild/prisma/schema.prisma" kind="Database Schema" symbol="Project,ProjectMember" lines="212-248" reason="核心数据模型定义，支持项目和成员关系的持久化">
+        <snippet>Project模型包含id、slug、name、description、visibility等字段</snippet>
+        <snippet>ProjectMember模型实现多对多的用户-项目关系，支持角色分配</snippet>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js/Next.js">
+        <package name="next" version="^15.2.3" purpose="全栈框架支持"/>
+        <package name="react" version="^19.0.0" purpose="前端UI框架"/>
+        <package name="@prisma/client" version="^6.5.0" purpose="类型安全的数据库访问"/>
+        <package name="next-auth" version="5.0.0-beta.25" purpose="用户认证和会话管理"/>
+        <package name="zod" version="^3.24.2" purpose="数据验证和类型安全"/>
+        <package name="@tanstack/react-query" version="^5.69.0" purpose="服务端状态管理"/>
+        <package name="@radix-ui/react-*" version="latest" purpose="无头UI组件库"/>
+      </ecosystem>
+      <ecosystem name="Database">
+        <package name="prisma" version="^6.5.0" purpose="ORM和数据库迁移工具"/>
+        <package name="postgresql" version="16+" purpose="主数据库，支持JSONB和复杂查询"/>
+      </ecosystem>
+      <ecosystem name="Testing">
+        <package name="vitest" version="^3.2.4" purpose="单元测试和集成测试框架"/>
+        <package name="@testing-library/react" version="^16.3.0" purpose="React组件测试工具"/>
+        <package name="@testing-library/jest-dom" version="^6.9.1" purpose="DOM断言库"/>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint name="架构模式" description="遵循分层REST API架构，API层、业务逻辑层和数据访问层分离"/>
+    <constraint name="权限控制" description="实现基于角色的访问控制(RBAC)，支持OWNER、ADMIN、EDITOR、VIEWER、NO_ACCESS五种角色"/>
+    <constraint name="数据一致性" description="使用Prisma事务确保项目操作的数据一致性，特别是涉及多表操作时"/>
+    <constraint name="API设计" description="严格遵循RESTful设计规范，使用标准HTTP状态码和错误响应格式"/>
+    <constraint name="类型安全" description="从数据库到API接口全链路TypeScript类型安全，使用Zod进行运行时验证"/>
+    <constraint name="审计日志" description="所有项目操作必须记录审计日志，包含操作者、操作类型和详细变更信息"/>
+    <constraint name="软删除" description="项目采用软删除机制，通过deletedAt字段标记删除状态"/>
+    <constraint name="唯一约束" description="项目slug在系统内必须唯一，项目名称在同一创建者下必须唯一"/>
+  </constraints>
+
+  <interfaces>
+    <interface name="项目管理API" kind="REST API" signature="GET|POST /api/projects" path="/src/app/api/projects/route.ts" description="项目列表查询和创建">
+      <param name="page" type="number" required="false" description="页码，默认1"/>
+      <param name="limit" type="number" required="false" description="每页数量，默认10"/>
+      <param name="search" type="string" required="false" description="搜索关键词"/>
+      <param name="visibility" type="enum" required="false" description="可见性过滤(PUBLIC|PRIVATE)"/>
+      <param name="sort" type="string" required="false" description="排序字段，默认createdAt"/>
+      <param name="order" type="enum" required="false" description="排序方向(asc|desc)，默认desc"/>
+    </interface>
+    <interface name="单个项目API" kind="REST API" signature="GET|PUT|DELETE /api/projects/[id]" path="/src/app/api/projects/[id]/route.ts" description="单个项目的操作">
+      <param name="id" type="string" required="true" description="项目ID"/>
+    </interface>
+    <interface name="项目成员API" kind="REST API" signature="GET|POST|DELETE /api/projects/[id]/members" path="/src/app/api/projects/[id]/members/route.ts" description="项目成员管理">
+      <param name="id" type="string" required="true" description="项目ID"/>
+    </interface>
+    <interface name="权限检查工具" kind="Utility Function" signature="checkProjectPermission(userId: string, projectId: string, requiredRole: MemberRole): Promise&lt;boolean&gt;" path="/src/lib/permissions.ts" description="检查用户项目权限">
+      <param name="userId" type="string" required="true" description="用户ID"/>
+      <param name="projectId" type="string" required="true" description="项目ID"/>
+      <param name="requiredRole" type="enum" required="true" description="所需角色"/>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      使用Vitest作为主要测试框架，配合Testing Library进行组件测试。API测试使用Jest + Supertest模式，注重API契约测试。测试覆盖率目标90%+，包含单元测试、集成测试和端到端测试。
+    </standards>
+    <locations>
+      <location pattern="tests/api/*.test.ts" description="API端点测试"/>
+      <location pattern="tests/components/*.test.tsx" description="React组件测试"/>
+      <location pattern="tests/utils/*.test.ts" description="工具函数测试"/>
+      <location pattern="src/**/*.test.ts" description="与源码同级的单元测试"/>
+    </locations>
+    <ideas>
+      <test criteria="1" idea="测试项目创建API的输入验证，包括必填字段、字段长度限制和格式验证"/>
+      <test criteria="1" idea="测试项目删除API的权限检查，确保只有OWNER可以删除项目"/>
+      <test criteria="2" idea="测试项目配置表单的验证逻辑和提交流程"/>
+      <test criteria="3" idea="测试页面创建、编辑、删除功能的完整流程"/>
+      <test criteria="4" idea="测试角色权限验证，确保不同角色有正确的操作权限"/>
+      <test criteria="4" idea="测试成员邀请流程，包括邀请链接生成和接受流程"/>
+      <test criteria="*" idea="测试项目列表的分页、搜索和筛选功能"/>
+      <test criteria="*" idea="测试项目操作的审计日志记录功能"/>
+    </ideas>
+  </tests>
+</story-context>

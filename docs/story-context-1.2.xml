@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/story-1.2" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.2</storyId>
+    <title>数据库连接和基础配置</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/home/bobo/project/test/fastbuild/docs/stories/story-1.2.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>开发者</asA>
+    <iWant>能够连接到PostgreSQL数据库并验证连接</iWant>
+    <soThat>确保数据库连接稳定，提供健康检查和连接状态可视化</soThat>
+    <tasks>
+      - Task 1: 配置PostgreSQL数据库连接 (AC: #1)
+        - Subtask 1.1: 配置Prisma客户端和数据库连接
+        - Subtask 1.2: 设置环境变量和数据库URL
+        - Subtask 1.3: 实现数据库连接池配置
+      - Task 2: 实现数据库连接测试 (AC: #2)
+        - Subtask 2.1: 创建数据库连接测试API
+        - Subtask 2.2: 实现连接健康检查功能
+        - Subtask 2.3: 添加连接状态监控
+      - Task 3: 创建健康检查端点 (AC: #3)
+        - Subtask 3.1: 实现 /api/health 端点
+        - Subtask 3.2: 添加数据库连接状态检查
+        - Subtask 3.3: 实现系统状态聚合
+      - Task 4: 数据库连接状态可视化 (AC: #4)
+        - Subtask 4.1: 创建数据库状态显示组件
+        - Subtask 4.2: 实现实时连接状态更新
+        - Subtask 4.3: 添加连接错误处理和显示
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. 支持PostgreSQL数据库连接
+    2. 提供连接测试功能
+    3. 实现基础的健康检查端点
+    4. 数据库连接状态可视化
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 技术规范：基础平台与项目初始化</title>
+        <section>数据库设计</section>
+        <snippet>数据模型：PostgreSQL + Prisma ORM 6.17.0，实现类型安全的数据库访问。数据库架构设计包含两个层次：认证层（已实现）和业务层（目标架构）</snippet>
+      </doc>
+      <doc>
+        <path>docs/solution-architecture.md</path>
+        <title>FastBuild 解决方案架构文档</title>
+        <section>数据架构</section>
+        <snippet>当前数据库状态：认证层基于NextAuth.js的用户认证系统，包含Account、Session、User、VerificationToken表；业务层为企业级数据模型版本管理系统</snippet>
+      </doc>
+      <doc>
+        <path>docs/solution-architecture.md</path>
+        <title>FastBuild 解决方案架构文档</title>
+        <section>部署架构</section>
+        <snippet>数据源配置：支持多种数据源类型，包括POSTGRES、MYSQL等，提供统一的连接配置管理</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>FastBuild 产品需求文档</title>
+        <section>用户旅程1</section>
+        <snippet>开发者构建"Hello World"应用：配置后端健康检查端点，验证数据库连接和API响应</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>FastBuild 产品需求文档</title>
+        <section>非功能性需求</section>
+        <snippet>NFR003 (性能): 在正常负载下，所有后端API的响应时间应在500毫秒以内</snippet>
+      </doc>
+    </docs>
+    <code>
+      <codefile>
+        <path>prisma/schema.prisma</path>
+        <kind>database-schema</kind>
+        <symbol>datasource db</symbol>
+        <lines>8-15</lines>
+        <reason>现有的PostgreSQL数据源配置，包含连接字符串配置</reason>
+      </codefile>
+      <codefile>
+        <path>prisma/schema.prisma</path>
+        <kind>database-model</kind>
+        <symbol>DataSource</symbol>
+        <lines>157-175</lines>
+        <reason>数据源模型定义，支持多种数据库类型和连接配置管理</reason>
+      </codefile>
+      <codefile>
+        <path>src/server/db.ts</path>
+        <kind>database-client</kind>
+        <symbol>createPrismaClient</symbol>
+        <lines>5-9</lines>
+        <reason>现有的Prisma客户端配置，包含日志和连接管理</reason>
+      </codefile>
+      <codefile>
+        <path>src/server/db.ts</path>
+        <kind>database-client</kind>
+        <symbol>db</symbol>
+        <lines>15-17</lines>
+        <reason>全局Prisma客户端实例，支持开发和生产环境</reason>
+      </codefile>
+      <codefile>
+        <path>src/env.js</path>
+        <kind>environment-config</kind>
+        <symbol>DATABASE_URL</symbol>
+        <lines>16</lines>
+        <reason>数据库连接URL的环境变量配置</reason>
+      </codefile>
+      <codefile>
+        <path>package.json</path>
+        <kind>dependencies</kind>
+        <symbol>@prisma/client</symbol>
+        <lines>23</lines>
+        <reason>Prisma客户端依赖，版本6.5.0</reason>
+      </codefile>
+      <codefile>
+        <path>package.json</path>
+        <kind>scripts</kind>
+        <symbol>db:*</symbol>
+        <lines>11-14</lines>
+        <reason>数据库管理脚本：生成、迁移、推送和studio</reason>
+      </codefile>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js">
+        <package name="@prisma/client" version="6.5.0" />
+        <package name="prisma" version="6.5.0" />
+      </ecosystem>
+      <ecosystem name="Database">
+        <package name="postgresql" version="16+" />
+      </ecosystem>
+      <ecosystem name="Development">
+        <package name="pnpm" version="9.15.4" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - 必须使用Prisma ORM 6.17.0进行数据库访问，确保类型安全
+    - 数据库连接配置通过环境变量管理，支持Docker容器化部署
+    - 需要实现数据库连接池管理以提高性能和资源利用率
+    - 健康检查端点必须提供标准化的响应格式，支持监控和运维
+    - 遵循分层架构原则，数据库访问逻辑集中在基础设施层
+    - API端点响应时间必须在500ms以内（NFR003要求）
+    - 错误处理必须包含详细的连接状态信息
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Prisma Client</name>
+      <kind>database-client</kind>
+      <signature>new PrismaClient({ log: ["query", "error", "warn"] })</signature>
+      <path>src/server/db.ts</path>
+    </interface>
+    <interface>
+      <name>Database URL Environment</name>
+      <kind>environment-variable</kind>
+      <signature>DATABASE_URL: "postgresql://user:password@localhost:5432/database"</signature>
+      <path>src/env.js</path>
+    </interface>
+    <interface>
+      <name>Health Check API</name>
+      <kind>api-endpoint</kind>
+      <signature>GET /api/health</signature>
+      <path>src/app/api/health/route.ts</path>
+    </interface>
+    <interface>
+      <name>Database Test API</name>
+      <kind>api-endpoint</kind>
+        <signature>POST /api/db/test</signature>
+      <path>src/app/api/db/test/route.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      根据Epic 1技术规格文档，测试策略包括：使用Vitest进行单元测试，测试数据库连接逻辑和健康检查函数；使用Jest + Supertest进行API测试，验证健康检查和连接测试端点；进行集成测试，验证完整的数据库连接测试流程；端到端测试，确认从前端到数据库的完整连接流程。所有测试必须确保API响应时间在500ms以内。
+    </standards>
+    <locations>
+      - 单元测试：__tests__/unit/health-checks.test.ts
+      - API测试：__tests__/api/health.test.ts
+      - 集成测试：__tests__/integration/db-connection.test.ts
+      - 端到端测试：__tests__/e2e/health-dashboard.test.ts
+    </locations>
+    <ideas>
+      <test>
+        <acId>1</acId>
+        <idea>测试Prisma客户端能否成功连接到PostgreSQL数据库</idea>
+      </test>
+      <test>
+        <acId>2</acId>
+        <idea>验证数据库连接测试API返回正确的连接状态信息</idea>
+      </test>
+      <test>
+        <acId>3</acId>
+        <idea>测试健康检查端点包含数据库连接状态检查</idea>
+      </test>
+      <test>
+        <acId>3</acId>
+        <idea>验证系统状态聚合功能正确汇总各组件状态</idea>
+      </test>
+      <test>
+        <acId>4</acId>
+        <idea>测试数据库状态组件能正确显示连接状态</idea>
+      </test>
+      <test>
+        <acId>4</acId>
+        <idea>验证实时连接状态更新功能</idea>
+      </test>
+      <test>
+        <acId>4</acId>
+        <idea>测试连接错误处理和显示</idea>
+      </test>
+      <test>
+        <performance>NFR003</performance>
+        <idea>验证所有API端点响应时间在500ms以内</idea>
+      </test>
+    </ideas>
+  </tests>
+</story-context>
