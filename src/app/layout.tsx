@@ -3,7 +3,10 @@ import "~/styles/globals.css";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
+import { Header } from "~/components/navigation/header";
 import { QueryClientProviderWrapper } from "~/components/providers/query-client-provider";
+import { SessionProviderWrapper } from "~/components/providers/session-provider";
+import { Toaster } from "~/components/ui/toaster";
 
 export const metadata: Metadata = {
 	title: "FastBuild",
@@ -22,7 +25,11 @@ export default function RootLayout({
 	return (
 		<html lang="en" className={`${geist.variable}`}>
 			<body>
-				<QueryClientProviderWrapper>{children}</QueryClientProviderWrapper>
+				<SessionProviderWrapper>
+					<Header />
+					<main className="min-h-screen bg-gray-50">{children}</main>
+					<Toaster />
+				</SessionProviderWrapper>
 			</body>
 		</html>
 	);

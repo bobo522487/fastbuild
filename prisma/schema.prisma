@@ -21,451 +21,317 @@ enum Visibility {
   PRIVATE
 }
 
-enum VersionStatus {
-  DRAFT
-  REVIEW
-  PUBLISHED
-  DEPRECATED
-  ARCHIVED
-}
-
-enum Env {
-  DEV
-  STAGING
-  PROD
-}
-
-enum DeployStatus {
-  PLANNED
-  PROVISIONING
-  ACTIVATED
-  FAILED
-  ROLLBACKED
-}
-
-enum DataType {
-  STRING
-  NUMBER
-  BOOLEAN
-  DATE
-  DATETIME
-  REF
-  JSON
-  TEXT
-  BINARY
-}
-
-enum Cardinality {
-  ONE_TO_ONE
-  ONE_TO_MANY
-  MANY_TO_ONE
-  MANY_TO_MANY
-}
-
-enum PermissionAction {
-  READ
-  CREATE
-  UPDATE
-  DELETE
-  EXECUTE
-  MANAGE
-}
-
-enum Effect {
-  ALLOW
-  DENY
-}
-
 enum MemberRole {
   OWNER
   ADMIN
   EDITOR
   VIEWER
-  NO_ACCESS
 }
 
-enum DataSourceKind {
-  POSTGRES
-  MYSQL
-  SQLSERVER
-  SQLITE
-  BIGQUERY
-  REST
-  GRAPHQL
-  S3
-  OTHER
+enum ColumnType {
+  STRING      // VARCHAR(255)
+  TEXT        // TEXT
+  NUMBER      // DECIMAL(20,8)
+  BOOLEAN     // BOOLEAN
+  DATE        // DATE
+  TIMESTAMP   // TIMESTAMP
+  JSON        // JSONB
 }
 
-// ============================== 认证系统基础 (NextAuth.js) ==============================
-model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
+// ============================== 发布系统 Enums ==============================
 
-    @@unique([provider, providerAccountId])
+enum DeploymentEnv {
+  PREVIEW     // 预览环境
+  PRODUCTION  // 正式环境
 }
 
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum DeploymentStatus {
+  BUILDING    // 构建中
+  DEPLOYED    // 已部署
+  FAILED      // 构建失败
+  ARCHIVED    // 已归档
 }
+
+
+// ============================== 用户系统 (自定义 JWT 认证) ==============================
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    password      String?
-    displayName   String?   // 扩展字段：显示名称
-    avatarUrl     String?   // 扩展字段：头像URL
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String    // 存储密码哈希
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-    accounts      Account[]
-    sessions      Session[]
+  // 业务关联
+  memberships   ProjectMember[]
+  createdProjects    Project[]          @relation("ProjectCreator")
+  createdApplications Application[]      @relation("ApplicationCreator")
+  createdTables      DataTable[]         @relation("TableCreator")
+  createdViews       TableView[]         @relation("ViewCreator")
+  dataModelDeployments DataModelDeployment[] @relation("DataModelDeploymentCreator")
+  appDeployments     AppDeployment[]     @relation("AppDeploymentCreator")
+  auditLogs          AuditLog[]
 
-    // 业务关联
-    memberships   ProjectMember[]
-    auditLogs     AuditLog[]
+  @@index([email])
 }
 
-model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
-
-    @@unique([identifier, token])
-}
-
-// ============================== 平台基础 ==============================
-
-model DataSource {
-    id             String   @id @default(uuid())
-    projectId      String?
-    name           String
-    kind           DataSourceKind
-    configSecretId String?
-    description    String?
-    createdAt      DateTime @default(now())
-    createdBy      String?
-    updatedAt      DateTime @updatedAt
-    updatedBy      String?
-    deletedAt      DateTime?
-    revision       Int      @default(1)
-
-    project        Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-    appDeployments AppDeployment[]
-
-    @@unique([name])
-}
-
-model AppDeployment {
-    id                   String   @id @default(uuid())
-    AppVersionId String
-    dataSourceId         String
-    env                  Env
-    status               DeployStatus
-    requestedBy          String?
-    deployedAt           DateTime?
-    createdAt            DateTime @default(now())
-
-    AppVersion   AppVersion @relation(fields: [AppVersionId], references: [id], onDelete: Cascade)
-    dataSource           DataSource         @relation(fields: [dataSourceId], references: [id], onDelete: Restrict)
-
-    @@unique([AppVersionId, dataSourceId, env])
-}
+// ============================== 审计系统 ==============================
 
 model AuditLog {
-    id            String   @id @default(uuid())
-    projectId     String?
-    actorUserId   String?
-    action        String
-    targetType    String
-    targetId      String?
-    message       String?
-    metadata      Json?
-    createdAt     DateTime @default(now())
+  id          String   @id @default(cuid())
+  projectId   String?  // 关联项目ID（可选）
+  userId      String?  // 操作用户ID（可选）
+  action      String   // 操作类型：CREATE/UPDATE/DELETE/LOGIN/LOGOUT等
+  resourceType String  // 资源类型：Project/Application/Table/View等
+  resourceId  String?  // 资源ID（可选）
+  oldValues   Json?    // 修改前的值
+  newValues   Json?    // 修改后的值
+  metadata    Json?    // 额外的元数据
+  ipAddress   String?  // IP地址
+  userAgent   String?  // 用户代理
+  createdAt   DateTime @default(now())
 
-    project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-    actor         User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  // 关联关系
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-    @@index([projectId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action])
+  @@index([resourceType, resourceId])
 }
 
 // ================================ Project & Member ================================
 
 model Project {
-    id                String   @id @default(uuid())
-    slug              String
-    name              String
-    description       String?
-    visibility        Visibility @default(PRIVATE)
-    createdAt         DateTime @default(now())
-    createdBy         String?
-    updatedAt         DateTime @updatedAt
-    updatedBy         String?
-    deletedAt         DateTime?
-    revision          Int      @default(1)
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  visibility  Visibility @default(PRIVATE)
+  createdBy   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
 
-    // [优化] 每个项目有且仅有一个当前的数据模型草稿
-    DataDraft    DataDraft?
+  // 关联关系
+  creator     User       @relation("ProjectCreator", fields: [createdBy], references: [id])
+  members     ProjectMember[]
+  applications Application[]
+  tables      DataTable[]
+  dataModelDeployments DataModelDeployment[]
+  auditLogs   AuditLog[]
 
-    members           ProjectMember[]
-    dataSources       DataSource[]
-    DataVersions DataVersion[]
-    applications      Application[]
-    auditLogs         AuditLog[]
-
-    @@unique([slug])
+  @@index([slug])
+  @@index([createdBy])
+  @@index([deletedAt])
 }
 
 model ProjectMember {
-    id        String     @id @default(uuid())
-    projectId String
-    userId    String
-    role      MemberRole @default(VIEWER)
-    createdAt DateTime   @default(now())
+  id        String     @id @default(cuid())
+  projectId String
+  userId    String
+  role      MemberRole @default(VIEWER)
+  createdAt DateTime   @default(now())
 
-    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 关联关系
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([projectId, userId])
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
 }
 
 
-// ============================== Data Model Draft & Version ==============================
-// 说明：每个 Project 同时只允许"一个 PUBLISHED 版本"——通过 SQL 迁移创建 Partial Unique Index：
-//   CREATE UNIQUE INDEX uniq_project_published_dmv ON "DataVersion"("projectId") WHERE status='PUBLISHED';
-
-model DataDraft {
-    id          String   @id @default(uuid())
-    projectId   String   @unique // 每个项目唯一
-    baseVersionId String? // 基于哪个已发布的版本开始的修改
-    snapshot    Json?    // [可变] 用户的所有修改都发生在这里
-    updatedAt   DateTime @updatedAt
-    updatedBy   String?
-
-    project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-}
-
-model DataVersion {
-    id             String   @id @default(uuid())
-    projectId      String
-    semver         String
-    status         VersionStatus
-    authorId       String
-    notes          String?
-    snapshot       Json     // [不可变] 部署/回滚依据的完整快照
-    graph          Json?
-    createdAt      DateTime @default(now())
-    createdBy      String?
-    deletedAt      DateTime?
-    revision       Int      @default(1)
-
-    project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    tables         DataTable[]
-    relations      DataRelation[]
-    views          DataView[]
-    changesets     DataChangeset[]
-    appVersions    AppVersion[] @relation("AppDependsOnDMV")
-
-    @@unique([projectId, semver])
-}
 
 // ============================== Data Model: Table/Column/Relation/View ==============================
 
 model DataTable {
-    id                 String   @id @default(uuid())
-    DataVersionId String
-    logicalName        String
-    label              String?
-    options            Json?
-    createdAt          DateTime @default(now())
-    createdBy          String?
-    deletedAt          DateTime?
-    revision           Int      @default(1)
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String   // 表名：project_{projectId}_{name}
+  displayName String?  // 显示名称
+  description String?
 
-    version            DataVersion @relation(fields: [DataVersionId], references: [id], onDelete: Cascade)
-    columns            DataColumn[]
+  // 表配置（不是字段定义！）
+  options     Json?    // UI配置、权限设置等
 
-    @@unique([DataVersionId, logicalName])
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // 关联关系
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator     User       @relation("TableCreator", fields: [createdBy], references: [id])
+  columns     DataColumn[]
+  views       TableView[]
+
+  // 注意：我们需要通过原生 SQL 创建 partial unique index 来处理 NULL 值问题
+  // PostgreSQL 中 NULL 值被视为不相同的，所以需要 WHERE deletedAt IS NULL 约束
+  @@index([projectId])
+  @@index([deletedAt])
 }
 
 model DataColumn {
-    id            String   @id @default(uuid())
-    tableId       String
-    logicalName   String
-    label         String?
-    dataType      DataType
-    nullable      Boolean  @default(true)
-    defaultJson   Json?
-    refTableId    String?
-    computedExpr  String?
-    validationExpr String?
-    ui            Json?
-    order         Int?
-    createdAt     DateTime @default(now())
-    createdBy     String?
-    deletedAt     DateTime?
-    revision      Int      @default(1)
+  id           String     @id @default(cuid())
+  tableId      String
+  name         String     // 实际列名
+  displayName  String?    // 显示名称
+  type         ColumnType
+  nullable     Boolean    @default(true)
+  defaultValue Json?
+  unique       Boolean    @default(false)
+  order        Int?
 
-    table         DataTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  // 列配置
+  options      Json?      // 验证规则、UI设置等
 
-    @@unique([tableId, logicalName])
+  table        DataTable  @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([tableId, name])
+  @@index([tableId])
 }
 
-model DataRelation {
-    id                 String   @id @default(uuid())
-    DataVersionId String
-    srcTableId         String
-    srcColumnId        String
-    dstTableId         String
-    dstColumnId        String
-    cardinality        Cardinality
-    options            Json?
-    createdAt          DateTime @default(now())
-    createdBy          String?
-    deletedAt          DateTime?
-    revision           Int      @default(1)
+// ============================== 视图系统 ==============================
 
-    version            DataVersion @relation(fields: [DataVersionId], references: [id], onDelete: Cascade)
+model TableView {
+  id            String   @id @default(cuid())
+  tableId       String
+  name          String   // 视图名称
+  description   String?
 
-    @@unique([DataVersionId, srcTableId, srcColumnId, dstTableId, dstColumnId])
+  // 视图配置
+  definition    Json     // SELECT定义、筛选、排序、聚合等
+  isDefault     Boolean  @default(false) // 是否为默认视图
+  isMaterialized Boolean @default(false) // 是否物化视图
+  refreshInterval Int?   // 刷新间隔（秒）
+
+  // 元信息
+  createdBy     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  table         DataTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  creator       User      @relation("ViewCreator", fields: [createdBy], references: [id])
+
+  @@unique([tableId, name])
+  @@index([tableId])
 }
 
-model DataView {
-    id                 String   @id @default(uuid())
-    DataVersionId String
-    logicalName        String
-    label              String?
-    contract           Json // 参数/筛选/排序白名单/暴露列
-    sqlAst             Json?
-    createdAt          DateTime @default(now())
-    createdBy          String?
-    deletedAt          DateTime?
-    revision           Int      @default(1)
-
-    version            DataVersion @relation(fields: [DataVersionId], references: [id], onDelete: Cascade)
-
-    @@unique([DataVersionId, logicalName])
-}
-
-model DataChangeset {
-    id            String   @id @default(uuid())
-    DataVersionId String
-    description   String
-    changes       Json     // 具体的变更内容
-    createdAt     DateTime @default(now())
-    createdBy     String?
-
-    version       DataVersion @relation(fields: [DataVersionId], references: [id], onDelete: Cascade)
-}
-
-// ============================== Application Draft & Version ==============================
-// 说明：每个 Application 同时只允许"一个 PUBLISHED 版本"——通过 SQL 迁移创建 Partial Unique Index：
-//   CREATE UNIQUE INDEX uniq_app_published_av ON "AppVersion"("applicationId") WHERE status='PUBLISHED';
+// ============================== Application & Version ==============================
 
 model Application {
-    id                  String   @id @default(uuid())
-    projectId           String
-    slug                String
-    name                String
-    description         String?
-    visibility          Visibility @default(PRIVATE)
-    createdAt           DateTime @default(now())
-    createdBy           String?
-    updatedAt           DateTime @updatedAt
-    updatedBy           String?
-    deletedAt           DateTime?
-    revision            Int      @default(1)
+  id          String     @id @default(cuid())
+  projectId   String
+  name        String
+  slug        String
+  description String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-    // [优化] 每个应用有且仅有一个当前草稿
-    AppDraft    AppDraft?
+  // 关联关系
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator   User         @relation("ApplicationCreator", fields: [createdBy], references: [id])
+  pages     AppPage[]
+  deployments AppDeployment[]
 
-    project             Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    versions            AppVersion[]
-
-    @@unique([projectId, slug])
+  @@unique([projectId, slug])
+  @@index([projectId])
+  @@index([createdBy])
 }
 
-model AppDraft {
-    id             String   @id @default(uuid())
-    applicationId  String   @unique
-    baseVersionId  String?
-    dependsOnDMVId String
-    snapshot       Json?
-    updatedAt      DateTime @updatedAt
-    updatedBy      String?
-
-    application    Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-}
-
-model AppVersion {
-    id                 String   @id @default(uuid())
-    applicationId      String
-    semver             String
-    status             VersionStatus
-    authorId           String
-    notes              String?
-    dependsOnDMVId     String
-    snapshot           Json
-    createdAt          DateTime @default(now())
-    createdBy          String?
-    deletedAt          DateTime?
-    revision           Int      @default(1)
-
-    application        Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-    dependsOnDMV       DataVersion @relation(name: "AppDependsOnDMV", fields: [dependsOnDMVId], references: [id], onDelete: Restrict)
-    lock               AppLock?
-    deployments        AppDeployment[]
-    // [新增] 一个应用版本包含一组固化的页面
-    pages              AppPage[]
-
-    @@unique([applicationId, semver])
-}
+// ============================== 应用页面 ==============================
 
 model AppPage {
-    id                   String   @id @default(uuid())
-    AppVersionId String
-    logicalName          String   // 页面逻辑名，用于内部引用 e.g., "customer_list"
-    label                String?  // 页面显示标题 e.g., "客户列表"
-    path                 String   // 访问路径 e.g., "/customers" or "/orders/:orderId"
-    isHomePage           Boolean  @default(false) // 是否为应用的首页
-    layout               Json     // [核心] 页面的组件树、配置和数据绑定
-    order                Int?     // 用于在导航菜单中排序
-    createdAt            DateTime @default(now())
-    createdBy            String?
-    deletedAt            DateTime?
-    revision             Int      @default(1)
+  id            String   @id @default(cuid())
+  applicationId String
+  name          String
+  path          String
+  layout        Json     // 页面布局配置
+  isHomePage    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-    AppVersion   AppVersion @relation(fields: [AppVersionId], references: [id], onDelete: Cascade)
+  // 关联关系
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-    // 在同一个应用版本内，页面的逻辑名和路径都必须是唯一的
-    @@unique([AppVersionId, logicalName])
-    @@unique([AppVersionId, path])
+  @@unique([applicationId, path])
+  @@index([applicationId])
 }
 
-model AppLock {
-    id             String   @id @default(uuid())
-    AppVersionId String   @unique
-    lockedBy       String
-    lockedAt       DateTime @default(now())
-    expiresAt      DateTime
+// ============================== 发布系统 ==============================
 
-    appVersion     AppVersion @relation(fields: [AppVersionId], references: [id], onDelete: Cascade)
+// 数据模型发布记录
+model DataModelDeployment {
+  id           String   @id @default(cuid())
+  projectId    String
+  version      String   // 语义化版本号 (如 1.0.0, 1.0.1, 1.1.0)
+  environment  DeploymentEnv  // PREVIEW | PRODUCTION
+  status       DeploymentStatus // BUILDING | DEPLOYED | FAILED | ARCHIVED
+  deployedAt   DateTime @default(now())
+  deployedBy   String
+  archivedAt   DateTime?
+
+  // 发布的表结构快照
+  tableSnapshots Json   // 所有表的结构定义（包含列、约束等）
+
+  // Schema信息
+  schemaName   String?  // 实际创建的数据库Schema名称
+
+  // 元信息
+  changeLog    Json?    // 变更日志
+  metadata     Json?    // 额外的元数据
+
+  // 关联关系
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deployer     User    @relation("DataModelDeploymentCreator", fields: [deployedBy], references: [id])
+  applications AppDeployment[]  // 一个数据模型可以支持多个应用
+
+  @@unique([projectId, environment, version])
+  @@index([projectId, environment])
+  @@index([status])
+  @@index([deployedAt])
 }
+
+// 应用发布记录
+model AppDeployment {
+  id           String   @id @default(cuid())
+  applicationId String
+  dataModelDeploymentId String?  // 关联的数据模型版本（可选，允许应用独立发布）
+  version      String   // 语义化版本号
+  environment  DeploymentEnv  // PREVIEW | PRODUCTION
+  status       DeploymentStatus // BUILDING | DEPLOYED | FAILED | ARCHIVED
+  buildUrl     String?  // 预览/正式版链接
+  qrCode       String?  // 二维码数据
+  deployedAt   DateTime @default(now())
+  deployedBy   String
+  archivedAt   DateTime?
+
+  // 发布配置
+  config       Json     // 发布配置（域名、主题、自定义设置等）
+
+  // 构建信息
+  buildLog     String?  // 构建日志
+  buildTime    Int?     // 构建耗时（毫秒）
+
+  // 访问统计
+  viewCount    Int      @default(0)
+  lastAccessedAt DateTime?
+
+  // 关联关系
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  dataModelDeployment DataModelDeployment? @relation(fields: [dataModelDeploymentId], references: [id])
+  deployer   User       @relation("AppDeploymentCreator", fields: [deployedBy], references: [id])
+
+  @@unique([applicationId, environment, version])
+  @@index([applicationId, environment])
+  @@index([dataModelDeploymentId])
+  @@index([status])
+  @@index([deployedAt])
+}
+
+// AppLock model is removed as it's over-engineering for the current requirements

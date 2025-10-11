@@ -24,6 +24,8 @@
 		"preview": "next build && next start",
 		"start": "next start",
 		"test": "vitest",
+		"test:unit": "vitest run src/**/*.test.{js,ts,jsx,tsx}",
+		"test:integration": "vitest run tests/integration/**/*.test.{js,ts,jsx,tsx}",
 		"test:ui": "vitest --ui",
 		"test:run": "vitest run",
 		"test:coverage": "vitest --coverage",

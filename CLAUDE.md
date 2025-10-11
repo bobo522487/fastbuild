@@ -47,6 +47,16 @@ pnpm check:unsafe     # Apply unsafe Biome fixes (use with caution)
 pnpm typecheck        # Run TypeScript type checking without emit
 ```
 
+### Testing Commands
+```bash
+pnpm test              # Run all tests
+pnpm test:unit         # Run unit tests only
+pnpm test:integration  # Run integration tests only
+pnpm test:run          # Run tests in CI mode
+pnpm test:coverage     # Run tests with coverage report
+pnpm test:ui           # Run tests with UI interface
+```
+
 ### Database Setup
 ```bash
 ./start-database.sh   # Start PostgreSQL database (uses Docker)
@@ -105,28 +115,35 @@ pnpm dev              # Start with Turbo for faster builds
 
 ### Big Picture Architecture
 
-FastBuild follows a **layered REST API architecture** with separation of concerns between data models, applications, and deployments:
+FastBuild follows a **low-code platform architecture** with **dynamic table generation** at its core, built on Linus Torvalds' "good taste" design philosophy:
 
-1. **Data Model Layer**: Enterprise-level version management for database schemas
-2. **Application Layer**: Visual app builder with version control and dependency management
-3. **Deployment Layer**: Multi-platform deployment management for user applications
+1. **Metadata Layer**: User-defined table structures stored as metadata
+2. **Dynamic DDL Layer**: Real database tables generated from metadata using unified Prisma SQL API
+3. **View System Layer**: Intelligent views (simple → materialized) for data access
+4. **Application Layer**: Visual app builder consuming generated data models
 
 ### Key Architectural Patterns
 
-**Version Separation**: Data models and applications have independent versioning systems
-- `DataModelVersion`: Manages database schema evolution
-- `AppVersion`: Manages application logic and UI evolution
-- `AppDeployment`: Manages deployment instances across environments
+**DDL-Mode Architecture**: The platform uses **dynamic table generation** instead of EAV patterns:
+- Real PostgreSQL tables are created from user metadata (`project_{projectId}_{tableName}`)
+- Metadata represents user design assets (critical for low-code platforms)
+- Unified Prisma SQL API (`$executeRawUnsafe`, `$queryRaw`) replaces direct pg.Client connections
+- Prisma Migrate provides version control for all DDL operations
 
-**Enterprise Data Model**: The platform uses a sophisticated multi-tenant architecture:
-- Projects contain data models and applications
-- Data models define tables, relations, and views with JSONB snapshots
-- Applications depend on specific data model versions
-- Support for draft modes and version publishing workflows
+**Unified Prisma Architecture**: All database operations use a single, consistent API:
+- `TableService`: Handles metadata + real table creation in single transactions
+- `PrismaMigrateService`: Versioned DDL management with rollback capability
+- `UnifiedQueryBuilder`: Type-safe SQL generation with simplified security validation
+- `MigrationHistory`: Complete audit trail of all schema changes
+
+**Three-Layer to Single-Layer Simplification** (Linus-style optimization):
+- Security validation: From 3-layer complex system → 1-layer simple validation
+- Consistency checking: From 1500+ line checker → transactional metadata operations
+- View refresh: From complex queue scheduling → simple timer-based refresh
 
 **REST API Design**: Standard RESTful endpoints with OpenAPI documentation:
 - `/api/projects/*` - Project management
-- `/api/data-models/*` - Data model versioning
+- `/api/data-models/*` - Dynamic table creation and management
 - `/api/applications/*` - Application management
 - `/api/deployments/*` - Deployment lifecycle
 - `/api/docs` - Interactive Swagger UI
@@ -160,13 +177,14 @@ src/
 ```
 
 ### Data Models
-The application uses Prisma with PostgreSQL. Core enterprise models include:
-- **User**: Authentication and user management
-- **Project**: Multi-tenant project containers
-- **DataModelVersion/DataModelDraft**: Version-controlled database schemas
-- **Application/AppVersion**: Version-controlled application definitions
-- **AppDeployment**: Deployment instances across environments
-- **ProjectMember**: RBAC role-based access control
+The application uses Prisma with PostgreSQL in **DDL mode**. Core models include:
+- **User/Project/ProjectMember**: Standard multi-tenant architecture with RBAC
+- **DataTable/DataColumn**: Metadata for user-defined table structures
+- **TableView**: Custom views over generated tables (simple + materialized)
+- **MigrationHistory**: Complete audit trail of all DDL operations via Prisma Migrate
+- **Application/AppVersion/AppDeployment**: Application management and deployment
+
+**Dynamic Table Generation**: Real PostgreSQL tables follow naming pattern `project_{projectId}_{tableName}` and are created via unified Prisma SQL API with full transactional consistency.
 
 ### API Architecture
 - **REST API**: Standard HTTP methods with proper status codes and error handling
@@ -203,9 +221,54 @@ The application uses Prisma with PostgreSQL. Core enterprise models include:
 4. Always regenerate Prisma client after schema changes
 5. Update related TypeScript types in `src/types/`
 
+### Working with Dynamic Tables (Low-Code Platform)
+The platform creates real database tables from user metadata. Key patterns:
+
+**Table Creation via Unified API**:
+```typescript
+// All DDL operations go through PrismaMigrateService
+await PrismaMigrateService.createAndApplyMigration(
+  'create_table_project_xyz_users',
+  [createTableSQL],
+  { projectId: 'xyz', tableName: 'users', operation: 'CREATE_TABLE' }
+);
+```
+
+**Data Access via Unified Query Builder**:
+```typescript
+// Use UnifiedQueryBuilder for type-safe SQL generation
+const data = await UnifiedQueryBuilder.buildDataQuery(
+  'users',
+  'project_xyz',
+  { filters: [{ field: 'email', operator: 'eq', value: 'user@example.com' }] }
+);
+```
+
+**Important**: Never use direct pg.Client connections. All database operations must use the unified Prisma SQL API (`$executeRawUnsafe`, `$queryRaw`) to maintain transaction consistency and connection pool management.
+
+### Architecture Decision: Why DDL Mode vs EAV
+
+This platform intentionally uses **dynamic table generation (DDL mode)** instead of Entity-Attribute-Value (EAV) patterns:
+
+**DDL Mode Benefits**:
+- **Performance**: Real tables with proper indexes, constraints, and PostgreSQL optimizations
+- **Scalability**: Native SQL performance for large datasets and complex queries
+- **Data Integrity**: Database-enforced constraints and relationships
+- **Familiarity**: Standard SQL patterns that developers understand
+
+**Why Metadata + Real Tables**:
+- **User Assets**: Metadata represents user design content and must be preserved
+- **Version Control**: Prisma Migrate provides complete DDL history and rollback capability
+- **Atomic Operations**: Metadata and actual tables created in single transactions
+- **Low-Code Power**: Users get visual design while maintaining enterprise database performance
+
+**Critical**: Always maintain the separation between metadata (Prisma models) and user-generated business data (dynamic tables). Never mix the two concepts.
+
 ## Project Context
 
-This is currently in early development phase as a low-code platform transitioning from tRPC to REST API architecture. The codebase follows T3 Stack conventions and maintains high standards for type safety and developer experience. The project aims to become a visual development platform while maintaining the power and flexibility of traditional coding.
+This is a low-code development platform implementing **dynamic table generation** architecture. The codebase follows Linus Torvalds' "good taste" design philosophy with emphasis on simplicity over complexity. The platform creates real database tables from user metadata, providing both the flexibility of visual development and the power of traditional database performance.
+
+**Recent Major Optimization**: Transitioned from mixed pg.Client + Prisma connections to **unified Prisma SQL API** architecture, eliminating connection management complexity and providing transactional consistency between metadata and actual table structures.
 
 ## Important Notes
 
@@ -215,7 +278,9 @@ This is currently in early development phase as a low-code platform transitionin
 - Database runs on PostgreSQL via Docker container (see `start-database.sh`)
 - Environment variables should be set in `.env` following `.env.example`
 - API documentation is available at `/api/docs` when development server is running
-- The project is transitioning from tRPC to REST API - new code should use REST patterns
+- **Critical**: Never use direct pg.Client connections - always use unified Prisma SQL API
+- **Architecture**: Dynamic table generation mode - metadata drives real table creation
+- **Transactions**: All DDL operations use Prisma Migrate for version control and rollback
 
 ## Troubleshooting
 
