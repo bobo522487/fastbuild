@@ -1,73 +1,73 @@
 {
-  "version": 2,
-  "name": "fastbuild",
-  "framework": "nextjs",
-  "buildCommand": "pnpm build:prod",
-  "outputDirectory": ".next",
-  "installCommand": "pnpm install",
-  "devCommand": "pnpm dev",
-  "regions": ["hkg1", "sin1", "sfo1"],
-  "env": {
-    "PRISMA_GENERATE_DATAPROXY": "true",
-    "NEXT_TELEMETRY_DISABLED": "1"
-  },
-  "build": {
-    "env": {
-      "PRISMA_GENERATE_DATAPROXY": "true",
-      "SKIP_ENV_VALIDATION": "true"
-    }
-  },
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "runtime": "nodejs18.x",
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/auth/:path*",
-      "destination": "/api/auth/[...nextauth]"
-    }
-  ]
+	"version": 2,
+	"name": "fastbuild",
+	"framework": "nextjs",
+	"buildCommand": "pnpm build:prod",
+	"outputDirectory": ".next",
+	"installCommand": "pnpm install",
+	"devCommand": "pnpm dev",
+	"regions": ["hkg1", "sin1", "sfo1"],
+	"env": {
+		"PRISMA_GENERATE_DATAPROXY": "true",
+		"NEXT_TELEMETRY_DISABLED": "1"
+	},
+	"build": {
+		"env": {
+			"PRISMA_GENERATE_DATAPROXY": "true",
+			"SKIP_ENV_VALIDATION": "true"
+		}
+	},
+	"functions": {
+		"src/app/api/**/*.ts": {
+			"runtime": "nodejs18.x",
+			"memory": 1024,
+			"maxDuration": 30
+		}
+	},
+	"headers": [
+		{
+			"source": "/api/(.*)",
+			"headers": [
+				{
+					"key": "Access-Control-Allow-Origin",
+					"value": "*"
+				},
+				{
+					"key": "Access-Control-Allow-Methods",
+					"value": "GET, POST, PUT, DELETE, OPTIONS"
+				},
+				{
+					"key": "Access-Control-Allow-Headers",
+					"value": "Content-Type, Authorization"
+				},
+				{
+					"key": "Cache-Control",
+					"value": "no-store, no-cache, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				},
+				{
+					"key": "X-Frame-Options",
+					"value": "DENY"
+				},
+				{
+					"key": "X-XSS-Protection",
+					"value": "1; mode=block"
+				}
+			]
+		}
+	],
+	"rewrites": [
+		{
+			"source": "/api/auth/:path*",
+			"destination": "/api/auth/[...nextauth]"
+		}
+	]
 }

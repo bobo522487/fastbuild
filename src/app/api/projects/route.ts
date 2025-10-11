@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
 					API_ERROR_CODES.VALIDATION_ERROR,
 					"Invalid query parameters",
 					400,
-					error.errors,
+					error.issues,
 				).data,
 				{ status: 400 },
 			);
@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
 					API_ERROR_CODES.VALIDATION_ERROR,
 					"Invalid input data",
 					400,
-					error.errors,
+					error.issues,
 				).data,
 				{ status: 400 },
 			);

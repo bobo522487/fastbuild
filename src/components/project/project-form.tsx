@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldValues } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "~/components/ui/button";
 import {
@@ -49,12 +49,12 @@ export function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 	const { toast } = useToast();
 	const [isLoading, setIsLoading] = useState(false);
 
-	const form = useForm<CreateProjectInput>({
+	const form = useForm({
 		resolver: zodResolver(CreateProjectSchema),
 		defaultValues: {
 			name: "",
 			slug: "",
-			description: "",
+			description: undefined,
 			visibility: "PRIVATE",
 		},
 	});
@@ -70,16 +70,19 @@ export function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 		}
 	};
 
-	const onSubmit = async (data: CreateProjectInput) => {
+	const onSubmit = async (data: FieldValues) => {
 		setIsLoading(true);
 
 		try {
+			// 验证数据类型
+			const validatedData = CreateProjectSchema.parse(data);
+
 			const response = await fetch("/api/projects", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(data),
+				body: JSON.stringify(validatedData),
 			});
 
 			const result = await response.json();
@@ -96,11 +99,8 @@ export function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 			// 重置表单
 			form.reset();
 
-			// 调用成功回调
+			// 调用成功回调，让父组件决定页面跳转逻辑
 			onSuccess?.();
-
-			// 跳转到项目详情页面
-			router.push(`/projects/${result.data.slug}`);
 		} catch (error) {
 			console.error("Error creating project:", error);
 			toast({

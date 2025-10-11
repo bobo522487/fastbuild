@@ -388,7 +388,7 @@ export async function POST(
 					error: {
 						code: "VALIDATION_ERROR",
 						message: "请求数据验证失败",
-						details: error.errors.map((err) => ({
+						details: error.issues.map((err) => ({
 							path: err.path,
 							message: err.message,
 						})),
