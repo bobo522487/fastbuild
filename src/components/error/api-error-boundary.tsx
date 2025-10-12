@@ -64,7 +64,7 @@ export class APIErrorBoundary extends Component<Props, State> {
 				errorBoundary: "APIErrorBoundary",
 			};
 
-			await fetch("/api/errors", {
+			await fetch("/api/sys/errors", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

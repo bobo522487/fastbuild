@@ -1,9 +1,36 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ZodError } from "zod";
-import { generateSlug } from "~/lib/utils";
+import { cn, generateSlug } from "~/lib/utils";
 import { CreateProjectSchema, ProjectQuerySchema } from "~/lib/validations";
 
 describe("utils", () => {
+	describe("cn (className utility)", () => {
+		it("应该合并类名", () => {
+			const result = cn("px-2", "py-1", "bg-blue-500");
+			expect(result).toBe("px-2 py-1 bg-blue-500");
+		});
+
+		it("应该处理条件类名", () => {
+			const result = cn("base-class", true && "conditional-class", false && "hidden-class");
+			expect(result).toBe("base-class conditional-class");
+		});
+
+		it("应该处理Tailwind类名冲突", () => {
+			const result = cn("px-2", "px-4", "bg-red-500", "bg-blue-500");
+			expect(result).toBe("px-4 bg-blue-500");
+		});
+
+		it("应该处理空输入", () => {
+			expect(cn()).toBe("");
+			expect(cn("", null, undefined)).toBe("");
+		});
+
+		it("应该处理数组和对象", () => {
+			const result = cn(["px-2", "py-1"], { "bg-blue-500": true, "text-white": false });
+			expect(result).toBe("px-2 py-1 bg-blue-500");
+		});
+	});
+
 	describe("generateSlug", () => {
 		it("应该生成基本slug", () => {
 			const slug = generateSlug("Test Project");

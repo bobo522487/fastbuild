@@ -1,0 +1,125 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "FastBuild API v4.0",
+		"version": "4.0.0",
+		"description": "FastBuild 低代码开发平台 REST API\n\n基于 Linus Torvalds 的\"好品味\"设计哲学：**动态表生成 + 智能视图系统 + 四层前缀分离架构**\n\n## 核心设计原则\n\n- **动态表生成**：根据元数据自动创建真实的数据库表\n- **智能视图系统**：每个表自动生成默认视图，支持复杂查询定制\n- **性能优先**：利用 PostgreSQL 的全部能力（索引、约束、事务）\n- **渐进复杂性**：从简单默认视图到复杂物化视图的平滑升级\n- **四层前缀分离架构**：通过URL前缀明确区分API类型和职责",
+		"contact": {
+			"name": "FastBuild Team",
+			"email": "api@fastbuild.com"
+		},
+		"license": {
+			"name": "MIT",
+			"url": "https://opensource.org/licenses/MIT"
+		}
+	},
+	"servers": [
+		{
+			"url": "https://api.fastbuild.com",
+			"description": "Production server"
+		},
+		{
+			"url": "https://preview-api.fastbuild.com",
+			"description": "Preview environment"
+		},
+		{
+			"url": "http://localhost:3000",
+			"description": "Local development server"
+		}
+	],
+	"apiDir": "src/app/api",
+	"schemaType": "zod",
+	"outputFile": "openapi.json",
+	"docsUrl": "/api/docs",
+	"includeOpenApiRoutes": false,
+	"debug": false,
+	"defaultResponseSet": "common",
+	"responseSets": {
+		"common": ["400", "401", "403", "404", "500"],
+		"public": ["400", "404", "500"],
+		"auth": ["400", "401", "403", "500"],
+		"crud": ["400", "401", "403", "404", "409", "500"]
+	},
+	"errorConfig": {
+		"template": {
+			"type": "object",
+			"properties": {
+				"error": {
+					"type": "object",
+					"properties": {
+						"code": {
+							"type": "string",
+							"description": "Error code",
+							"example": "VALIDATION_ERROR"
+						},
+						"message": {
+							"type": "string",
+							"description": "Human readable error message",
+							"example": "Invalid input data"
+						},
+						"details": {
+							"oneOf": [
+								{
+									"type": "array",
+									"items": {
+										"type": "string"
+									},
+									"description": "Array of error details"
+								},
+								{
+									"type": "object",
+									"description": "Detailed error information"
+								}
+							]
+						}
+					},
+					"required": ["code", "message"]
+				}
+			}
+		},
+		"codes": {
+			"400": {
+				"description": "Bad Request",
+				"variables": {
+					"ERROR_CODE": "VALIDATION_ERROR",
+					"ERROR_MESSAGE": "Invalid input data"
+				}
+			},
+			"401": {
+				"description": "Unauthorized",
+				"variables": {
+					"ERROR_CODE": "UNAUTHORIZED",
+					"ERROR_MESSAGE": "Authentication required"
+				}
+			},
+			"403": {
+				"description": "Forbidden",
+				"variables": {
+					"ERROR_CODE": "FORBIDDEN",
+					"ERROR_MESSAGE": "Access denied"
+				}
+			},
+			"404": {
+				"description": "Not Found",
+				"variables": {
+					"ERROR_CODE": "NOT_FOUND",
+					"ERROR_MESSAGE": "Resource not found"
+				}
+			},
+			"409": {
+				"description": "Conflict",
+				"variables": {
+					"ERROR_CODE": "CONFLICT",
+					"ERROR_MESSAGE": "Resource already exists"
+				}
+			},
+			"500": {
+				"description": "Internal Server Error",
+				"variables": {
+					"ERROR_CODE": "INTERNAL_ERROR",
+					"ERROR_MESSAGE": "An unexpected error occurred"
+				}
+			}
+		}
+	}
+}

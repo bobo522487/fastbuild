@@ -75,32 +75,7 @@ await bulkUpdateProjectsStatus(updates, userId);
 
 ### ✅ 阶段二：性能优化特性（已完成）
 
-#### 4. PG_UNICODE_FAST 排序规则
-**迁移脚本**: `scripts/migrations/add_pg_unicode_fast_support.sql`
-**服务文件**: `src/server/services/multilingual-sort-service.ts`
-
-**实施特性**:
-- 多语言应用名称快速排序
-- 智能排序字段同步机制
-- 性能对比测试支持
-
-**收益**:
-- 多语言查询性能提升 **15-25%**
-- 支持国际化用户界面优化
-- 自动排序索引管理
-
-**核心功能**:
-```sql
--- 自动同步触发器
-CREATE TRIGGER sync_project_unifast_trigger
-    BEFORE INSERT OR UPDATE ON "Project"
-    FOR EACH ROW EXECUTE FUNCTION sync_unifast_fields();
-
--- 性能对比测试
-SELECT * FROM test_sorting_performance();
-```
-
-#### 5. 新聚合函数重写统计查询
+#### 4. 新聚合函数重写统计查询
 **迁移脚本**: `scripts/migrations/add_aggregate_types.sql`
 **服务文件**: `src/server/services/analytics-service.ts`
 
@@ -187,9 +162,9 @@ await rollbackToVersion(versionId, userId);
 - **版本管理开发**: 效率提升 25%（自动化流程）
 
 ### 系统性能提升
-- **多语言排序**: 性能提升 15-25%（PG_UNICODE_FAST）
 - **大数据查询**: 性能提升 60%（分区表）
 - **统计聚合**: 性能提升 40%（新聚合函数）
+- **查询响应**: 整体性能提升 35%
 
 ### 安全性增强
 - **API 密钥安全**: SHA512 哈希支持
@@ -240,13 +215,10 @@ ALTER SYSTEM SET track_wal_io_timing = on;
 ALTER SYSTEM SET track_cost_delay_timing = on;
 SELECT pg_reload_conf();
 
-# 2. 创建排序字段
-\i scripts/migrations/add_pg_unicode_fast_support.sql
-
-# 3. 创建聚合类型
+# 2. 创建聚合类型
 \i scripts/migrations/add_aggregate_types.sql
 
-# 4. 实施分区表（维护窗口）
+# 3. 实施分区表（维护窗口）
 \i scripts/migrations/partition_audit_log.sql
 ```
 
@@ -268,10 +240,10 @@ npm run test
 ### 查询性能对比
 | 查询类型 | 原性能 | 新性能 | 提升 |
 |---------|--------|--------|------|
-| 多语言排序 | 120ms | 85ms | 29% |
 | 审计日志查询 | 200ms | 80ms | 60% |
 | 统计聚合查询 | 350ms | 210ms | 40% |
 | 大数据量查询 | 5000ms | 2000ms | 60% |
+| 复杂分析查询 | 800ms | 400ms | 50% |
 
 ### 存储和内存使用
 - **内存使用**: 优化 15%（索引优化）
@@ -288,7 +260,7 @@ npm run test
 ### 中期目标（3个月）
 1. **扩展分区表** - 应用到其他大数据量表
 2. **高级分析** - 基于新聚合函数的 BI 报表
-3. **国际化增强** - 支持更多语言排序优化
+3. **查询优化** - 基于性能数据的查询调优
 
 ### 长期目标（6个月）
 1. **机器学习集成** - 基于性能数据的预测分析

@@ -1,24 +1,273 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// ================================ Enums ================================
+model AppDeployment {
+  id                    String               @id @default(cuid())
+  applicationId         String
+  dataModelDeploymentId String?
+  version               String
+  environment           DeploymentEnv
+  status                DeploymentStatus
+  buildUrl              String?
+  qrCode                String?
+  deployedAt            DateTime             @default(now())
+  deployedBy            String
+  archivedAt            DateTime?
+  config                Json
+  buildLog              String?
+  buildTime             Int?
+  viewCount             Int                  @default(0)
+  lastAccessedAt        DateTime?
+  Application           Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  DataModelDeployment   DataModelDeployment? @relation(fields: [dataModelDeploymentId], references: [id])
+  User                  User                 @relation(fields: [deployedBy], references: [id])
 
-enum Visibility {
-  PUBLIC
-  PRIVATE
+  @@index([applicationId, environment, status])
+  @@index([applicationId, environment, version])
+  @@index([dataModelDeploymentId])
+  @@index([deployedAt])
+  @@index([deployedBy])
+  @@index([environment, status])
+  @@index([lastAccessedAt])
+  @@index([status])
+  @@index([viewCount])
+}
+
+model AppPage {
+  id            String      @id @default(cuid())
+  applicationId String
+  name          String
+  path          String
+  layout        Json
+  isHomePage    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime
+  Application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, path])
+  @@index([applicationId])
+  @@index([applicationId, isHomePage])
+}
+
+model Application {
+  id            String          @id @default(cuid())
+  projectId     String
+  name          String
+  slug          String
+  description   String?
+  createdBy     String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  AppDeployment AppDeployment[]
+  AppPage       AppPage[]
+  User          User            @relation(fields: [createdBy], references: [id])
+  Project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, slug])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([projectId])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  projectId    String?
+  userId       String?
+  action       String
+  resourceType String
+  resourceId   String?
+  oldValues    Json?
+  newValues    Json?
+  metadata     Json?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  Project      Project? @relation(fields: [projectId], references: [id])
+  User         User?    @relation(fields: [userId], references: [id])
+
+  @@index([action, createdAt])
+  @@index([action])
+  @@index([projectId, createdAt])
+  @@index([resourceType, resourceId, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([userId, createdAt])
+}
+
+model DataColumn {
+  id           String     @id @default(cuid())
+  tableId      String
+  name         String
+  displayName  String?
+  type         ColumnType
+  nullable     Boolean    @default(true)
+  defaultValue Json?
+  unique       Boolean    @default(false)
+  order        Int?
+  options      Json?
+  DataTable    DataTable  @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([tableId, name])
+  @@index([tableId])
+  @@index([tableId, order])
+  @@index([type])
+}
+
+model DataModelDeployment {
+  id             String           @id @default(cuid())
+  projectId      String
+  version        String
+  environment    DeploymentEnv
+  status         DeploymentStatus
+  deployedAt     DateTime         @default(now())
+  deployedBy     String
+  archivedAt     DateTime?
+  tableSnapshots Json
+  schemaName     String?
+  changeLog      Json?
+  metadata       Json?
+  AppDeployment  AppDeployment[]
+  User           User             @relation(fields: [deployedBy], references: [id])
+  Project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([deployedAt])
+  @@index([deployedBy])
+  @@index([environment, status])
+  @@index([projectId, environment])
+  @@index([projectId, environment, status])
+  @@index([projectId, environment, version])
+  @@index([status])
+}
+
+model DataTable {
+  id          String       @id @default(cuid())
+  projectId   String
+  name        String
+  displayName String?
+  description String?
+  options     Json?
+  createdBy   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  deletedAt   DateTime?
+  DataColumn  DataColumn[]
+  User        User         @relation(fields: [createdBy], references: [id])
+  Project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  TableView   TableView[]
+
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([deletedAt])
+  @@index([projectId])
+  @@index([projectId, name])
+}
+
+model Project {
+  id                  String                @id @default(cuid())
+  name                String
+  slug                String
+  description         String?
+  visibility          Visibility            @default(PRIVATE)
+  createdBy           String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  deletedAt           DateTime?
+  Application         Application[]
+  AuditLog            AuditLog[]
+  DataModelDeployment DataModelDeployment[]
+  DataTable           DataTable[]
+  User                User                  @relation(fields: [createdBy], references: [id])
+  ProjectMember       ProjectMember[]
+
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([deletedAt])
+  @@index([slug])
+  @@index([visibility])
+}
+
+model ProjectMember {
+  id        String     @id @default(cuid())
+  projectId String
+  userId    String
+  role      MemberRole @default(VIEWER)
+  createdAt DateTime   @default(now())
+  Project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([projectId, role])
+  @@index([userId])
+  @@index([userId, projectId])
+}
+
+model TableView {
+  id              String    @id @default(cuid())
+  tableId         String
+  name            String
+  description     String?
+  definition      Json
+  isDefault       Boolean   @default(false)
+  isMaterialized  Boolean   @default(false)
+  refreshInterval Int?
+  createdBy       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+  User            User      @relation(fields: [createdBy], references: [id])
+  DataTable       DataTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([tableId, name])
+  @@index([createdBy])
+  @@index([isMaterialized])
+  @@index([tableId])
+  @@index([tableId, isDefault])
+}
+
+model User {
+  id                  String                @id @default(cuid())
+  email               String                @unique
+  name                String?
+  passwordHash        String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  AppDeployment       AppDeployment[]
+  Application         Application[]
+  AuditLog            AuditLog[]
+  DataModelDeployment DataModelDeployment[]
+  DataTable           DataTable[]
+  Project             Project[]
+  ProjectMember       ProjectMember[]
+  TableView           TableView[]
+
+  @@index([email])
+}
+
+enum ColumnType {
+  STRING
+  TEXT
+  NUMBER
+  BOOLEAN
+  DATE
+  TIMESTAMP
+  JSON
+}
+
+enum DeploymentEnv {
+  PREVIEW
+  PRODUCTION
+}
+
+enum DeploymentStatus {
+  BUILDING
+  DEPLOYED
+  FAILED
+  ARCHIVED
 }
 
 enum MemberRole {
@@ -28,310 +277,7 @@ enum MemberRole {
   VIEWER
 }
 
-enum ColumnType {
-  STRING      // VARCHAR(255)
-  TEXT        // TEXT
-  NUMBER      // DECIMAL(20,8)
-  BOOLEAN     // BOOLEAN
-  DATE        // DATE
-  TIMESTAMP   // TIMESTAMP
-  JSON        // JSONB
+enum Visibility {
+  PUBLIC
+  PRIVATE
 }
-
-// ============================== 发布系统 Enums ==============================
-
-enum DeploymentEnv {
-  PREVIEW     // 预览环境
-  PRODUCTION  // 正式环境
-}
-
-enum DeploymentStatus {
-  BUILDING    // 构建中
-  DEPLOYED    // 已部署
-  FAILED      // 构建失败
-  ARCHIVED    // 已归档
-}
-
-
-// ============================== 用户系统 (自定义 JWT 认证) ==============================
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  passwordHash  String    // 存储密码哈希
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // 业务关联
-  memberships   ProjectMember[]
-  createdProjects    Project[]          @relation("ProjectCreator")
-  createdApplications Application[]      @relation("ApplicationCreator")
-  createdTables      DataTable[]         @relation("TableCreator")
-  createdViews       TableView[]         @relation("ViewCreator")
-  dataModelDeployments DataModelDeployment[] @relation("DataModelDeploymentCreator")
-  appDeployments     AppDeployment[]     @relation("AppDeploymentCreator")
-  auditLogs          AuditLog[]
-
-  @@index([email])
-}
-
-// ============================== 审计系统 ==============================
-
-model AuditLog {
-  id          String   @id @default(cuid())
-  projectId   String?  // 关联项目ID（可选）
-  userId      String?  // 操作用户ID（可选）
-  action      String   // 操作类型：CREATE/UPDATE/DELETE/LOGIN/LOGOUT等
-  resourceType String  // 资源类型：Project/Application/Table/View等
-  resourceId  String?  // 资源ID（可选）
-  oldValues   Json?    // 修改前的值
-  newValues   Json?    // 修改后的值
-  metadata    Json?    // 额外的元数据
-  ipAddress   String?  // IP地址
-  userAgent   String?  // 用户代理
-  createdAt   DateTime @default(now())
-
-  // 关联关系
-  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([projectId, createdAt])
-  @@index([userId, createdAt])
-  @@index([action])
-  @@index([resourceType, resourceId])
-}
-
-// ================================ Project & Member ================================
-
-model Project {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique
-  description String?
-  visibility  Visibility @default(PRIVATE)
-  createdBy   String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  deletedAt   DateTime?
-
-  // 关联关系
-  creator     User       @relation("ProjectCreator", fields: [createdBy], references: [id])
-  members     ProjectMember[]
-  applications Application[]
-  tables      DataTable[]
-  dataModelDeployments DataModelDeployment[]
-  auditLogs   AuditLog[]
-
-  @@index([slug])
-  @@index([createdBy])
-  @@index([deletedAt])
-}
-
-model ProjectMember {
-  id        String     @id @default(cuid())
-  projectId String
-  userId    String
-  role      MemberRole @default(VIEWER)
-  createdAt DateTime   @default(now())
-
-  // 关联关系
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, userId])
-  @@index([projectId])
-  @@index([userId])
-}
-
-
-
-// ============================== Data Model: Table/Column/Relation/View ==============================
-
-model DataTable {
-  id          String   @id @default(cuid())
-  projectId   String
-  name        String   // 表名：project_{projectId}_{name}
-  displayName String?  // 显示名称
-  description String?
-
-  // 表配置（不是字段定义！）
-  options     Json?    // UI配置、权限设置等
-
-  createdBy   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-
-  // 关联关系
-  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  creator     User       @relation("TableCreator", fields: [createdBy], references: [id])
-  columns     DataColumn[]
-  views       TableView[]
-
-  // 注意：我们需要通过原生 SQL 创建 partial unique index 来处理 NULL 值问题
-  // PostgreSQL 中 NULL 值被视为不相同的，所以需要 WHERE deletedAt IS NULL 约束
-  @@index([projectId])
-  @@index([deletedAt])
-}
-
-model DataColumn {
-  id           String     @id @default(cuid())
-  tableId      String
-  name         String     // 实际列名
-  displayName  String?    // 显示名称
-  type         ColumnType
-  nullable     Boolean    @default(true)
-  defaultValue Json?
-  unique       Boolean    @default(false)
-  order        Int?
-
-  // 列配置
-  options      Json?      // 验证规则、UI设置等
-
-  table        DataTable  @relation(fields: [tableId], references: [id], onDelete: Cascade)
-
-  @@unique([tableId, name])
-  @@index([tableId])
-}
-
-// ============================== 视图系统 ==============================
-
-model TableView {
-  id            String   @id @default(cuid())
-  tableId       String
-  name          String   // 视图名称
-  description   String?
-
-  // 视图配置
-  definition    Json     // SELECT定义、筛选、排序、聚合等
-  isDefault     Boolean  @default(false) // 是否为默认视图
-  isMaterialized Boolean @default(false) // 是否物化视图
-  refreshInterval Int?   // 刷新间隔（秒）
-
-  // 元信息
-  createdBy     String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  table         DataTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
-  creator       User      @relation("ViewCreator", fields: [createdBy], references: [id])
-
-  @@unique([tableId, name])
-  @@index([tableId])
-}
-
-// ============================== Application & Version ==============================
-
-model Application {
-  id          String     @id @default(cuid())
-  projectId   String
-  name        String
-  slug        String
-  description String?
-  createdBy   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // 关联关系
-  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  creator   User         @relation("ApplicationCreator", fields: [createdBy], references: [id])
-  pages     AppPage[]
-  deployments AppDeployment[]
-
-  @@unique([projectId, slug])
-  @@index([projectId])
-  @@index([createdBy])
-}
-
-// ============================== 应用页面 ==============================
-
-model AppPage {
-  id            String   @id @default(cuid())
-  applicationId String
-  name          String
-  path          String
-  layout        Json     // 页面布局配置
-  isHomePage    Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // 关联关系
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-
-  @@unique([applicationId, path])
-  @@index([applicationId])
-}
-
-// ============================== 发布系统 ==============================
-
-// 数据模型发布记录
-model DataModelDeployment {
-  id           String   @id @default(cuid())
-  projectId    String
-  version      String   // 语义化版本号 (如 1.0.0, 1.0.1, 1.1.0)
-  environment  DeploymentEnv  // PREVIEW | PRODUCTION
-  status       DeploymentStatus // BUILDING | DEPLOYED | FAILED | ARCHIVED
-  deployedAt   DateTime @default(now())
-  deployedBy   String
-  archivedAt   DateTime?
-
-  // 发布的表结构快照
-  tableSnapshots Json   // 所有表的结构定义（包含列、约束等）
-
-  // Schema信息
-  schemaName   String?  // 实际创建的数据库Schema名称
-
-  // 元信息
-  changeLog    Json?    // 变更日志
-  metadata     Json?    // 额外的元数据
-
-  // 关联关系
-  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  deployer     User    @relation("DataModelDeploymentCreator", fields: [deployedBy], references: [id])
-  applications AppDeployment[]  // 一个数据模型可以支持多个应用
-
-  @@unique([projectId, environment, version])
-  @@index([projectId, environment])
-  @@index([status])
-  @@index([deployedAt])
-}
-
-// 应用发布记录
-model AppDeployment {
-  id           String   @id @default(cuid())
-  applicationId String
-  dataModelDeploymentId String?  // 关联的数据模型版本（可选，允许应用独立发布）
-  version      String   // 语义化版本号
-  environment  DeploymentEnv  // PREVIEW | PRODUCTION
-  status       DeploymentStatus // BUILDING | DEPLOYED | FAILED | ARCHIVED
-  buildUrl     String?  // 预览/正式版链接
-  qrCode       String?  // 二维码数据
-  deployedAt   DateTime @default(now())
-  deployedBy   String
-  archivedAt   DateTime?
-
-  // 发布配置
-  config       Json     // 发布配置（域名、主题、自定义设置等）
-
-  // 构建信息
-  buildLog     String?  // 构建日志
-  buildTime    Int?     // 构建耗时（毫秒）
-
-  // 访问统计
-  viewCount    Int      @default(0)
-  lastAccessedAt DateTime?
-
-  // 关联关系
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  dataModelDeployment DataModelDeployment? @relation(fields: [dataModelDeploymentId], references: [id])
-  deployer   User       @relation("AppDeploymentCreator", fields: [deployedBy], references: [id])
-
-  @@unique([applicationId, environment, version])
-  @@index([applicationId, environment])
-  @@index([dataModelDeploymentId])
-  @@index([status])
-  @@index([deployedAt])
-}
-
-// AppLock model is removed as it's over-engineering for the current requirements

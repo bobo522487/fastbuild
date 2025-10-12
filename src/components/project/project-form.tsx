@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm, type FieldValues } from "react-hook-form";
+import { type FieldValues, useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "~/components/ui/button";
 import {
@@ -77,7 +77,7 @@ export function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 			// 验证数据类型
 			const validatedData = CreateProjectSchema.parse(data);
 
-			const response = await fetch("/api/projects", {
+			const response = await fetch("/api/meta/projects", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

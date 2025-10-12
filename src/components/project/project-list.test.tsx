@@ -1,12 +1,12 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ProjectList } from "~/components/project/project-list";
 import {
 	createTestProject,
 	mockFetchResponse,
 	render,
 } from "@tests/utils/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ProjectList } from "~/components/project/project-list";
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -42,7 +42,7 @@ describe("ProjectList", () => {
 			description: "Second test project",
 			visibility: "PRIVATE",
 			createdAt: new Date("2023-01-03"),
-			updatedAt: new Date("3-01-04"),
+			updatedAt: new Date("2023-01-04"),
 		}),
 	];
 
@@ -196,9 +196,9 @@ describe("ProjectList", () => {
 		const projectsWithCount = mockProjects.map((project) => ({
 			...project,
 			_count: {
-				members: 3,
-				applications: 2,
-				DataVersions: 1,
+				ProjectMember: 3,
+				Application: 2,
+				DataModelDeployment: 1,
 			},
 		}));
 

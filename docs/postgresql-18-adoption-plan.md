@@ -170,38 +170,7 @@ export async function createProjectWithAudit(data: CreateProjectData) {
 
 ### 阶段二：性能优化特性 (1个月)
 
-#### 4. 应用 PG_UNICODE_FAST 排序规则 🌐 国际化优化
-
-**目标：** 优化多语言应用名称和描述的排序性能
-
-**实施：**
-```sql
--- 为国际化字段创建支持 PG_UNICODE_FAST 的列
-ALTER TABLE "Application"
-ADD COLUMN name_unifast TEXT COLLATE "PG_UNICODE_FAST";
-
-ALTER TABLE "DataTable"
-ADD COLUMN display_name_unifast TEXT COLLATE "PG_UNICODE_FAST";
-
--- 创建索引提升排序性能
-CREATE INDEX idx_application_name_unifast ON "Application"(name_unifast);
-CREATE INDEX idx_datatable_display_name_unifast ON "DataTable"(display_name_unifast);
-```
-
-**应用层更新：**
-```typescript
-// 在创建/更新时同时更新排序字段
-export async function createApplication(data: CreateApplicationData) {
-    return await prisma.application.create({
-        data: {
-            ...data,
-            name_unifast: data.name, // 同步到 PG_UNICODE_FAST 字段
-        }
-    });
-}
-```
-
-#### 5. 使用新聚合函数重写统计查询 📊 数据分析
+#### 4. 使用新聚合函数重写统计查询 📊 数据分析
 
 **目标：** 利用复合类型聚合函数简化复杂报告查询
 
@@ -322,15 +291,11 @@ CREATE TRIGGER trigger_application_config_crc32
 - [ ] 实现 RETURNING 语法审计触发器
 - [ ] 更新 Prisma 查询以利用新语法
 
-### 第5-6周：国际化优化
-- [ ] 应用 PG_UNICODE_FAST 排序规则
-- [ ] 更新多语言相关查询
-
-### 第7-8周：统计查询重构
+### 第5-6周：统计查询重构
 - [ ] 创建复合类型聚合视图
 - [ ] 重写数据分析查询
 
-### 第9-12周：分区表实施
+### 第7-10周：分区表实施
 - [ ] 设计和实施 AuditLog 分区策略
 - [ ] 建立自动维护流程
 
@@ -342,8 +307,8 @@ CREATE TRIGGER trigger_application_config_crc32
 - **API 安全性增强**：SHA512 密码哈希支持
 
 ### 中期收益（阶段二）
-- **查询性能提升 15-25%**：优化排序和聚合操作
-- **国际化支持完善**：多语言应用体验提升
+- **查询性能提升 40%**：优化聚合操作和统计分析
+- **数据分析能力增强**：复合类型聚合支持复杂报告
 
 ### 长期收益（阶段三）
 - **大数据处理能力提升**：分区表支持海量审计数据
@@ -364,6 +329,6 @@ CREATE TRIGGER trigger_application_config_crc32
 
 ## 总结
 
-PostgreSQL 18 的新特性非常适合 FastBuild 项目的需求，特别是审计日志、性能监控和国际化功能。通过渐进式实施，我们可以在保证系统稳定性的前提下，显著提升开发效率和系统性能。
+PostgreSQL 18 的新特性非常适合 FastBuild 项目的需求，特别是审计日志、性能监控和数据分析功能。通过渐进式实施，我们可以在保证系统稳定性的前提下，显著提升开发效率和系统性能。
 
 建议优先实施阶段一的零风险高收益特性，这些特性可以立即带来价值且风险极低。

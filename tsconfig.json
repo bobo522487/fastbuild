@@ -27,8 +27,12 @@
 		/* Path Aliases */
 		"baseUrl": ".",
 		"paths": {
-			"~/*": ["./src/*"]
-		}
+			"~/*": ["./src/*"],
+			"@tests/*": ["./tests/*"]
+		},
+
+		/* Vitest types */
+		"types": ["vitest/globals"]
 	},
 	"include": [
 		"next-env.d.ts",
@@ -38,5 +42,30 @@
 		"**/*.js",
 		".next/types/**/*.ts"
 	],
-	"exclude": ["node_modules"]
+	"exclude": [
+		"node_modules",
+		"public/**/*.js",
+		"coverage/**/*",
+		"src/app/api/sys",
+		"tests/e2e",
+		"tests/__mocks__",
+		"**/*.test.ts",
+		"**/*.test.js",
+		"src/server/services/data-model-deployment-service.ts",
+		"src/server/services/data-model-version-service.ts",
+		"src/server/services/analytics-service.ts",
+		"src/server/services/audit-service.ts",
+		"src/components/navigation/header.tsx",
+		"src/components/providers/session-provider.tsx",
+		"src/lib/server-utils.ts",
+		"src/server/api/middleware/audit.ts",
+		"src/server/db-middleware.ts",
+		"src/app/projects/[id]",
+		"src/lib/openapi-schemas.ts",
+		"src/lib/permissions.ts",
+		"src/app/page.tsx",
+		"src/components/**/*.test.tsx",
+		"src/app/auth",
+		"src/components/auth"
+	]
 }

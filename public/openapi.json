@@ -1,0 +1,3545 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "FastBuild API v4.0",
+		"version": "4.0.0",
+		"description": "FastBuild 低代码开发平台 REST API\n\n基于 Linus Torvalds 的\"好品味\"设计哲学：**动态表生成 + 智能视图系统 + 四层前缀分离架构**\n\n## 核心设计原则\n\n- **动态表生成**：根据元数据自动创建真实的数据库表\n- **智能视图系统**：每个表自动生成默认视图，支持复杂查询定制\n- **性能优先**：利用 PostgreSQL 的全部能力（索引、约束、事务）\n- **渐进复杂性**：从简单默认视图到复杂物化视图的平滑升级\n- **四层前缀分离架构**：通过URL前缀明确区分API类型和职责",
+		"contact": {
+			"name": "FastBuild Team",
+			"email": "api@fastbuild.com"
+		},
+		"license": {
+			"name": "MIT",
+			"url": "https://opensource.org/licenses/MIT"
+		}
+	},
+	"servers": [
+		{
+			"url": "https://api.fastbuild.com",
+			"description": "Production server"
+		},
+		{
+			"url": "https://preview-api.fastbuild.com",
+			"description": "Preview environment"
+		},
+		{
+			"url": "http://localhost:3000",
+			"description": "Local development server"
+		}
+	],
+	"paths": {
+		"/applications": {
+			"get": {
+				"operationId": "get-applications",
+				"summary": "",
+				"description": "",
+				"tags": ["Applications"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"post": {
+				"operationId": "post-applications",
+				"summary": "",
+				"description": "",
+				"tags": ["Applications"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/data/sql": {
+			"post": {
+				"operationId": "post-data-sql",
+				"summary": "",
+				"description": "",
+				"tags": ["Data"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/data/tables": {
+			"get": {
+				"operationId": "get-data-tables",
+				"summary": "",
+				"description": "",
+				"tags": ["Data"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"post": {
+				"operationId": "post-data-tables",
+				"summary": "",
+				"description": "",
+				"tags": ["Data"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/deployments": {
+			"get": {
+				"operationId": "get-deployments",
+				"summary": "",
+				"description": "",
+				"tags": ["Deployments"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"post": {
+				"operationId": "post-deployments",
+				"summary": "",
+				"description": "",
+				"tags": ["Deployments"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/docs/openapi": {
+			"get": {
+				"operationId": "get-docs-openapi",
+				"summary": "获取 OpenAPI 规范文档",
+				"description": "",
+				"tags": ["Docs"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/meta/projects/{id}": {
+			"get": {
+				"operationId": "get-meta-projects-{id}",
+				"summary": "获取单个项目",
+				"description": "",
+				"tags": ["Meta"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"put": {
+				"operationId": "put-meta-projects-{id}",
+				"summary": "更新项目",
+				"description": "",
+				"tags": ["Meta"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"delete": {
+				"operationId": "delete-meta-projects-{id}",
+				"summary": "删除项目",
+				"description": "",
+				"tags": ["Meta"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/meta/projects/{id}/members": {
+			"get": {
+				"operationId": "get-meta-projects-{id}-members",
+				"summary": "获取项目成员列表",
+				"description": "",
+				"tags": ["Meta"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"post": {
+				"operationId": "post-meta-projects-{id}-members",
+				"summary": "邀请成员",
+				"description": "",
+				"tags": ["Meta"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/meta/projects/{id}/members/{memberId}": {
+			"put": {
+				"operationId": "put-meta-projects-{id}-members-{memberId}",
+				"summary": "更新成员角色",
+				"description": "",
+				"tags": ["Meta"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"delete": {
+				"operationId": "delete-meta-projects-{id}-members-{memberId}",
+				"summary": "移除成员",
+				"description": "",
+				"tags": ["Meta"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/auth/login": {
+			"post": {
+				"operationId": "post-sys-auth-login",
+				"summary": "用户登录",
+				"description": "用户通过邮箱和密码进行身份验证，成功后返回JWT访问令牌和刷新令牌",
+				"tags": ["s Authentication"],
+				"parameters": [],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginRequestSchema"
+							}
+						}
+					},
+					"description": "用户登录凭证，包含邮箱、密码和记住登录选项"
+				},
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenResponseSchema:登录成功，返回用户信息和JWT令牌"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-auth-login",
+				"summary": "获取登录配置信息",
+				"description": "返回登录相关的配置信息，包括密码策略、账户锁定策略和会话策略",
+				"tags": ["s Authentication"],
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LoginConfigSchema:成功返回登录配置信息"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/meta/projects": {
+			"get": {
+				"operationId": "get-meta-projects",
+				"summary": "获取项目列表",
+				"description": "获取当前用户有权限访问的项目列表，支持分页、搜索和排序",
+				"tags": ["s Projects"],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"schema": {
+							"type": "string"
+						},
+						"required": false
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"schema": {
+							"type": "string"
+						},
+						"required": false
+					},
+					{
+						"in": "query",
+						"name": "search",
+						"schema": {
+							"type": "string"
+						},
+						"required": false
+					},
+					{
+						"in": "query",
+						"name": "visibility",
+						"schema": {
+							"type": "string",
+							"enum": ["PUBLIC", "PRIVATE"]
+						},
+						"required": false
+					},
+					{
+						"in": "query",
+						"name": "sort",
+						"schema": {
+							"type": "string",
+							"enum": ["name", "createdAt", "updatedAt"]
+						},
+						"required": false
+					},
+					{
+						"in": "query",
+						"name": "order",
+						"schema": {
+							"type": "string",
+							"enum": ["asc", "desc"]
+						},
+						"required": false
+					}
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectListResponseSchema:成功返回项目列表"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"post": {
+				"operationId": "post-meta-projects",
+				"summary": "创建新项目",
+				"description": "创建一个新的项目，当前用户自动成为项目所有者",
+				"tags": ["s Projects"],
+				"parameters": [],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateProjectSchema"
+							}
+						}
+					},
+					"description": "项目创建信息，包含名称、描述和可见性设置"
+				},
+				"responses": {
+					"201": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectResponseSchema:项目创建成功"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/errors": {
+			"post": {
+				"operationId": "post-sys-errors",
+				"summary": "",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-errors",
+				"summary": "获取错误统计信息（管理员功能）",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/test": {
+			"get": {
+				"operationId": "get-sys-test",
+				"summary": "",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/version": {
+			"get": {
+				"operationId": "get-sys-version",
+				"summary": "GET /sys/version - 系统版本信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/admin/performance": {
+			"get": {
+				"operationId": "get-sys-admin-performance",
+				"summary": "GET /api/sys/admin/performance",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"post": {
+				"operationId": "post-sys-admin-performance",
+				"summary": "POST /api/sys/admin/performance",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/auth/logout": {
+			"post": {
+				"operationId": "post-sys-auth-logout",
+				"summary": "POST /sys/auth/logout - 用户登出",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-auth-logout",
+				"summary": "GET /sys/auth/logout - 获取登出配置信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/auth/refresh": {
+			"post": {
+				"operationId": "post-sys-auth-refresh",
+				"summary": "POST /sys/auth/refresh - JWT令牌刷新",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-auth-refresh",
+				"summary": "GET /sys/auth/refresh - 获取令牌状态信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/auth/register": {
+			"post": {
+				"operationId": "post-sys-auth-register",
+				"summary": "POST /sys/auth/register - 用户注册",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-auth-register",
+				"summary": "GET /sys/auth/register - 获取注册配置信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/auth/reset-password": {
+			"post": {
+				"operationId": "post-sys-auth-reset-password",
+				"summary": "POST /sys/auth/reset-password - 密码重置请求",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"put": {
+				"operationId": "put-sys-auth-reset-password",
+				"summary": "PUT /sys/auth/reset-password - 确认密码重置",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-auth-reset-password",
+				"summary": "GET /sys/auth/reset-password - 获取密码重置配置信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/health/basic": {
+			"get": {
+				"operationId": "get-sys-health-basic",
+				"summary": "GET /sys/health/basic - 基础健康检查",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/health/detailed": {
+			"get": {
+				"operationId": "get-sys-health-detailed",
+				"summary": "GET /sys/health/detailed - 详细健康检查",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/permissions/check": {
+			"post": {
+				"operationId": "post-sys-permissions-check",
+				"summary": "POST /sys/permissions/check - 单个权限检查",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-permissions-check",
+				"summary": "GET /sys/permissions/check - 获取权限检查配置信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/permissions/check-batch": {
+			"post": {
+				"operationId": "post-sys-permissions-check-batch",
+				"summary": "POST /sys/permissions/check-batch - 批量权限检查",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-permissions-check-batch",
+				"summary": "GET /sys/permissions/check-batch - 获取批量权限检查配置信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		},
+		"/sys/permissions/refresh-cache": {
+			"post": {
+				"operationId": "post-sys-permissions-refresh-cache",
+				"summary": "POST /sys/permissions/refresh-cache - 权限缓存刷新",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			},
+			"get": {
+				"operationId": "get-sys-permissions-refresh-cache",
+				"summary": "GET /sys/permissions/refresh-cache - 获取权限缓存配置信息",
+				"description": "",
+				"tags": ["Sys"],
+				"parameters": [],
+				"responses": {
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					},
+					"403": {
+						"$ref": "#/components/responses/403"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					},
+					"500": {
+						"$ref": "#/components/responses/500"
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ProjectQuerySchema": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "string",
+						"default": 1
+					},
+					"limit": {
+						"type": "string",
+						"default": 10
+					},
+					"search": {
+						"type": "string",
+						"maxLength": 100,
+						"nullable": true
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["PUBLIC", "PRIVATE"],
+						"nullable": true
+					},
+					"sort": {
+						"type": "string",
+						"enum": ["name", "createdAt", "updatedAt"],
+						"default": "updatedAt"
+					},
+					"order": {
+						"type": "string",
+						"enum": ["asc", "desc"],
+						"default": "desc"
+					}
+				},
+				"required": ["page", "limit", "sort", "order"]
+			},
+			"CreateProjectSchema": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100,
+						"pattern": "^[a-zA-Z0-9\\u4e00-\\u9fa5\\s\\-_]+$"
+					},
+					"slug": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 50,
+						"pattern": "^[a-z0-9\\-_]+$"
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 500,
+						"nullable": true
+					},
+					"visibility": {
+						"type": "object"
+					}
+				},
+				"required": ["name", "slug", "visibility", "visibility"]
+			},
+			"LoginRequestSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email",
+						"description": "用户邮箱地址"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 6,
+						"description": "用户密码"
+					},
+					"rememberMe": {
+						"type": "boolean",
+						"nullable": true,
+						"default": false,
+						"description": "是否记住登录状态"
+					}
+				},
+				"required": ["email", "password"],
+				"description": "用户登录请求"
+			},
+			"CreateApplicationRequestSchema": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100,
+						"description": "应用名称"
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 500,
+						"nullable": true,
+						"description": "应用描述"
+					},
+					"projectId": {
+						"type": "string",
+						"description": "所属项目 ID"
+					},
+					"config": {
+						"type": "object",
+						"properties": {
+							"theme": {
+								"type": "string",
+								"enum": ["light", "dark", "auto"],
+								"default": "light",
+								"description": "主题配置"
+							},
+							"layout": {
+								"type": "string",
+								"enum": ["sidebar", "topbar", "mobile"],
+								"default": "sidebar",
+								"description": "布局配置"
+							},
+							"features": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"nullable": true,
+								"description": "启用功能列表"
+							}
+						},
+						"required": ["theme", "layout"],
+						"nullable": true,
+						"description": "应用配置"
+					}
+				},
+				"required": ["name", "projectId"]
+			},
+			"ApplicationSchema": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "应用 ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "应用名称"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"description": "应用描述"
+					},
+					"projectId": {
+						"type": "string",
+						"description": "所属项目 ID"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["draft", "published", "archived"],
+						"description": "应用状态"
+					},
+					"config": {
+						"description": "应用配置"
+					},
+					"createdAt": {
+						"type": "string",
+						"description": "创建时间"
+					},
+					"updatedAt": {
+						"type": "string",
+						"description": "更新时间"
+					},
+					"publishedAt": {
+						"type": "string",
+						"nullable": true,
+						"description": "发布时间"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"projectId",
+					"status",
+					"config",
+					"createdAt",
+					"updatedAt"
+				]
+			},
+			"ApplicationListResponseSchema": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "是否成功"
+					},
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ApplicationSchema"
+						},
+						"description": "应用列表"
+					},
+					"meta": {
+						"type": "object",
+						"properties": {
+							"total": {
+								"type": "number",
+								"description": "总数"
+							},
+							"page": {
+								"type": "number",
+								"description": "页码"
+							},
+							"limit": {
+								"type": "number",
+								"description": "每页数量"
+							}
+						},
+						"required": ["total", "page", "limit"],
+						"description": "分页信息"
+					}
+				},
+				"required": ["success", "data", "meta"],
+				"description": "应用列表响应"
+			},
+			"ApplicationResponseSchema": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "是否成功"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/ApplicationSchema"
+							}
+						],
+						"description": "应用信息"
+					},
+					"meta": {
+						"type": "object",
+						"properties": {
+							"executionTime": {
+								"type": "number",
+								"description": "执行时间（毫秒）"
+							}
+						},
+						"required": ["executionTime"],
+						"description": "执行元数据"
+					}
+				},
+				"required": ["success", "data", "meta"],
+				"description": "应用响应"
+			},
+			"SQLRequestSchema": {
+				"type": "object",
+				"properties": {
+					"sql": {
+						"type": "string",
+						"description": "要执行的 SQL 语句"
+					},
+					"params": {
+						"type": "array",
+						"items": {},
+						"nullable": true,
+						"description": "SQL 参数"
+					},
+					"operation": {
+						"type": "string",
+						"enum": ["SELECT", "INSERT", "UPDATE", "DELETE", "DDL"],
+						"description": "操作类型"
+					},
+					"metadata": {
+						"type": "object",
+						"properties": {
+							"projectId": {
+								"type": "string",
+								"nullable": true,
+								"description": "项目 ID（DDL 操作需要）"
+							},
+							"tableName": {
+								"type": "string",
+								"nullable": true,
+								"description": "表名（DDL 操作需要）"
+							},
+							"description": {
+								"type": "string",
+								"nullable": true,
+								"description": "操作描述"
+							}
+						},
+						"nullable": true,
+						"description": "操作元数据"
+					}
+				},
+				"required": ["sql", "operation"]
+			},
+			"SQLResponseSchema": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "执行是否成功"
+					},
+					"data": {
+						"description": "查询结果或执行信息"
+					},
+					"metadata": {
+						"type": "object",
+						"properties": {
+							"operation": {
+								"type": "string",
+								"description": "操作类型"
+							},
+							"executionTime": {
+								"type": "number",
+								"description": "执行时间（毫秒）"
+							},
+							"affectedRows": {
+								"type": "number",
+								"nullable": true,
+								"description": "影响的行数"
+							},
+							"rowCount": {
+								"type": "number",
+								"nullable": true,
+								"description": "结果行数"
+							}
+						},
+						"required": ["operation", "executionTime"],
+						"description": "执行元数据"
+					}
+				},
+				"required": ["success", "data", "metadata"],
+				"description": "SQL 执行响应"
+			},
+			"CreateTableRequestSchema": {
+				"type": "object",
+				"properties": {
+					"projectId": {
+						"type": "string",
+						"description": "项目 ID"
+					},
+					"tableName": {
+						"type": "string",
+						"pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+						"description": "表名"
+					},
+					"columns": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"name": {
+									"type": "string",
+									"description": "字段名"
+								},
+								"type": {
+									"type": "string",
+									"enum": ["string", "number", "boolean", "date", "json"],
+									"description": "字段类型"
+								},
+								"nullable": {
+									"type": "boolean",
+									"default": true,
+									"description": "是否允许空值"
+								},
+								"defaultValue": {
+									"nullable": true,
+									"description": "默认值"
+								},
+								"description": {
+									"type": "string",
+									"nullable": true,
+									"description": "字段描述"
+								}
+							},
+							"required": ["name", "type", "nullable"]
+						},
+						"description": "字段定义"
+					},
+					"indexes": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"columns": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									},
+									"description": "索引列"
+								},
+								"unique": {
+									"type": "boolean",
+									"default": false,
+									"description": "是否唯一索引"
+								},
+								"name": {
+									"type": "string",
+									"nullable": true,
+									"description": "索引名称"
+								}
+							},
+							"required": ["columns", "unique"]
+						},
+						"nullable": true,
+						"description": "索引定义"
+					}
+				},
+				"required": ["projectId", "tableName", "columns"]
+			},
+			"TableInfoSchema": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "表 ID"
+					},
+					"name": {
+						"type": "string",
+						"description": "表名"
+					},
+					"projectId": {
+						"type": "string",
+						"description": "项目 ID"
+					},
+					"columns": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"name": {
+									"type": "string",
+									"description": "字段名"
+								},
+								"type": {
+									"type": "string",
+									"description": "字段类型"
+								},
+								"nullable": {
+									"type": "boolean",
+									"description": "是否允许空值"
+								},
+								"defaultValue": {
+									"nullable": true,
+									"description": "默认值"
+								}
+							},
+							"required": ["name", "type", "nullable"]
+						},
+						"description": "字段列表"
+					},
+					"createdAt": {
+						"type": "string",
+						"description": "创建时间"
+					},
+					"updatedAt": {
+						"type": "string",
+						"description": "更新时间"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"projectId",
+					"columns",
+					"createdAt",
+					"updatedAt"
+				]
+			},
+			"TableListResponseSchema": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "是否成功"
+					},
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/TableInfoSchema"
+						},
+						"description": "表列表"
+					},
+					"meta": {
+						"type": "object",
+						"properties": {
+							"total": {
+								"type": "number",
+								"description": "总数"
+							},
+							"page": {
+								"type": "number",
+								"description": "页码"
+							},
+							"limit": {
+								"type": "number",
+								"description": "每页数量"
+							}
+						},
+						"required": ["total", "page", "limit"],
+						"description": "分页信息"
+					}
+				},
+				"required": ["success", "data", "meta"],
+				"description": "表列表响应"
+			},
+			"TableCreateResponseSchema": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "是否成功"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/TableInfoSchema"
+							}
+						],
+						"description": "表信息"
+					},
+					"meta": {
+						"type": "object",
+						"properties": {
+							"executionTime": {
+								"type": "number",
+								"description": "执行时间（毫秒）"
+							},
+							"sqlGenerated": {
+								"type": "string",
+								"description": "生成的 SQL"
+							}
+						},
+						"required": ["executionTime", "sqlGenerated"],
+						"description": "执行元数据"
+					}
+				},
+				"required": ["success", "data", "meta"],
+				"description": "表创建响应"
+			},
+			"CreateDeploymentRequestSchema": {
+				"type": "object",
+				"properties": {
+					"applicationId": {
+						"type": "string",
+						"description": "应用 ID"
+					},
+					"versionId": {
+						"type": "string",
+						"description": "版本 ID"
+					},
+					"environment": {
+						"type": "string",
+						"enum": ["development", "staging", "production"],
+						"description": "部署环境"
+					},
+					"config": {
+						"type": "object",
+						"properties": {
+							"domain": {
+								"type": "string",
+								"nullable": true,
+								"description": "自定义域名"
+							},
+							"ssl": {
+								"type": "boolean",
+								"default": true,
+								"description": "启用 SSL"
+							},
+							"autoScaling": {
+								"type": "boolean",
+								"default": false,
+								"description": "自动扩缩容"
+							},
+							"resources": {
+								"type": "object",
+								"properties": {
+									"cpu": {
+										"type": "string",
+										"default": "100m",
+										"description": "CPU 配置"
+									},
+									"memory": {
+										"type": "string",
+										"default": "128Mi",
+										"description": "内存配置"
+									}
+								},
+								"required": ["cpu", "memory"],
+								"nullable": true,
+								"description": "资源配置"
+							}
+						},
+						"required": ["ssl", "autoScaling"],
+						"nullable": true,
+						"description": "部署配置"
+					}
+				},
+				"required": ["applicationId", "versionId", "environment"]
+			},
+			"DeploymentSchema": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "部署 ID"
+					},
+					"applicationId": {
+						"type": "string",
+						"description": "应用 ID"
+					},
+					"versionId": {
+						"type": "string",
+						"description": "版本 ID"
+					},
+					"environment": {
+						"type": "string",
+						"enum": ["development", "staging", "production"],
+						"description": "部署环境"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"pending",
+							"building",
+							"deploying",
+							"running",
+							"failed",
+							"stopped"
+						],
+						"description": "部署状态"
+					},
+					"url": {
+						"type": "string",
+						"nullable": true,
+						"description": "访问地址"
+					},
+					"config": {
+						"description": "部署配置"
+					},
+					"createdAt": {
+						"type": "string",
+						"description": "创建时间"
+					},
+					"updatedAt": {
+						"type": "string",
+						"description": "更新时间"
+					},
+					"deployedAt": {
+						"type": "string",
+						"nullable": true,
+						"description": "部署完成时间"
+					}
+				},
+				"required": [
+					"id",
+					"applicationId",
+					"versionId",
+					"environment",
+					"status",
+					"config",
+					"createdAt",
+					"updatedAt"
+				]
+			},
+			"DeploymentListResponseSchema": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "是否成功"
+					},
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/DeploymentSchema"
+						},
+						"description": "部署列表"
+					},
+					"meta": {
+						"type": "object",
+						"properties": {
+							"total": {
+								"type": "number",
+								"description": "总数"
+							},
+							"page": {
+								"type": "number",
+								"description": "页码"
+							},
+							"limit": {
+								"type": "number",
+								"description": "每页数量"
+							}
+						},
+						"required": ["total", "page", "limit"],
+						"description": "分页信息"
+					}
+				},
+				"required": ["success", "data", "meta"],
+				"description": "部署列表响应"
+			},
+			"DeploymentResponseSchema": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "是否成功"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/DeploymentSchema"
+							}
+						],
+						"description": "部署信息"
+					},
+					"meta": {
+						"type": "object",
+						"properties": {
+							"executionTime": {
+								"type": "number",
+								"description": "执行时间（毫秒）"
+							},
+							"buildLogs": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"nullable": true,
+								"description": "构建日志"
+							}
+						},
+						"required": ["executionTime"],
+						"description": "执行元数据"
+					}
+				},
+				"required": ["success", "data", "meta"],
+				"description": "部署响应"
+			},
+			"UpdateMemberRoleSchema": {
+				"type": "object",
+				"properties": {
+					"role": {
+						"type": "string",
+						"enum": ["OWNER", "ADMIN", "EDITOR", "VIEWER", "NO_ACCESS"]
+					}
+				},
+				"required": ["role"]
+			},
+			"InviteMemberSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"role": {
+						"type": "string",
+						"enum": ["OWNER", "ADMIN", "EDITOR", "VIEWER"]
+					}
+				},
+				"required": ["email", "role"]
+			},
+			"UpdateProjectSchema": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100,
+						"pattern": "^[a-zA-Z0-9\\u4e00-\\u9fa5\\s\\-_]+$",
+						"nullable": true
+					},
+					"slug": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 50,
+						"pattern": "^[a-z0-9\\-_]+$",
+						"nullable": true
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 500,
+						"nullable": true
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["PUBLIC", "PRIVATE"],
+						"nullable": true
+					}
+				}
+			},
+			"ProjectListResponseSchema": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ProjectResponseSchema"
+						},
+						"description": "项目列表"
+					},
+					"pagination": {
+						"type": "object",
+						"properties": {
+							"page": {
+								"type": "number",
+								"description": "当前页码"
+							},
+							"limit": {
+								"type": "number",
+								"description": "每页数量"
+							},
+							"total": {
+								"type": "number",
+								"description": "总数量"
+							},
+							"totalPages": {
+								"type": "number",
+								"description": "总页数"
+							},
+							"hasNext": {
+								"type": "boolean",
+								"description": "是否有下一页"
+							},
+							"hasPrev": {
+								"type": "boolean",
+								"description": "是否有上一页"
+							}
+						},
+						"required": [
+							"page",
+							"limit",
+							"total",
+							"totalPages",
+							"hasNext",
+							"hasPrev"
+						],
+						"description": "分页信息"
+					}
+				},
+				"required": ["data", "pagination"],
+				"description": "项目列表响应"
+			},
+			"LoginConfigSchema": {
+				"type": "object",
+				"properties": {
+					"passwordPolicy": {
+						"type": "object",
+						"properties": {
+							"minLength": {
+								"type": "number",
+								"description": "密码最小长度"
+							},
+							"maxLength": {
+								"type": "number",
+								"description": "密码最大长度"
+							},
+							"requireUppercase": {
+								"type": "boolean",
+								"description": "是否需要大写字母"
+							},
+							"requireLowercase": {
+								"type": "boolean",
+								"description": "是否需要小写字母"
+							},
+							"requireNumbers": {
+								"type": "boolean",
+								"description": "是否需要数字"
+							},
+							"requireSpecialChars": {
+								"type": "boolean",
+								"description": "是否需要特殊字符"
+							}
+						},
+						"required": [
+							"minLength",
+							"maxLength",
+							"requireUppercase",
+							"requireLowercase",
+							"requireNumbers",
+							"requireSpecialChars"
+						],
+						"description": "密码策略"
+					},
+					"lockoutPolicy": {
+						"type": "object",
+						"properties": {
+							"maxAttempts": {
+								"type": "array",
+								"items": {
+									"type": "number"
+								},
+								"description": "锁定阈值配置"
+							},
+							"lockoutDurations": {
+								"type": "array",
+								"items": {
+									"type": "number"
+								},
+								"description": "锁定时长配置"
+							},
+							"resetAfterHours": {
+								"type": "number",
+								"description": "重置时间（小时）"
+							}
+						},
+						"required": ["maxAttempts", "lockoutDurations", "resetAfterHours"],
+						"description": "账户锁定策略"
+					},
+					"sessionPolicy": {
+						"type": "object",
+						"properties": {
+							"defaultExpiry": {
+								"type": "string",
+								"description": "默认会话过期时间"
+							},
+							"rememberMeExpiry": {
+								"type": "string",
+								"description": "记住登录过期时间"
+							},
+							"refreshThreshold": {
+								"type": "string",
+								"description": "令牌刷新阈值"
+							}
+						},
+						"required": [
+							"defaultExpiry",
+							"rememberMeExpiry",
+							"refreshThreshold"
+						],
+						"description": "会话策略"
+					},
+					"supportedMethods": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "支持的认证方式"
+					},
+					"version": {
+						"type": "string",
+						"description": "登录配置版本"
+					}
+				},
+				"required": [
+					"passwordPolicy",
+					"lockoutPolicy",
+					"sessionPolicy",
+					"supportedMethods",
+					"version"
+				],
+				"description": "登录配置信息"
+			},
+			"registerSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 8
+					},
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 50,
+						"nullable": true
+					},
+					"acceptTerms": {
+						"type": "boolean"
+					},
+					"company": {
+						"type": "string",
+						"maxLength": 100,
+						"nullable": true
+					},
+					"title": {
+						"type": "string",
+						"maxLength": 100,
+						"nullable": true
+					}
+				},
+				"required": ["email", "password", "acceptTerms"]
+			},
+			"resetRequestSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					}
+				},
+				"required": ["email"]
+			},
+			"resetConfirmSchema": {
+				"type": "object",
+				"properties": {
+					"token": {
+						"type": "string",
+						"minLength": 32
+					},
+					"newPassword": {
+						"type": "string",
+						"minLength": 8
+					},
+					"confirmPassword": {
+						"type": "string"
+					}
+				},
+				"required": ["token", "newPassword", "confirmPassword"]
+			},
+			"SimpleErrorSchema": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"stack": {
+						"type": "string",
+						"nullable": true
+					},
+					"componentStack": {
+						"type": "string",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					},
+					"url": {
+						"type": "string"
+					},
+					"userAgent": {
+						"type": "string"
+					}
+				},
+				"required": ["message", "timestamp", "url", "userAgent"]
+			},
+			"permissionCheckSchema": {
+				"type": "object",
+				"properties": {
+					"projectId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"action": {
+						"type": "string"
+					},
+					"resourceId": {
+						"type": "string",
+						"nullable": true
+					},
+					"resourceType": {
+						"type": "string",
+						"enum": ["project", "datamodel", "application", "table", "view"],
+						"nullable": true
+					}
+				},
+				"required": ["projectId", "action"]
+			},
+			"permissionRequestSchema": {
+				"type": "object",
+				"properties": {
+					"projectId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"action": {
+						"type": "string"
+					},
+					"resourceId": {
+						"type": "string",
+						"nullable": true
+					},
+					"resourceType": {
+						"type": "string",
+						"enum": ["project", "datamodel", "application", "table", "view"],
+						"nullable": true
+					}
+				},
+				"required": ["projectId", "action"]
+			},
+			"batchPermissionCheckSchema": {
+				"type": "object",
+				"properties": {
+					"permissions": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/permissionRequestSchema"
+						},
+						"minItems": 1,
+						"maxItems": 100
+					}
+				},
+				"required": ["permissions"]
+			},
+			"refreshCacheSchema": {
+				"type": "object",
+				"properties": {
+					"projectIds": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"minLength": 1
+						},
+						"minItems": 1,
+						"maxItems": 50
+					},
+					"reason": {
+						"type": "string",
+						"nullable": true
+					},
+					"forceRefresh": {
+						"type": "boolean",
+						"nullable": true,
+						"default": false
+					}
+				},
+				"required": ["projectIds"]
+			},
+			"forgotPasswordSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					}
+				},
+				"required": ["email"]
+			},
+			"ForgotPasswordFormValues": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					}
+				},
+				"required": ["email"]
+			},
+			"loginSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"required": ["email", "password"]
+			},
+			"LoginFormValues": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"required": ["email", "password"]
+			},
+			"RegisterFormValues": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 8
+					},
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 50,
+						"nullable": true
+					},
+					"acceptTerms": {
+						"type": "boolean"
+					},
+					"company": {
+						"type": "string",
+						"maxLength": 100,
+						"nullable": true
+					},
+					"title": {
+						"type": "string",
+						"maxLength": 100,
+						"nullable": true
+					}
+				},
+				"required": ["email", "password", "acceptTerms"]
+			},
+			"resetPasswordSchema": {
+				"type": "object",
+				"properties": {
+					"password": {
+						"type": "string",
+						"minLength": 6,
+						"maxLength": 100
+					},
+					"confirmPassword": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"required": ["password", "confirmPassword"]
+			},
+			"ResetPasswordFormValues": {
+				"type": "object",
+				"properties": {
+					"password": {
+						"type": "string",
+						"minLength": 6,
+						"maxLength": 100
+					},
+					"confirmPassword": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"required": ["password", "confirmPassword"]
+			},
+			"UpdateProjectFormData": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100,
+						"pattern": "^[a-zA-Z0-9\\u4e00-\\u9fa5\\s\\-_]+$",
+						"nullable": true
+					},
+					"slug": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 50,
+						"pattern": "^[a-z0-9\\-_]+$",
+						"nullable": true
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 500,
+						"nullable": true
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["PUBLIC", "PRIVATE"],
+						"nullable": true
+					}
+				}
+			},
+			"ErrorResponseSchema": {
+				"type": "object",
+				"properties": {
+					"error": {
+						"type": "object",
+						"properties": {
+							"code": {
+								"type": "string",
+								"description": "错误代码"
+							},
+							"message": {
+								"type": "string",
+								"description": "错误消息"
+							},
+							"details": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"nullable": true,
+								"description": "错误详情列表"
+							}
+						},
+						"required": ["code", "message"],
+						"description": "错误信息"
+					}
+				},
+				"required": ["error"],
+				"description": "API 错误响应"
+			},
+			"SuccessResponseSchema": {
+				"type": "object",
+				"properties": {
+					"data": {
+						"description": "响应数据"
+					},
+					"success": {
+						"type": "boolean",
+						"enum": [true],
+						"description": "操作成功标识"
+					}
+				},
+				"required": ["data", "success"],
+				"description": "成功响应"
+			},
+			"PaginationInfoSchema": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"minimum": 0,
+						"exclusiveMinimum": true,
+						"description": "当前页码"
+					},
+					"limit": {
+						"type": "integer",
+						"minimum": 0,
+						"exclusiveMinimum": true,
+						"maximum": 100,
+						"description": "每页数量"
+					},
+					"total": {
+						"type": "integer",
+						"minimum": 0,
+						"description": "总记录数"
+					},
+					"totalPages": {
+						"type": "integer",
+						"minimum": 0,
+						"description": "总页数"
+					},
+					"hasNext": {
+						"type": "boolean",
+						"description": "是否有下一页"
+					},
+					"hasPrev": {
+						"type": "boolean",
+						"description": "是否有上一页"
+					}
+				},
+				"required": [
+					"page",
+					"limit",
+					"total",
+					"totalPages",
+					"hasNext",
+					"hasPrev"
+				],
+				"description": "分页信息"
+			},
+			"UserInfoSchema": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "用户唯一标识"
+					},
+					"email": {
+						"type": "string",
+						"format": "email",
+						"description": "用户邮箱"
+					},
+					"name": {
+						"type": "string",
+						"description": "用户姓名"
+					},
+					"avatar": {
+						"type": "string",
+						"format": "uri",
+						"nullable": true,
+						"description": "用户头像URL"
+					},
+					"createdAt": {
+						"type": "string",
+						"description": "账户创建时间"
+					},
+					"updatedAt": {
+						"type": "string",
+						"description": "信息更新时间"
+					}
+				},
+				"required": ["id", "email", "name", "createdAt", "updatedAt"],
+				"description": "用户信息"
+			},
+			"TokenResponseSchema": {
+				"type": "object",
+				"properties": {
+					"user": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/UserInfoSchema"
+							}
+						],
+						"description": "用户信息"
+					},
+					"accessToken": {
+						"type": "string",
+						"description": "JWT 访问令牌"
+					},
+					"refreshToken": {
+						"type": "string",
+						"description": "JWT 刷新令牌"
+					},
+					"expiresIn": {
+						"type": "integer",
+						"minimum": 0,
+						"exclusiveMinimum": true,
+						"description": "访问令牌过期时间（秒）"
+					},
+					"tokenType": {
+						"type": "string",
+						"enum": ["Bearer"],
+						"description": "令牌类型"
+					}
+				},
+				"required": [
+					"user",
+					"accessToken",
+					"refreshToken",
+					"expiresIn",
+					"tokenType"
+				],
+				"description": "JWT 令牌响应"
+			},
+			"ProjectInfoSchema": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "项目唯一标识"
+					},
+					"name": {
+						"type": "string",
+						"description": "项目名称"
+					},
+					"slug": {
+						"type": "string",
+						"description": "项目唯一标识符"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"description": "项目描述"
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["PUBLIC", "PRIVATE"],
+						"description": "项目可见性"
+					},
+					"createdBy": {
+						"type": "string",
+						"format": "uuid",
+						"description": "创建者ID"
+					},
+					"createdAt": {
+						"type": "string",
+						"description": "创建时间"
+					},
+					"updatedAt": {
+						"type": "string",
+						"description": "更新时间"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"slug",
+					"visibility",
+					"createdBy",
+					"createdAt",
+					"updatedAt"
+				],
+				"description": "项目信息"
+			},
+			"ApiVersionSchema": {
+				"type": "object",
+				"properties": {
+					"version": {
+						"type": "string",
+						"description": "API 版本号"
+					},
+					"environment": {
+						"type": "string",
+						"enum": ["development", "staging", "production"],
+						"description": "运行环境"
+					},
+					"buildTime": {
+						"type": "string",
+						"description": "构建时间"
+					},
+					"gitCommit": {
+						"type": "string",
+						"nullable": true,
+						"description": "Git 提交哈希"
+					}
+				},
+				"required": ["version", "environment", "buildTime"],
+				"description": "API 版本信息"
+			},
+			"HealthCheckSchema": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": ["healthy", "unhealthy", "degraded"],
+						"description": "服务状态"
+					},
+					"timestamp": {
+						"type": "string",
+						"description": "检查时间"
+					},
+					"version": {
+						"type": "string",
+						"description": "应用版本"
+					},
+					"services": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "string",
+							"enum": ["healthy", "unhealthy", "unknown"]
+						},
+						"nullable": true,
+						"description": "依赖服务状态"
+					},
+					"metrics": {
+						"type": "object",
+						"properties": {
+							"uptime": {
+								"type": "number",
+								"description": "运行时间（秒）"
+							},
+							"memoryUsage": {
+								"type": "string",
+								"description": "内存使用率"
+							},
+							"cpuUsage": {
+								"type": "string",
+								"description": "CPU 使用率"
+							}
+						},
+						"required": ["uptime", "memoryUsage", "cpuUsage"],
+						"nullable": true,
+						"description": "性能指标"
+					}
+				},
+				"required": ["status", "timestamp", "version"],
+				"description": "健康检查响应"
+			},
+			"ValidationErrorSchema": {
+				"type": "object",
+				"properties": {
+					"field": {
+						"type": "string",
+						"description": "错误字段"
+					},
+					"message": {
+						"type": "string",
+						"description": "错误消息"
+					},
+					"code": {
+						"type": "string",
+						"nullable": true,
+						"description": "错误代码"
+					},
+					"value": {
+						"nullable": true,
+						"description": "错误值"
+					}
+				},
+				"required": ["field", "message"],
+				"description": "验证错误详情"
+			},
+			"DetailedErrorResponseSchema": {
+				"type": "object",
+				"properties": {
+					"error": {
+						"type": "object",
+						"properties": {
+							"code": {
+								"type": "string",
+								"description": "错误代码"
+							},
+							"message": {
+								"type": "string",
+								"description": "错误消息"
+							},
+							"details": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/ValidationErrorSchema"
+								},
+								"nullable": true,
+								"description": "详细错误信息"
+							},
+							"requestId": {
+								"type": "string",
+								"nullable": true,
+								"description": "请求追踪ID"
+							},
+							"timestamp": {
+								"type": "string",
+								"description": "错误发生时间"
+							},
+							"path": {
+								"type": "string",
+								"nullable": true,
+								"description": "请求路径"
+							}
+						},
+						"required": ["code", "message", "timestamp"],
+						"description": "错误信息"
+					}
+				},
+				"required": ["error"],
+				"description": "详细错误响应"
+			},
+			"VisibilitySchema": {
+				"type": "string",
+				"enum": ["PUBLIC", "PRIVATE"]
+			},
+			"MemberRoleSchema": {
+				"type": "string",
+				"enum": ["OWNER", "ADMIN", "EDITOR", "VIEWER", "NO_ACCESS"]
+			},
+			"AddProjectMemberSchema": {
+				"type": "object",
+				"properties": {
+					"userId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"role": {
+						"type": "object"
+					}
+				},
+				"required": ["userId", "role"]
+			},
+			"UpdateProjectMemberSchema": {
+				"type": "object",
+				"properties": {
+					"role": {
+						"type": "object"
+					}
+				},
+				"required": ["role", "role"]
+			},
+			"RegisterUserSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 8,
+						"maxLength": 128,
+						"pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"
+					},
+					"name": {
+						"type": "string",
+						"minLength": 2,
+						"maxLength": 50
+					}
+				},
+				"required": ["email", "password", "name"]
+			},
+			"LoginUserSchema": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"required": ["email", "password"]
+			},
+			"CreateProjectInput": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100,
+						"pattern": "^[a-zA-Z0-9\\u4e00-\\u9fa5\\s\\-_]+$"
+					},
+					"slug": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 50,
+						"pattern": "^[a-z0-9\\-_]+$"
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 500,
+						"nullable": true
+					},
+					"visibility": {
+						"type": "object"
+					}
+				},
+				"required": ["name", "slug", "visibility", "visibility"]
+			},
+			"UpdateProjectInput": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100,
+						"pattern": "^[a-zA-Z0-9\\u4e00-\\u9fa5\\s\\-_]+$",
+						"nullable": true
+					},
+					"slug": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 50,
+						"pattern": "^[a-z0-9\\-_]+$",
+						"nullable": true
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 500,
+						"nullable": true
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["PUBLIC", "PRIVATE"],
+						"nullable": true
+					}
+				}
+			},
+			"ProjectQueryInput": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "string",
+						"default": 1
+					},
+					"limit": {
+						"type": "string",
+						"default": 10
+					},
+					"search": {
+						"type": "string",
+						"maxLength": 100,
+						"nullable": true
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["PUBLIC", "PRIVATE"],
+						"nullable": true
+					},
+					"sort": {
+						"type": "string",
+						"enum": ["name", "createdAt", "updatedAt"],
+						"default": "updatedAt"
+					},
+					"order": {
+						"type": "string",
+						"enum": ["asc", "desc"],
+						"default": "desc"
+					}
+				},
+				"required": ["page", "limit", "sort", "order"]
+			},
+			"AddProjectMemberInput": {
+				"type": "object",
+				"properties": {
+					"userId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"role": {
+						"type": "object"
+					}
+				},
+				"required": ["userId", "role"]
+			},
+			"UpdateProjectMemberInput": {
+				"type": "object",
+				"properties": {
+					"role": {
+						"type": "object"
+					}
+				},
+				"required": ["role", "role"]
+			},
+			"RegisterUserInput": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 8,
+						"maxLength": 128,
+						"pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"
+					},
+					"name": {
+						"type": "string",
+						"minLength": 2,
+						"maxLength": 50
+					}
+				},
+				"required": ["email", "password", "name"]
+			},
+			"LoginUserInput": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"required": ["email", "password"]
+			},
+			"parsedCredentials": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 6
+					}
+				},
+				"required": ["email", "password"]
+			},
+			"DataModelDeploymentRequestSchema": {
+				"type": "object",
+				"properties": {
+					"version": {
+						"type": "string",
+						"pattern": "^\\d+\\.\\d+\\.\\d+$"
+					},
+					"environment": {
+						"type": "string",
+						"enum": ["PREVIEW", "PRODUCTION"]
+					},
+					"changeLog": {
+						"type": "object",
+						"properties": {
+							"description": {
+								"type": "string"
+							},
+							"tables": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"changes": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"type": {
+											"type": "string",
+											"enum": [
+												"CREATE_TABLE",
+												"ALTER_TABLE",
+												"DROP_TABLE",
+												"ADD_COLUMN",
+												"DROP_COLUMN"
+											]
+										},
+										"tableName": {
+											"type": "string"
+										},
+										"description": {
+											"type": "string"
+										}
+									},
+									"required": ["type", "tableName", "description"]
+								}
+							}
+						},
+						"required": ["description", "tables", "changes"]
+					},
+					"metadata": {
+						"type": "object",
+						"additionalProperties": {},
+						"nullable": true
+					}
+				},
+				"required": ["version", "environment", "changeLog"]
+			},
+			"DataModelDeploymentRequest": {
+				"type": "object",
+				"properties": {
+					"version": {
+						"type": "string",
+						"pattern": "^\\d+\\.\\d+\\.\\d+$"
+					},
+					"environment": {
+						"type": "string",
+						"enum": ["PREVIEW", "PRODUCTION"]
+					},
+					"changeLog": {
+						"type": "object",
+						"properties": {
+							"description": {
+								"type": "string"
+							},
+							"tables": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"changes": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"type": {
+											"type": "string",
+											"enum": [
+												"CREATE_TABLE",
+												"ALTER_TABLE",
+												"DROP_TABLE",
+												"ADD_COLUMN",
+												"DROP_COLUMN"
+											]
+										},
+										"tableName": {
+											"type": "string"
+										},
+										"description": {
+											"type": "string"
+										}
+									},
+									"required": ["type", "tableName", "description"]
+								}
+							}
+						},
+						"required": ["description", "tables", "changes"]
+					},
+					"metadata": {
+						"type": "object",
+						"additionalProperties": {},
+						"nullable": true
+					}
+				},
+				"required": ["version", "environment", "changeLog"]
+			},
+			"ProjectResponseSchema": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "项目唯一标识"
+					},
+					"name": {
+						"type": "string",
+						"description": "项目名称"
+					},
+					"slug": {
+						"type": "string",
+						"description": "项目唯一标识符"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"description": "项目描述"
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["PUBLIC", "PRIVATE"],
+						"description": "项目可见性"
+					},
+					"createdBy": {
+						"type": "string",
+						"format": "uuid",
+						"description": "创建者ID"
+					},
+					"createdAt": {
+						"type": "string",
+						"description": "创建时间"
+					},
+					"updatedAt": {
+						"type": "string",
+						"description": "更新时间"
+					},
+					"members": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"id": {
+									"type": "string",
+									"format": "uuid"
+								},
+								"role": {
+									"type": "string",
+									"enum": ["OWNER", "ADMIN", "MEMBER"]
+								},
+								"user": {
+									"type": "object",
+									"properties": {
+										"id": {
+											"type": "string",
+											"format": "uuid"
+										},
+										"name": {
+											"type": "string"
+										},
+										"email": {
+											"type": "string",
+											"format": "email"
+										},
+										"image": {
+											"type": "string",
+											"format": "uri",
+											"nullable": true
+										}
+									},
+									"required": ["id", "name", "email"]
+								}
+							},
+							"required": ["id", "role", "user"]
+						},
+						"description": "项目成员"
+					},
+					"_count": {
+						"type": "object",
+						"properties": {
+							"members": {
+								"type": "number"
+							},
+							"applications": {
+								"type": "number"
+							},
+							"DataVersions": {
+								"type": "number"
+							}
+						},
+						"required": ["members", "applications", "DataVersions"],
+						"description": "关联数据统计"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"slug",
+					"visibility",
+					"createdBy",
+					"createdAt",
+					"updatedAt",
+					"members",
+					"_count"
+				],
+				"description": "项目信息"
+			}
+		},
+		"responses": {
+			"400": {
+				"description": "Bad Request",
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"error": {
+									"type": "object",
+									"properties": {
+										"code": {
+											"type": "string",
+											"description": "Error code",
+											"example": "VALIDATION_ERROR"
+										},
+										"message": {
+											"type": "string",
+											"description": "Human readable error message",
+											"example": "Invalid input data"
+										},
+										"details": {
+											"oneOf": [
+												{
+													"type": "array",
+													"items": {
+														"type": "string"
+													},
+													"description": "Array of error details"
+												},
+												{
+													"type": "object",
+													"description": "Detailed error information"
+												}
+											]
+										}
+									},
+									"required": ["code", "message"]
+								}
+							}
+						}
+					}
+				}
+			},
+			"401": {
+				"description": "Unauthorized",
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"error": {
+									"type": "object",
+									"properties": {
+										"code": {
+											"type": "string",
+											"description": "Error code",
+											"example": "VALIDATION_ERROR"
+										},
+										"message": {
+											"type": "string",
+											"description": "Human readable error message",
+											"example": "Invalid input data"
+										},
+										"details": {
+											"oneOf": [
+												{
+													"type": "array",
+													"items": {
+														"type": "string"
+													},
+													"description": "Array of error details"
+												},
+												{
+													"type": "object",
+													"description": "Detailed error information"
+												}
+											]
+										}
+									},
+									"required": ["code", "message"]
+								}
+							}
+						}
+					}
+				}
+			},
+			"403": {
+				"description": "Forbidden",
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"error": {
+									"type": "object",
+									"properties": {
+										"code": {
+											"type": "string",
+											"description": "Error code",
+											"example": "VALIDATION_ERROR"
+										},
+										"message": {
+											"type": "string",
+											"description": "Human readable error message",
+											"example": "Invalid input data"
+										},
+										"details": {
+											"oneOf": [
+												{
+													"type": "array",
+													"items": {
+														"type": "string"
+													},
+													"description": "Array of error details"
+												},
+												{
+													"type": "object",
+													"description": "Detailed error information"
+												}
+											]
+										}
+									},
+									"required": ["code", "message"]
+								}
+							}
+						}
+					}
+				}
+			},
+			"404": {
+				"description": "Not Found",
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"error": {
+									"type": "object",
+									"properties": {
+										"code": {
+											"type": "string",
+											"description": "Error code",
+											"example": "VALIDATION_ERROR"
+										},
+										"message": {
+											"type": "string",
+											"description": "Human readable error message",
+											"example": "Invalid input data"
+										},
+										"details": {
+											"oneOf": [
+												{
+													"type": "array",
+													"items": {
+														"type": "string"
+													},
+													"description": "Array of error details"
+												},
+												{
+													"type": "object",
+													"description": "Detailed error information"
+												}
+											]
+										}
+									},
+									"required": ["code", "message"]
+								}
+							}
+						}
+					}
+				}
+			},
+			"409": {
+				"description": "Conflict",
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"error": {
+									"type": "object",
+									"properties": {
+										"code": {
+											"type": "string",
+											"description": "Error code",
+											"example": "VALIDATION_ERROR"
+										},
+										"message": {
+											"type": "string",
+											"description": "Human readable error message",
+											"example": "Invalid input data"
+										},
+										"details": {
+											"oneOf": [
+												{
+													"type": "array",
+													"items": {
+														"type": "string"
+													},
+													"description": "Array of error details"
+												},
+												{
+													"type": "object",
+													"description": "Detailed error information"
+												}
+											]
+										}
+									},
+									"required": ["code", "message"]
+								}
+							}
+						}
+					}
+				}
+			},
+			"500": {
+				"description": "Internal Server Error",
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"error": {
+									"type": "object",
+									"properties": {
+										"code": {
+											"type": "string",
+											"description": "Error code",
+											"example": "VALIDATION_ERROR"
+										},
+										"message": {
+											"type": "string",
+											"description": "Human readable error message",
+											"example": "Invalid input data"
+										},
+										"details": {
+											"oneOf": [
+												{
+													"type": "array",
+													"items": {
+														"type": "string"
+													},
+													"description": "Array of error details"
+												},
+												{
+													"type": "object",
+													"description": "Detailed error information"
+												}
+											]
+										}
+									},
+									"required": ["code", "message"]
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -166,7 +166,7 @@ export function ProjectList({
 					}
 				}
 
-				const response = await fetch(`/api/projects?${params.toString()}`);
+				const response = await fetch(`/api/meta/projects?${params.toString()}`);
 				const payload = (await response.json()) as unknown;
 
 				if (!response.ok) {

@@ -66,7 +66,7 @@ class ErrorBoundary extends React.Component<
 	private reportError = (error: Error, errorInfo: React.ErrorInfo) => {
 		try {
 			// 这里可以集成错误上报服务，如 Sentry
-			fetch("/api/errors", {
+			fetch("/api/sys/errors", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

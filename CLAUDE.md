@@ -10,14 +10,13 @@ FastBuild is an open-source low-code development platform built on Next.js 15 fu
 
 - **Framework**: Next.js 15.5.4 with App Router (React 19.2.0)
 - **Language**: TypeScript 5.9.3 with strict configuration
-- **Database**: PostgreSQL with Prisma ORM 6.17.0
-- **Authentication**: NextAuth.js 5.0.0-beta.25 with multiple providers (Google, GitHub, email/password)
-- **API**: REST API with Next.js API Routes + Swagger/OpenAPI 3.0 documentation
+- **Database**: PostgreSQL 18 with Prisma ORM 6.17.0
+- **API**: REST API with Next.js API Routes + Swagger/OpenAPI 3.1 documentation
 - **API Testing**: Jest + Supertest for API contract testing
 - **Styling**: Tailwind CSS 4.1.14 with custom components
 - **UI Components**: Radix UI primitives with custom implementations
 - **Code Quality**: Biome 1.9.4 for linting and formatting
-- **Package Manager**: pnpm 9.15.4
+- **Package Manager**: pnpm 10.18.2
 
 *Note: Some versions may be newer than those listed in package.json due to automatic updates during installation.*
 

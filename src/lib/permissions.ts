@@ -173,7 +173,7 @@ export async function getUserAccessibleProjects(userId: string) {
 				OR: [
 					{ createdBy: userId },
 					{
-						members: {
+						ProjectMember: {
 							some: {
 								userId,
 								role: {
@@ -193,7 +193,7 @@ export async function getUserAccessibleProjects(userId: string) {
 				visibility: true,
 				createdAt: true,
 				updatedAt: true,
-				members: {
+				ProjectMember: {
 					where: {
 						userId,
 					},
@@ -203,9 +203,9 @@ export async function getUserAccessibleProjects(userId: string) {
 				},
 				_count: {
 					select: {
-						members: true,
-						applications: true,
-						DataVersions: true,
+						ProjectMember: true,
+						Application: true,
+						DataModelDeployment: true,
 					},
 				},
 			},
@@ -216,10 +216,10 @@ export async function getUserAccessibleProjects(userId: string) {
 
 		return projects.map((project) => ({
 			...project,
-			currentUserRole: project.members[0]?.role || null,
-			memberCount: project._count.members,
-			applicationCount: project._count.applications,
-			dataVersionCount: project._count.DataVersions,
+			currentUserRole: project.ProjectMember[0]?.role || null,
+			memberCount: project._count.ProjectMember,
+			applicationCount: project._count.Application,
+			dataVersionCount: project._count.DataModelDeployment,
 		}));
 	} catch (error) {
 		console.error("Error getting user accessible projects:", error);
