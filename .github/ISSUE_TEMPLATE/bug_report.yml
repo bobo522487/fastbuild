@@ -3,35 +3,64 @@ description: Create a bug report to help us improve
 title: "bug: "
 labels: ["🐞❔ unconfirmed bug"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        Before creating a new issue, please search existing issues to avoid duplicates.
+
   - type: textarea
     attributes:
-      label: Provide environment information
+      label: Environment Information
       description: |
         Run this command in your project root and paste the results in a code block:
         ```bash
-        npx envinfo --system --binaries
+        node --version && pnpm --version && pnpm list --depth=0
         ```
+      placeholder: |
+        Node.js: v22.20.0
+        pnpm: 10.15.1
+        @acme/logger: 1.0.0
+        ... other packages ...
     validations:
       required: true
+
   - type: textarea
     attributes:
-      label: Describe the bug
-      description: A clear and concise description of the bug, as well as what you expected to happen when encountering it.
+      label: Bug Description
+      description: A clear and concise description of what the bug is, and what you expected to happen.
+      placeholder: |
+        When I run `pnpm build`, I expected the build to succeed, but instead I get a TypeScript error.
     validations:
       required: true
-  - type: input
-    attributes:
-      label: Link to reproduction
-      description: Please provide a link to a reproduction of the bug. Issues without a reproduction repo may be ignored.
-    validations:
-      required: true
+
   - type: textarea
     attributes:
-      label: To reproduce
-      description: Describe how to reproduce your bug. Steps, code snippets, reproduction repos etc.
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior. Include code snippets, commands, or file contents.
+      placeholder: |
+        1. Run `pnpm install`
+        2. Execute `pnpm build`
+        3. See error message
     validations:
       required: true
+
   - type: textarea
     attributes:
-      label: Additional information
-      description: Add any other information related to the bug here, screenshots if applicable.
+      label: Expected Behavior
+      description: What you expected to happen.
+      placeholder: The build should complete successfully without TypeScript errors.
+
+  - type: textarea
+    attributes:
+      label: Actual Behavior
+      description: What actually happened. Include error messages, stack traces, or screenshots.
+      placeholder: |
+        Error: TypeScript compilation failed
+        src/components/Button.tsx:10:5 - Type 'string' is not assignable to type 'number'
+
+  - type: textarea
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here, such as logs, screenshots, or related issues.

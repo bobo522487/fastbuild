@@ -1,280 +1,540 @@
-# create-t3-turbo
+# T3 Turbo - Modern Full-Stack Monorepo
+
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.20.0-brightgreen.svg)](https://nodejs.org/)
+[![PNPM Version](https://img.shields.io/badge/pnpm-%3E%3D10.15.1-orange.svg)](https://pnpm.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
+[![Prisma](https://img.shields.io/badge/Prisma-5.0+-2d3748.svg)](https://prisma.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > [!NOTE]
 >
-> create-t3-turbo now uses better-auth for authentication!
-> Look out for bugs as we're working through the last issues,
-> especially, the oauth proxy might not play very nice with Expo
-> so you might need to disable that in [`@acme/auth`](./packages/auth/src/index.ts)
+> This is a production-ready T3 Turbo monorepo using **Next.js 15**, **React 19**, and **Better Auth** for authentication.
+> Built with modern tooling including Biome for linting, Vitest for testing, and Prisma for database management.
 
-## Installation
+## Quick Start
 
-> [!NOTE]
+> [!IMPORTANT]
 >
-> Make sure to follow the system requirements specified in [`package.json#engines`](./package.json#L4) before proceeding.
+> **System Requirements:**
+> - Node.js >= 22.20.0
+> - PNPM >= 10.15.1
+> - PostgreSQL database (or compatible with Prisma)
 
-There are two ways of initializing an app using the `create-t3-turbo` starter. You can either use this repository as a template:
+This template provides two ways to get started:
 
-![use-as-template](https://github.com/t3-oss/create-t3-turbo/assets/51714798/bb6c2e5d-d8b6-416e-aeb3-b3e50e2ca994)
-
-or use Turbo's CLI to init your project (use PNPM as package manager):
+1. **Use as GitHub Template**: Click "Use this template" on the GitHub repository
+2. **Use Turbo CLI**:
 
 ```bash
 npx create-turbo@latest -e https://github.com/t3-oss/create-t3-turbo
 ```
 
-## About
+## Tech Stack
 
-Ever wondered how to migrate your T3 application into a monorepo? Stop right here! This is the perfect starter repo to get you running with the perfect stack!
+This monorepo is built with a modern, production-ready stack:
 
-It uses [Turborepo](https://turborepo.com) and contains:
+### 🚀 Core Technologies
+- **Next.js 15** - Full-stack React framework
+- **React 19** - Latest React with concurrent features
+- **Turborepo** - High-performance build system
+- **TypeScript** - Type-safe development
+
+### 🗄️ Database & ORM
+- **Prisma** - Next-generation ORM
+- **PostgreSQL** - Production-ready database
+- **Better Auth** - Modern authentication solution
+
+### 🔧 Development Tools
+- **Biome** - Fast formatter and linter
+- **Vitest** - Modern testing framework
+- **Tailwind CSS v4** - Utility-first CSS framework
+- **tRPC v11** - End-to-end typesafe APIs
+- **Pino** - Ultra-fast JSON logger with structured logging
+
+### 📁 Project Structure
 
 ```text
-.github
-  └─ workflows
-        └─ CI with pnpm cache setup
-.vscode
-  └─ Recommended extensions and settings for VSCode users
-apps
-  ├─ expo
-  │   ├─ Expo SDK 54
-  │   ├─ React Native 0.81 using React 19
-  │   ├─ Navigation using Expo Router
-  │   ├─ Tailwind CSS v4 using NativeWind v5
-  │   └─ Typesafe API calls using tRPC
-  └─ next.js
-      ├─ Next.js 15
-      ├─ React 19
-      ├─ Tailwind CSS v4
-      └─ E2E Typesafe API Server & Client
-packages
-  ├─ api
-  │   └─ tRPC v11 router definition
-  ├─ auth
-  │   └─ Authentication using better-auth.
-  ├─ db
-  │   └─ Typesafe db calls using Drizzle & Supabase
-  └─ ui
-      └─ Start of a UI package for the webapp using shadcn-ui
-tooling
-  ├─ eslint
-  │   └─ shared, fine-grained, eslint presets
-  ├─ prettier
-  │   └─ shared prettier configuration
-  ├─ tailwind
-  │   └─ shared tailwind theme and configuration
-  └─ typescript
-      └─ shared tsconfig you can extend from
+├── apps/nextjs/           # Next.js application
+├── packages/
+│   ├── api/              # tRPC router & procedures
+│   ├── auth/             # Authentication configuration
+│   ├── db/               # Database schema & Prisma client
+│   ├── logger/           # Structured logging (Pino)
+│   ├── ui/               # Reusable UI components (shadcn/ui)
+│   └── validators/      # Shared validation schemas
+└── tooling/
+    ├── biome/            # Shared linting/formatting config
+    ├── tailwind/         # Shared Tailwind configuration
+    └── typescript/       # Shared TypeScript config
 ```
 
-> In this template, we use `@acme` as a placeholder for package names. As a user, you might want to replace it with your own organization or project name. You can use find-and-replace to change all the instances of `@acme` to something like `@my-company` or `@project-name`.
+> [!NOTE]
+>
+> In this template, we use `@acme` as a placeholder for package names. You can replace all instances with your organization name using:
+> ```bash
+> find . -type f -name "*.json" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.md" | xargs sed -i 's/@acme/@your-org/g'
+> ```
 
-## Quick Start
+## Installation & Setup
 
-> **Note**
-> The [db](./packages/db) package is preconfigured to use Supabase and is **edge-bound** with the [Vercel Postgres](https://github.com/vercel/storage/tree/main/packages/postgres) driver. If you're using something else, make the necessary modifications to the [schema](./packages/db/src/schema.ts) as well as the [client](./packages/db/src/index.ts) and the [drizzle config](./packages/db/drizzle.config.ts). If you want to switch to non-edge database driver, remove `export const runtime = "edge";` [from all pages and api routes](https://github.com/t3-oss/create-t3-turbo/issues/634#issuecomment-1730240214).
+### 1. Environment Configuration
 
-To get it running, follow the steps below:
-
-### 1. Setup dependencies
+First, configure your environment variables:
 
 ```bash
-# Install dependencies
-pnpm i
-
-# Configure environment variables
-# There is an `.env.example` in the root directory you can use for reference
+# Copy environment template
 cp .env.example .env
 
-# Push the Drizzle schema to the database
-pnpm db:push
+# Edit the .env file with your configuration
+# Required: Database URL, Auth secret, GitHub OAuth credentials
 ```
 
-### 2. Generate Better Auth Schema
+**Environment Variables:**
+- `POSTGRES_URL` - PostgreSQL connection string
+- `AUTH_SECRET` - Better Auth secret (generate with `openssl rand -base64 32`)
+- `AUTH_GITHUB_ID` - GitHub OAuth client ID
+- `AUTH_GITHUB_SECRET` - GitHub OAuth client secret
+- `NEXTAUTH_URL` - Your application URL (e.g., `http://localhost:3000`)
 
-This project uses [Better Auth](https://www.better-auth.com) for authentication. The auth schema needs to be generated using the Better Auth CLI before you can use the authentication features.
+### 2. Install Dependencies
 
 ```bash
-# Generate the Better Auth schema
-pnpm --filter @acme/auth generate
+# Install all workspace dependencies
+pnpm install
 ```
 
-This command runs the Better Auth CLI with the following configuration:
+### 3. Database Setup
 
-- **Config file**: `packages/auth/script/auth-cli.ts` - A CLI-only configuration file (isolated from src to prevent imports)
-- **Output**: `packages/db/src/auth-schema.ts` - Generated Drizzle schema for authentication tables
+```bash
+# Generate Prisma client
+pnpm db:generate
 
-The generation process:
+# Push database schema (development)
+pnpm db:push
 
-1. Reads the Better Auth configuration from `packages/auth/script/auth-cli.ts`
-2. Generates the appropriate database schema based on your auth setup
-3. Outputs a Drizzle-compatible schema file to the `@acme/db` package
+# Or create a migration (production)
+pnpm db:migrate
+```
 
-> **Note**: The `auth-cli.ts` file is placed in the `script/` directory (instead of `src/`) to prevent accidental imports from other parts of the codebase. This file is exclusively for CLI schema generation and should **not** be used directly in your application. For runtime authentication, use the configuration from `packages/auth/src/index.ts`.
+### 4. Authentication Setup
 
-For more information about the Better Auth CLI, see the [official documentation](https://www.better-auth.com/docs/concepts/cli#generate).
+```bash
+# Generate Better Auth schema
+pnpm auth:generate
+```
 
-### 3. Configure Expo `dev`-script
+This will:
+1. Read the Better Auth configuration from `packages/auth/script/auth-cli.ts`
+2. Generate the database schema for authentication tables
+3. Update the Prisma schema in `packages/db/`
 
-#### Use iOS Simulator
+> [!IMPORTANT]
+>
+> The authentication schema generation uses a separate CLI configuration file to prevent runtime imports. Always use `packages/auth/src/index.ts` for runtime authentication configuration.
 
-1. Make sure you have XCode and XCommand Line Tools installed [as shown on expo docs](https://docs.expo.dev/workflow/ios-simulator).
+### 5. Development Server
 
-   > **NOTE:** If you just installed XCode, or if you have updated it, you need to open the simulator manually once. Run `npx expo start` from `apps/expo`, and then enter `I` to launch Expo Go. After the manual launch, you can run `pnpm dev` in the root directory.
+Start the development server:
 
-   ```diff
-   +  "dev": "expo start --ios",
-   ```
+```bash
+# Start all services
+pnpm dev
 
-2. Run `pnpm dev` at the project root folder.
+# Or start Next.js only
+pnpm dev:next
+```
 
-#### Use Android Emulator
+Visit `http://localhost:3000` to see your application.
 
-1. Install Android Studio tools [as shown on expo docs](https://docs.expo.dev/workflow/android-studio-emulator).
+## Development Commands
 
-2. Change the `dev` script at `apps/expo/package.json` to open the Android emulator.
+### 🛠️ Available Scripts
 
-   ```diff
-   +  "dev": "expo start --android",
-   ```
+```bash
+# Development
+pnpm dev              # Start all services in watch mode
+pnpm dev:next         # Start Next.js only
 
-3. Run `pnpm dev` at the project root folder.
+# Building
+pnpm build            # Build all packages
+pnpm clean            # Clean all node_modules
+pnpm clean:workspaces # Clean workspace builds
 
-### 4. Configuring Better-Auth to work with Expo
+# Database
+pnpm db:generate      # Generate Prisma client
+pnpm db:push          # Push schema to database (dev)
+pnpm db:migrate       # Create database migration
+pnpm db:reset         # Reset database
+pnpm db:push:test     # Reset test database using .env.test
+pnpm db:reset:test    # Force reset test database using .env.test
+pnpm db:studio        # Open Prisma Studio
 
-In order to get Better-Auth to work with Expo, you must either:
+# Authentication
+pnpm auth:generate    # Generate Better Auth schema
 
-#### Deploy the Auth Proxy (RECOMMENDED)
+# Code Quality
+pnpm biome:check      # Run Biome linting
+pnpm biome:fix        # Fix Biome issues
+pnpm typecheck        # Run TypeScript type checking
+pnpm lint:ws          # Check workspace dependencies
 
-Better-auth comes with an [auth proxy plugin](https://www.better-auth.com/docs/plugins/oauth-proxy). By deploying the Next.js app, you can get OAuth working in preview deployments and development for Expo apps.
+# Testing
+pnpm test             # Run all tests
+pnpm test:integration # Run API integration tests with .env.test
+pnpm test:watch       # Run tests in watch mode
+pnpm test:coverage   # Run tests with coverage
+pnpm test:ui          # Open Vitest UI
+```
 
-By using the proxy plugin, the Next.js apps will forward any auth requests to the proxy server, which will handle the OAuth flow and then redirect back to the Next.js app. This makes it easy to get OAuth working since you'll have a stable URL that is publicly accessible and doesn't change for every deployment and doesn't rely on what port the app is running on. So if port 3000 is taken and your Next.js app starts at port 3001 instead, your auth should still work without having to reconfigure the OAuth provider.
+### 🎨 Adding UI Components
 
-#### Add your local IP to your OAuth provider
-
-You can alternatively add your local IP (e.g. `192.168.x.y:$PORT`) to your OAuth provider. This may not be as reliable as your local IP may change when you change networks. Some OAuth providers may also only support a single callback URL for each app making this approach unviable for some providers (e.g. GitHub).
-
-### 5a. When it's time to add a new UI component
-
-Run the `ui-add` script to add a new UI component using the interactive `shadcn/ui` CLI:
+Add shadcn/ui components interactively:
 
 ```bash
 pnpm ui-add
 ```
 
-When the component(s) has been installed, you should be good to go and start using it in your app.
+### 📦 Adding New Packages
 
-### 5b. When it's time to add a new package
+Create a new package in the monorepo:
 
-To add a new package, simply run `pnpm turbo gen init` in the monorepo root. This will prompt you for a package name as well as if you want to install any dependencies to the new package (of course you can also do this yourself later).
+```bash
+pnpm turbo gen init
+```
 
-The generator sets up the `package.json`, `tsconfig.json` and a `index.ts`, as well as configures all the necessary configurations for tooling around your package such as formatting, linting and typechecking. When the package is created, you're ready to go build out the package.
+This will prompt you for package details and automatically configure:
+- `package.json` with proper workspace dependencies
+- `tsconfig.json` extending shared configuration
+- `index.ts` with proper exports
+- Tooling integration (Biome, TypeScript, etc.)
 
-## FAQ
+## Database Management
 
-### Does the starter include Solito?
+### 🗄️ Schema & Models
 
-No. Solito will not be included in this repo. It is a great tool if you want to share code between your Next.js and Expo app. However, the main purpose of this repo is not the integration between Next.js and Expo — it's the code splitting of your T3 App into a monorepo. The Expo app is just a bonus example of how you can utilize the monorepo with multiple apps but can just as well be any app such as Vite, Electron, etc.
+The database schema is defined in [`packages/db/prisma/schema.prisma`](packages/db/prisma/schema.prisma). It includes:
 
-Integrating Solito into this repo isn't hard, and there are a few [official templates](https://github.com/nandorojo/solito/tree/master/example-monorepos) by the creators of Solito that you can use as a reference.
+- **Authentication models** (User, Session, Account, Verification)
+- **Application models** (Post, etc.)
+- **Relations and constraints**
 
-### Does this pattern leak backend code to my client applications?
+### 🔧 Database Operations
 
-No, it does not. The `api` package should only be a production dependency in the Next.js application where it's served. The Expo app, and all other apps you may add in the future, should only add the `api` package as a dev dependency. This lets you have full typesafety in your client applications, while keeping your backend code safe.
+```typescript
+import { prisma } from "@acme/db";
 
-If you need to share runtime code between the client and server, such as input validation schemas, you can create a separate `shared` package for this and import it on both sides.
+// Create a user
+const user = await prisma.user.create({
+  data: {
+    name: "John Doe",
+    email: "john@example.com",
+    emailVerified: true,
+  },
+});
+
+// Query with relations
+const posts = await prisma.post.findMany({
+  include: {
+    user: true,
+    comments: true,
+  },
+  orderBy: {
+    createdAt: "desc",
+  },
+});
+
+// Update with transaction
+const updatedUser = await prisma.user.update({
+  where: { id: user.id },
+  data: { name: "Jane Doe" },
+});
+```
+
+### 📊 Database Commands
+
+| Command | Description | Environment |
+|---------|-------------|-------------|
+| `pnpm db:generate` | Generate Prisma client | All |
+| `pnpm db:push` | Push schema to database | Development |
+| `pnpm db:migrate` | Create migration | Production |
+| `pnpm db:reset` | Reset database | Development |
+| `pnpm db:studio` | Open database browser | All |
+
+### 🔍 Schema Management Workflow
+
+1. **Development**: `pnpm db:push` (instant schema updates)
+2. **Production**: `pnpm db:migrate` (versioned migrations)
+3. **Client Generation**: `pnpm db:generate` (after any schema change)
+
+> [!TIP]
+>
+> Use `pnpm db:studio` to visually explore your database schema and data.
+
+## 📋 Structured Logging
+
+This project uses **Pino** for structured logging, providing machine-readable JSON logs that are essential for production monitoring and debugging.
+
+### 📝 Log Format
+
+```json
+{
+  "level": 30,
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "pid": 12345,
+  "hostname": "server-a",
+  "service": "@acme/nextjs",
+  "environment": "production",
+  "correlationId": "abc-123-def-456",
+  "msg": "User login successful",
+  "context": {
+    "userId": "user-42",
+    "route": "/api/trpc/auth.login",
+    "duration": 156
+  }
+}
+```
+
+### 🔧 Usage Examples
+
+#### Server-side Logging
+```typescript
+import { createLogger, generateCorrelationId } from '@acme/logger';
+
+// Create logger with context
+const logger = createLogger({
+  userId: session.user.id,
+  route: '/api/trpc/post.create'
+});
+
+// Log different levels
+logger.info('Post created successfully', { postId: '123' });
+logger.warn('Rate limit approaching', { current: 8, limit: 10 });
+logger.error('Database connection failed', { error: error.message });
+
+// Performance logging
+const start = Date.now();
+await someOperation();
+logger.info('Operation completed', {
+  duration: Date.now() - start,
+  operation: 'dataProcessing'
+});
+```
+
+#### tRPC Integration
+```typescript
+import { loggerMiddleware } from '@acme/api/middleware/logger';
+
+const postRouter = t.router({
+  create: t.procedure
+    .use(loggerMiddleware)
+    .input(CreatePostSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Automatic request/response logging
+      return await createPost(ctx, input);
+    }),
+});
+```
+
+#### Database Query Logging
+```typescript
+import { prismaLoggingMiddleware } from '@acme/db/logger';
+
+// All Prisma queries are automatically logged
+const posts = await prisma.post.findMany({
+  include: { user: true },
+});
+
+// Slow queries (>1s) are logged as warnings
+```
+
+#### Client-side Logging
+```typescript
+import { logger } from '@acme/logger/client';
+
+// In React components
+logger.info('Button clicked', { buttonId: 'submit-btn' });
+logger.error('Form validation failed', { errors: validationErrors });
+
+// React error boundaries
+import { logReactError } from '@acme/logger/client';
+```
+
+### 🎯 Key Features
+
+- **Correlation IDs**: Track requests across services
+- **Environment-aware**: Pretty output in dev, JSON in production
+- **Performance monitoring**: Automatic slow operation detection
+- **Database monitoring**: Query logging and slow query detection
+- **Error tracking**: Structured error logging with context
+- **Client support**: Browser logging with batching
+
+### 📊 Log Levels
+
+| Level | Value | Use Case |
+|-------|-------|----------|
+| `trace` | 10 | Detailed debugging information |
+| `debug` | 20 | Development debugging |
+| `info` | 30 | General application events |
+| `warn` | 40 | Warning conditions |
+| `error` | 50 | Error conditions |
+| `fatal` | 60 | Critical system failures |
+
+### 🔍 Environment Variables
+
+```bash
+# Log level (development: debug, production: info)
+LOG_LEVEL=info
+
+# Enable/disable logging
+NODE_ENV=production
+```
+
+### 📈 Integration with Monitoring Services
+
+The structured JSON format works seamlessly with:
+- **Datadog**: Log management and monitoring
+- **New Relic**: APM and log analysis
+- **Elastic Stack**: ELK for log aggregation
+- **Grafana Loki**: Log querying and visualization
+- **AWS CloudWatch**: Cloud-based log management
 
 ## Deployment
 
-### Next.js
+### 🚀 Deploy to Vercel
 
-#### Prerequisites
+1. **Create Vercel Project**
+   - Connect your GitHub repository
+   - Set root directory to `apps/nextjs`
+   - Vercel will automatically detect Next.js configuration
 
-> **Note**
-> Please note that the Next.js application with tRPC must be deployed in order for the Expo app to communicate with the server in a production environment.
-
-#### Deploy to Vercel
-
-Let's deploy the Next.js application to [Vercel](https://vercel.com). If you've never deployed a Turborepo app there, don't worry, the steps are quite straightforward. You can also read the [official Turborepo guide](https://vercel.com/docs/concepts/monorepos/turborepo) on deploying to Vercel.
-
-1. Create a new project on Vercel, select the `apps/nextjs` folder as the root directory. Vercel's zero-config system should handle all configurations for you.
-
-2. Add your `POSTGRES_URL` environment variable.
-
-3. Done! Your app should successfully deploy. Assign your domain and use that instead of `localhost` for the `url` in the Expo app so that your Expo app can communicate with your backend when you are not in development.
-
-### Auth Proxy
-
-The auth proxy comes as a better-auth plugin. This is required for the Next.js app to be able to authenticate users in preview deployments. The auth proxy is not used for OAuth request in production deployments. The easiest way to get it running is to deploy the Next.js app to vercel.
-
-### Expo
-
-Deploying your Expo application works slightly differently compared to Next.js on the web. Instead of "deploying" your app online, you need to submit production builds of your app to app stores, like [Apple App Store](https://www.apple.com/app-store) and [Google Play](https://play.google.com/store/apps). You can read the full [guide to distributing your app](https://docs.expo.dev/distribution/introduction), including best practices, in the Expo docs.
-
-1. Make sure to modify the `getBaseUrl` function to point to your backend's production URL:
-
-   <https://github.com/t3-oss/create-t3-turbo/blob/656965aff7db271e5e080242c4a3ce4dad5d25f8/apps/expo/src/utils/api.tsx#L20-L37>
-
-2. Let's start by setting up [EAS Build](https://docs.expo.dev/build/introduction), which is short for Expo Application Services. The build service helps you create builds of your app, without requiring a full native development setup. The commands below are a summary of [Creating your first build](https://docs.expo.dev/build/setup).
-
+2. **Environment Variables**
    ```bash
-   # Install the EAS CLI
-   pnpm add -g eas-cli
-
-   # Log in with your Expo account
-   eas login
-
-   # Configure your Expo app
-   cd apps/expo
-   eas build:configure
+   # Required environment variables
+   POSTGRES_URL=your-production-database-url
+   AUTH_SECRET=your-production-auth-secret
+   AUTH_GITHUB_ID=your-github-client-id
+   AUTH_GITHUB_SECRET=your-github-client-secret
+   NEXTAUTH_URL=https://your-app.vercel.app
    ```
 
-3. After the initial setup, you can create your first build. You can build for Android and iOS platforms and use different [`eas.json` build profiles](https://docs.expo.dev/build-reference/eas-json) to create production builds or development, or test builds. Let's make a production build for iOS.
+3. **Build Configuration**
+   - Build command: `pnpm build`
+   - Output directory: `.next`
+   - Install command: `pnpm install`
 
-   ```bash
-   eas build --platform ios --profile production
-   ```
+### 🔒 Security Considerations
 
-   > If you don't specify the `--profile` flag, EAS uses the `production` profile by default.
+- **Environment Variables**: Never commit secrets to version control
+- **Database**: Use connection pooling in production
+- **Authentication**: Configure proper CORS and origin validation
+- **Dependencies**: Regularly update dependencies for security patches
 
-4. Now that you have your first production build, you can submit this to the stores. [EAS Submit](https://docs.expo.dev/submit/introduction) can help you send the build to the stores.
+### 🏗️ Production Checklist
 
-   ```bash
-   eas submit --platform ios --latest
-   ```
+- [ ] Configure production database
+- [ ] Set up environment variables
+- [ ] Enable authentication providers
+- [ ] Configure domain and SSL
+- [ ] Set up monitoring and logging
+- [ ] Configure backup strategy
+- [ ] Test deployment in staging environment
 
-   > You can also combine build and submit in a single command, using `eas build ... --auto-submit`.
+## FAQ
 
-5. Before you can get your app in the hands of your users, you'll have to provide additional information to the app stores. This includes screenshots, app information, privacy policies, etc. _While still in preview_, [EAS Metadata](https://docs.expo.dev/eas/metadata) can help you with most of this information.
+### 🔍 Backend Code Safety
 
-6. Once everything is approved, your users can finally enjoy your app. Let's say you spotted a small typo; you'll have to create a new build, submit it to the stores, and wait for approval before you can resolve this issue. In these cases, you can use EAS Update to quickly send a small bugfix to your users without going through this long process. Let's start by setting up EAS Update.
+**Does this pattern leak backend code to client applications?**
 
-   The steps below summarize the [Getting started with EAS Update](https://docs.expo.dev/eas-update/getting-started/#configure-your-project) guide.
+No. The `@acme/api` package should only be a production dependency in the Next.js application. Other applications (Electron, mobile apps, etc.) should only add it as a dev dependency for type safety. This ensures backend code remains secure while providing full TypeScript support.
 
-   ```bash
-   # Add the `expo-updates` library to your Expo app
-   cd apps/expo
-   pnpm expo install expo-updates
+### 🗄️ Database Configuration
 
-   # Configure EAS Update
-   eas update:configure
-   ```
+**What database systems are supported?**
 
-7. Before we can send out updates to your app, you have to create a new build and submit it to the app stores. For every change that includes native APIs, you have to rebuild the app and submit the update to the app stores. See steps 2 and 3.
+This project uses Prisma ORM with PostgreSQL by default, but Prisma supports:
+- PostgreSQL
+- MySQL
+- SQLite
+- MongoDB
+- SQL Server
+- CockroachDB
 
-8. Now that everything is ready for updates, let's create a new update for `production` builds. With the `--auto` flag, EAS Update uses your current git branch name and commit message for this update. See [How EAS Update works](https://docs.expo.dev/eas-update/how-eas-update-works/#publishing-an-update) for more information.
+To change databases:
+1. Update `DATABASE_URL` in `.env`
+2. Modify `packages/db/prisma/schema.prisma` provider
+3. Update Prisma client generation
 
-   ```bash
-   cd apps/expo
-   eas update --auto
-   ```
+### 📝 Schema Modifications
 
-   > Your OTA (Over The Air) updates must always follow the app store's rules. You can't change your app's primary functionality without getting app store approval. But this is a fast way to update your app for minor changes and bug fixes.
+**How do I modify the database schema?**
 
-9. Done! Now that you have created your production build, submitted it to the stores, and installed EAS Update, you are ready for anything!
+1. Edit `packages/db/prisma/schema.prisma`
+2. Run `pnpm db:generate` to update types
+3. Development: `pnpm db:push`
+4. Production: `pnpm db:migrate`
 
-## References
+### 🔧 Authentication Issues
 
-The stack originates from [create-t3-app](https://github.com/t3-oss/create-t3-app).
+**Common authentication problems:**
 
-A [blog post](https://jumr.dev/blog/t3-turbo) where I wrote how to migrate a T3 app into this.
+- **OAuth not working**: Check GitHub OAuth credentials and redirect URLs
+- **Session issues**: Verify `AUTH_SECRET` is properly generated
+- **CORS errors**: Configure allowed origins in Better Auth settings
+
+### 🚀 Performance Optimization
+
+**Production performance tips:**
+
+- Enable database connection pooling
+- Use Next.js ISR for static content
+- Implement proper caching strategies
+- Monitor bundle sizes and optimize imports
+- Use Prisma query optimization
+
+## Troubleshooting
+
+### Common Issues
+
+#### Installation Problems
+```bash
+# Clear all dependencies and reinstall
+pnpm clean
+pnpm install
+```
+
+#### Database Connection Issues
+```bash
+# Verify database is running
+pnpm db:studio
+
+# Reset database (development only)
+pnpm db:reset
+```
+
+#### Authentication Setup
+```bash
+# Regenerate auth schema
+pnpm auth:generate
+
+# Check environment variables
+cat .env
+```
+
+### 🆘 Getting Help
+
+- **GitHub Issues**: Report bugs and request features
+- **Documentation**: Check individual package READMEs
+- **Community**: Join discussions in the repository
+
+---
+
+## 📚 References
+
+- [Turborepo Documentation](https://turbo.build/repo/docs)
+- [Next.js 15 Documentation](https://nextjs.org/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Better Auth Documentation](https://www.better-auth.com/docs)
+- [Biome Documentation](https://biomejs.dev/docs/introduction)
+- [Vitest Documentation](https://vitest.dev/guide/)

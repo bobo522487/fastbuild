@@ -1,0 +1,37 @@
+{
+  "name": "@acme/logger",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./src/client.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@acme/biome-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@biomejs/biome": "catalog:",
+    "@types/node": "^22.18.10",
+    "@types/uuid": "^9.0.8",
+    "typescript": "catalog:"
+  }
+}
