@@ -8,8 +8,8 @@ import {
   PostList,
 } from "./_components/posts";
 
-export default function HomePage() {
-  prefetch(trpc.post.all.queryOptions());
+export default async function HomePage() {
+  await prefetch(trpc.post.all.queryOptions());
 
   return (
     <HydrateClient>

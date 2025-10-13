@@ -7,13 +7,9 @@
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
     },
-    "./client": {
-      "types": "./dist/client.d.ts",
-      "default": "./src/client.ts"
-    },
-    "./schema": {
-      "types": "./dist/schema.d.ts",
-      "default": "./src/schema.ts"
+    "./prisma": {
+      "types": "./dist/prisma.d.ts",
+      "default": "./src/prisma.ts"
     }
   },
   "license": "MIT",
@@ -21,27 +17,34 @@
     "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "dev": "tsc",
-    "format": "prettier --check . --ignore-path ../../.gitignore",
-    "lint": "eslint",
-    "push": "pnpm with-env drizzle-kit push",
-    "studio": "pnpm with-env drizzle-kit studio",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write .",
+    "db:generate": "prisma generate",
+    "db:push": "pnpm with-env prisma db push",
+    "db:push:test": "pnpm with-env:test prisma db push --force-reset",
+    "db:studio": "pnpm with-env prisma studio",
+    "db:migrate": "pnpm with-env prisma migrate dev",
+    "db:reset": "pnpm with-env prisma migrate reset",
+    "db:reset:test": "pnpm with-env:test prisma migrate reset --force",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "with-env": "dotenv -e ../../.env --"
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "with-env": "dotenv -e ../../.env --",
+    "with-env:test": "dotenv -e ../../.env.test --"
   },
   "dependencies": {
-    "@vercel/postgres": "^0.10.0",
-    "drizzle-orm": "^0.44.6",
-    "drizzle-zod": "^0.8.3",
+    "@acme/logger": "workspace:*",
+    "@prisma/client": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@acme/eslint-config": "workspace:*",
-    "@acme/prettier-config": "workspace:*",
+    "@acme/biome-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
-    "drizzle-kit": "^0.31.5",
-    "eslint": "catalog:",
-    "prettier": "catalog:",
+    "@biomejs/biome": "catalog:",
+    "@types/node": "^22.18.10",
+    "prisma": "catalog:",
     "typescript": "catalog:"
-  },
-  "prettier": "@acme/prettier-config"
+  }
 }

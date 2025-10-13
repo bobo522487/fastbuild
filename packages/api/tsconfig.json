@@ -1,5 +1,12 @@
 {
   "extends": "@acme/tsconfig/compiled-package.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "composite": true
+  },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

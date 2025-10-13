@@ -6,12 +6,16 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
+import { randomUUID } from "node:crypto";
+
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@acme/auth";
-import { db } from "@acme/db/client";
+import { prisma } from "@acme/db";
+import { createErrorHandler } from "./utils/errors";
+import { strictRateLimit } from "./middleware/rate-limiter";
 
 /**
  * 1. CONTEXT
@@ -26,18 +30,41 @@ import { db } from "@acme/db/client";
  * @see https://trpc.io/docs/server/context
  */
 
+const extractIpAddress = (headers: Headers) => {
+  const forwardedFor = headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    const [first] = forwardedFor.split(",");
+    if (first) return first.trim();
+  }
+
+  const realIp = headers.get("x-real-ip");
+  if (realIp) return realIp;
+
+  return null;
+};
+
 export const createTRPCContext = async (opts: {
   headers: Headers;
   auth: Auth;
 }) => {
+  const headers = new Headers(opts.headers);
   const authApi = opts.auth.api;
   const session = await authApi.getSession({
-    headers: opts.headers,
+    headers,
   });
+
+  const requestId = headers.get("x-request-id") ?? randomUUID();
+
   return {
     authApi,
     session,
-    db,
+    db: prisma,
+    request: {
+      headers,
+      requestId,
+      ip: extractIpAddress(headers),
+      userAgent: headers.get("user-agent"),
+    },
   };
 };
 /**
@@ -48,16 +75,7 @@ export const createTRPCContext = async (opts: {
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter: ({ shape, error }) => ({
-    ...shape,
-    data: {
-      ...shape.data,
-      zodError:
-        error.cause instanceof ZodError
-          ? z.flattenError(error.cause as ZodError<Record<string, unknown>>)
-          : null,
-    },
-  }),
+  errorFormatter: createErrorHandler(),
 });
 
 /**
@@ -74,36 +92,13 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 export const createTRPCRouter = t.router;
 
 /**
- * Middleware for timing procedure execution and adding an articifial delay in development.
- *
- * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
- * network latency that would occur in production but not in local development.
- */
-const timingMiddleware = t.middleware(async ({ next, path }) => {
-  const start = Date.now();
-
-  if (t._config.isDev) {
-    // artificial delay in dev 100-500ms
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
-
-  const result = await next();
-
-  const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
-
-  return result;
-});
-
-/**
  * Public (unauthed) procedure
  *
  * This is the base piece you use to build new queries and mutations on your
  * tRPC API. It does not guarantee that a user querying is authorized, but you
  * can still access user session data if they are logged in
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = t.procedure;
 
 /**
  * Protected (authenticated) procedure
@@ -113,16 +108,20 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure
-  .use(timingMiddleware)
-  .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-    return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
-    });
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      user: ctx.session.user,
+    },
   });
+});
+
+/**
+ * Rate limited procedure for write operations
+ * Combines authentication with stricter rate limiting
+ */
+export const rateLimitedProcedure = protectedProcedure.use(strictRateLimit);

@@ -6,14 +6,22 @@ import { appRouter, createTRPCContext } from "@acme/api";
 import { auth } from "~/auth/server";
 
 /**
- * Configure basic CORS headers
- * You should extend this to match your needs
+ * Configure secure CORS headers
+ * Restricts origins to prevent unauthorized access
  */
 const setCorsHeaders = (res: Response) => {
-  res.headers.set("Access-Control-Allow-Origin", "*");
-  res.headers.set("Access-Control-Request-Method", "*");
+  const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? ['https://yourdomain.com']
+    : ['http://localhost:3000', 'http://localhost:3001'];
+
+  const origin = res.headers.get("origin");
+  if (allowedOrigins.includes(origin || '')) {
+    res.headers.set("Access-Control-Allow-Origin", origin || allowedOrigins[0]);
+  }
+
+  res.headers.set("Access-Control-Allow-Credentials", "true");
   res.headers.set("Access-Control-Allow-Methods", "OPTIONS, GET, POST");
-  res.headers.set("Access-Control-Allow-Headers", "*");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 };
 
 export const OPTIONS = () => {

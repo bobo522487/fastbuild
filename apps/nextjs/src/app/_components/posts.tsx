@@ -8,8 +8,7 @@ import {
 } from "@tanstack/react-query";
 
 import type { RouterOutputs } from "@acme/api";
-import { CreatePostSchema } from "@acme/db/schema";
-import { cn } from "@acme/ui";
+import { CreatePostSchema } from "@acme/db";
 import { Button } from "@acme/ui/button";
 import {
   Field,
@@ -22,6 +21,8 @@ import { Input } from "@acme/ui/input";
 import { toast } from "@acme/ui/toast";
 
 import { useTRPC } from "~/trpc/react";
+import { ErrorBoundary, CreatePostErrorFallback, PostListErrorFallback } from "./error-boundary";
+import { LoadingButton, PostListSkeleton, PostCardSkeleton } from "./loading-states";
 
 export function CreatePostForm() {
   const trpc = useTRPC();
@@ -31,14 +32,17 @@ export function CreatePostForm() {
     trpc.post.create.mutationOptions({
       onSuccess: async () => {
         form.reset();
+        toast.success("Post created successfully!");
         await queryClient.invalidateQueries(trpc.post.pathFilter());
       },
       onError: (err) => {
-        toast.error(
-          err.data?.code === "UNAUTHORIZED"
-            ? "You must be logged in to post"
-            : "Failed to create post",
-        );
+        const errorMessage = err.data?.code === "UNAUTHORIZED"
+          ? "You must be logged in to post"
+          : err.data?.code === "TOO_MANY_REQUESTS"
+          ? "Too many requests. Please try again later."
+          : err.message || "Failed to create post";
+
+        toast.error(errorMessage);
       },
     }),
   );
@@ -55,81 +59,108 @@ export function CreatePostForm() {
   });
 
   return (
-    <form
-      className="w-full max-w-2xl"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
-      <FieldGroup>
-        <form.Field
-          name="title"
-          children={(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldContent>
-                  <FieldLabel htmlFor={field.name}>Bug Title</FieldLabel>
-                </FieldContent>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="Title"
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        />
-        <form.Field
-          name="content"
-          children={(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldContent>
-                  <FieldLabel htmlFor={field.name}>Content</FieldLabel>
-                </FieldContent>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="Content"
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        />
-      </FieldGroup>
-      <Button type="submit">Create</Button>
-    </form>
+    <ErrorBoundary fallback={CreatePostErrorFallback}>
+      <form
+        className="relative w-full max-w-2xl"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <FieldGroup>
+          <form.Field
+            name="title"
+            children={(field) => {
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldContent>
+                    <FieldLabel htmlFor={field.name}>Post Title</FieldLabel>
+                  </FieldContent>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-invalid={isInvalid}
+                    placeholder="Enter post title"
+                    disabled={createPost.isPending}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          />
+          <form.Field
+            name="content"
+            children={(field) => {
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldContent>
+                    <FieldLabel htmlFor={field.name}>Content</FieldLabel>
+                  </FieldContent>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-invalid={isInvalid}
+                    placeholder="What's on your mind?"
+                    disabled={createPost.isPending}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          />
+        </FieldGroup>
+        <LoadingButton
+          type="submit"
+          loading={createPost.isPending}
+          disabled={!form.state.canSubmit}
+        >
+          {createPost.isPending ? "Creating..." : "Create Post"}
+        </LoadingButton>
+      </form>
+    </ErrorBoundary>
   );
 }
 
 export function PostList() {
+  return (
+    <ErrorBoundary fallback={PostListErrorFallback}>
+      <PostListContent />
+    </ErrorBoundary>
+  );
+}
+
+function PostListContent() {
   const trpc = useTRPC();
-  const { data: posts } = useSuspenseQuery(trpc.post.all.queryOptions());
+  const { data: posts, isLoading, error } = useSuspenseQuery(trpc.post.all.queryOptions());
+
+  if (error) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50 p-8">
+        <p className="text-red-800">Failed to load posts</p>
+      </div>
+    );
+  }
 
   if (posts.length === 0) {
     return (
       <div className="relative flex w-full flex-col gap-4">
-        <PostCardSkeleton pulse={false} />
-        <PostCardSkeleton pulse={false} />
-        <PostCardSkeleton pulse={false} />
+        <PostCardSkeleton />
+        <PostCardSkeleton />
+        <PostCardSkeleton />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10">
-          <p className="text-2xl font-bold text-white">No posts yet</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/50">
+          <p className="text-2xl font-bold text-muted-foreground">No posts yet</p>
+          <p className="text-muted-foreground text-sm">Be the first to share something!</p>
         </div>
       </div>
     );
@@ -152,58 +183,48 @@ export function PostCard(props: {
   const deletePost = useMutation(
     trpc.post.delete.mutationOptions({
       onSuccess: async () => {
+        toast.success("Post deleted successfully!");
         await queryClient.invalidateQueries(trpc.post.pathFilter());
       },
       onError: (err) => {
-        toast.error(
-          err.data?.code === "UNAUTHORIZED"
-            ? "You must be logged in to delete a post"
-            : "Failed to delete post",
-        );
+        const errorMessage = err.data?.code === "UNAUTHORIZED"
+          ? "You must be logged in to delete a post"
+          : err.data?.code === "FORBIDDEN"
+          ? "You can only delete your own posts"
+          : err.data?.code === "NOT_FOUND"
+          ? "Post not found"
+          : err.message || "Failed to delete post";
+
+        toast.error(errorMessage);
       },
     }),
   );
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this post?")) {
+      deletePost.mutate(props.post.id);
+    }
+  };
 
   return (
     <div className="bg-muted flex flex-row rounded-lg p-4">
       <div className="grow">
         <h2 className="text-primary text-2xl font-bold">{props.post.title}</h2>
         <p className="mt-2 text-sm">{props.post.content}</p>
+        <p className="text-muted-foreground mt-2 text-xs">
+          by {props.post.user.name} • {new Date(props.post.createdAt).toLocaleDateString()}
+        </p>
       </div>
       <div>
-        <Button
+        <LoadingButton
           variant="ghost"
           className="text-primary cursor-pointer text-sm font-bold uppercase hover:bg-transparent hover:text-white"
-          onClick={() => deletePost.mutate(props.post.id)}
+          onClick={handleDelete}
+          loading={deletePost.isPending}
+          disabled={deletePost.isPending}
         >
-          Delete
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function PostCardSkeleton(props: { pulse?: boolean }) {
-  const { pulse = true } = props;
-  return (
-    <div className="bg-muted flex flex-row rounded-lg p-4">
-      <div className="grow">
-        <h2
-          className={cn(
-            "bg-primary w-1/4 rounded-sm text-2xl font-bold",
-            pulse && "animate-pulse",
-          )}
-        >
-          &nbsp;
-        </h2>
-        <p
-          className={cn(
-            "mt-2 w-1/3 rounded-sm bg-current text-sm",
-            pulse && "animate-pulse",
-          )}
-        >
-          &nbsp;
-        </p>
+          {deletePost.isPending ? "Deleting..." : "Delete"}
+        </LoadingButton>
       </div>
     </div>
   );

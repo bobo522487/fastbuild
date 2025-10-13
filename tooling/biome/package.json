@@ -1,0 +1,20 @@
+{
+  "name": "@acme/biome-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./biome.json"
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@biomejs/biome": "catalog:"
+  },
+  "devDependencies": {
+    "@acme/tsconfig": "workspace:*",
+    "@types/node": "^22.18.10",
+    "typescript": "catalog:"
+  }
+}

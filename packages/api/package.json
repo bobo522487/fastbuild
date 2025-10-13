@@ -6,6 +6,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
+    },
+    "./testing": {
+      "types": "./src/testing/factories.ts",
+      "default": "./src/testing/factories.ts"
     }
   },
   "license": "MIT",
@@ -13,25 +17,31 @@
     "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "dev": "tsc",
-    "format": "prettier --check . --ignore-path ../../.gitignore",
-    "lint": "eslint --flag unstable_native_nodejs_ts_config",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "test": "vitest run",
+    "test:integration": "vitest run src/__tests__/integration",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@acme/auth": "workspace:*",
     "@acme/db": "workspace:*",
+    "@acme/logger": "workspace:*",
     "@acme/validators": "workspace:*",
     "@trpc/server": "catalog:",
     "superjson": "2.2.2",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@acme/eslint-config": "workspace:*",
-    "@acme/prettier-config": "workspace:*",
+    "@acme/biome-config": "workspace:*",
     "@acme/tsconfig": "workspace:*",
-    "eslint": "catalog:",
-    "prettier": "catalog:",
-    "typescript": "catalog:"
-  },
-  "prettier": "@acme/prettier-config"
+    "@biomejs/biome": "catalog:",
+    "@faker-js/faker": "^8.0.0",
+    "typescript": "catalog:",
+    "vitest": "^1.0.0"
+  }
 }
