@@ -72,9 +72,9 @@ This monorepo is built with a modern, production-ready stack:
 
 > [!NOTE]
 >
-> In this template, we use `@acme` as a placeholder for package names. You can replace all instances with your organization name using:
+> In this template, we use `@fastbuild` as a placeholder for package names. You can replace all instances with your organization name using:
 > ```bash
-> find . -type f -name "*.json" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.md" | xargs sed -i 's/@acme/@your-org/g'
+> find . -type f -name "*.json" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.md" | xargs sed -i 's/@fastbuild/@your-org/g'
 > ```
 
 ## Installation & Setup
@@ -223,7 +223,7 @@ The database schema is defined in [`packages/db/prisma/schema.prisma`](packages/
 ### 🔧 Database Operations
 
 ```typescript
-import { prisma } from "@acme/db";
+import { prisma } from "@fastbuild/db";
 
 // Create a user
 const user = await prisma.user.create({
@@ -284,7 +284,7 @@ This project uses **Pino** for structured logging, providing machine-readable JS
   "timestamp": "2024-01-15T10:30:00.000Z",
   "pid": 12345,
   "hostname": "server-a",
-  "service": "@acme/nextjs",
+  "service": "@fastbuild/nextjs",
   "environment": "production",
   "correlationId": "abc-123-def-456",
   "msg": "User login successful",
@@ -300,7 +300,7 @@ This project uses **Pino** for structured logging, providing machine-readable JS
 
 #### Server-side Logging
 ```typescript
-import { createLogger, generateCorrelationId } from '@acme/logger';
+import { createLogger, generateCorrelationId } from '@fastbuild/logger';
 
 // Create logger with context
 const logger = createLogger({
@@ -324,7 +324,7 @@ logger.info('Operation completed', {
 
 #### tRPC Integration
 ```typescript
-import { loggerMiddleware } from '@acme/api/middleware/logger';
+import { loggerMiddleware } from '@fastbuild/api/middleware/logger';
 
 const postRouter = t.router({
   create: t.procedure
@@ -339,7 +339,7 @@ const postRouter = t.router({
 
 #### Database Query Logging
 ```typescript
-import { prismaLoggingMiddleware } from '@acme/db/logger';
+import { prismaLoggingMiddleware } from '@fastbuild/db/logger';
 
 // All Prisma queries are automatically logged
 const posts = await prisma.post.findMany({
@@ -351,14 +351,14 @@ const posts = await prisma.post.findMany({
 
 #### Client-side Logging
 ```typescript
-import { logger } from '@acme/logger/client';
+import { logger } from '@fastbuild/logger/client';
 
 // In React components
 logger.info('Button clicked', { buttonId: 'submit-btn' });
 logger.error('Form validation failed', { errors: validationErrors });
 
 // React error boundaries
-import { logReactError } from '@acme/logger/client';
+import { logReactError } from '@fastbuild/logger/client';
 ```
 
 ### 🎯 Key Features
@@ -447,7 +447,7 @@ The structured JSON format works seamlessly with:
 
 **Does this pattern leak backend code to client applications?**
 
-No. The `@acme/api` package should only be a production dependency in the Next.js application. Other applications (Electron, mobile apps, etc.) should only add it as a dev dependency for type safety. This ensures backend code remains secure while providing full TypeScript support.
+No. The `@fastbuild/api` package should only be a production dependency in the Next.js application. Other applications (Electron, mobile apps, etc.) should only add it as a dev dependency for type safety. This ensures backend code remains secure while providing full TypeScript support.
 
 ### 🗄️ Database Configuration
 

@@ -1,5 +1,5 @@
 {
-  "name": "@acme/db",
+  "name": "@fastbuild/db",
   "private": true,
   "type": "module",
   "exports": {
@@ -35,14 +35,14 @@
     "with-env:test": "dotenv -e ../../.env.test --"
   },
   "dependencies": {
-    "@acme/logger": "workspace:*",
+    "@fastbuild/logger": "workspace:*",
     "@prisma/client": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@acme/biome-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
     "@biomejs/biome": "catalog:",
+    "@fastbuild/biome-config": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "@types/node": "^22.18.10",
     "prisma": "catalog:",
     "typescript": "catalog:"

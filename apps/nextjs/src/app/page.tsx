@@ -4,9 +4,9 @@ import { HydrateClient, prefetch, trpc } from "~/trpc/server";
 import { AuthShowcase } from "./_components/auth-showcase";
 import {
   CreatePostForm,
-  PostCardSkeleton,
   PostList,
 } from "./_components/posts";
+import { PostCardSkeleton } from "./_components/loading-states";
 
 export default async function HomePage() {
   await prefetch(trpc.post.all.queryOptions());

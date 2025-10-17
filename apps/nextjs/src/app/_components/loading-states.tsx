@@ -7,9 +7,9 @@ export {
   InlineLoading,
   LoadingButton,
   LoadingSpinner,
-} from "@acme/ui/loading";
+} from "@fastbuild/ui/loading";
 
-import { CardSkeleton } from "@acme/ui/skeleton";
+import { CardSkeleton } from "@fastbuild/ui/skeleton";
 
 export function PostListSkeleton({ count = 3 }: { count?: number }) {
   return (

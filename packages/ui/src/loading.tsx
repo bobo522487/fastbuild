@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { cn } from "@acme/ui";
+import { cn } from "@fastbuild/ui";
 
 type SpinnerSize = "sm" | "md" | "lg";
 

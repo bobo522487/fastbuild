@@ -1,5 +1,5 @@
 {
-  "extends": "@acme/tsconfig/compiled-package.json",
+  "extends": "@fastbuild/tsconfig/compiled-package.json",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
@@ -8,5 +8,5 @@
     "composite": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "src/testing"]
 }

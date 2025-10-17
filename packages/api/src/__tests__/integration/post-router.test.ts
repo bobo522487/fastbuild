@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 
-import type { Auth } from "@acme/auth";
-import { appRouter, createTRPCContext } from "@acme/api";
-import { prisma } from "@acme/db";
+import type { Auth } from "@fastbuild/auth";
+import { appRouter, createTRPCContext } from "@fastbuild/api";
+import { prisma } from "@fastbuild/db";
 
 import { ForbiddenError, NotFoundError } from "../../utils/errors";
 

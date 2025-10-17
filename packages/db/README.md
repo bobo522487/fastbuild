@@ -1,4 +1,4 @@
-# @acme/db
+# @fastbuild/db
 
 Database package for the T3 Turbo monorepo, powered by Prisma ORM.
 
@@ -35,7 +35,7 @@ DATABASE_URL="your-database-connection-string"
 ### Using Prisma Directly (Recommended)
 
 ```typescript
-import { prisma, type User, type Post } from "@acme/db";
+import { prisma, type User, type Post } from "@fastbuild/db";
 
 // Create a user
 const user = await prisma.user.create({
@@ -66,7 +66,7 @@ const updatedUser = await prisma.user.update({
 ### Using Convenience Types
 
 ```typescript
-import { type User, type Post } from "@acme/db";
+import { type User, type Post } from "@fastbuild/db";
 
 // Use predefined types in your application
 function createUserData(data: Omit<User, "id" | "createdAt" | "updatedAt">) {
@@ -156,7 +156,7 @@ model Post {
 ## Error Handling
 
 ```typescript
-import { prisma } from "@acme/db";
+import { prisma } from "@fastbuild/db";
 
 try {
   const user = await prisma.user.findUnique({

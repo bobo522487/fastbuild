@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@acme/ui/button";
+import { Button } from "@fastbuild/ui/button";
 
 interface ErrorBoundaryState {
   hasError: boolean;

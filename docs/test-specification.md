@@ -75,8 +75,8 @@ pnpm db:push:test                       # 使用测试数据库重置 schema
 pnpm turbo run test
 
 # 仅运行 UI 包或 API 包的单测
-pnpm turbo run test --filter @acme/nextjs
-pnpm turbo run test --filter @acme/api
+pnpm turbo run test --filter @fastbuild/nextjs
+pnpm turbo run test --filter @fastbuild/api
 
 # 只跑 API 集成测试（自动加载 .env.test）
 pnpm test:integration
@@ -139,8 +139,8 @@ describe("CreatePostForm", () => {
 ```typescript
 // packages/api/src/router/post.test.ts
 import { describe, it, expect, vi } from "vitest";
-import { appRouter, createTRPCContext } from "@acme/api";
-import { prisma } from "@acme/db";
+import { appRouter, createTRPCContext } from "@fastbuild/api";
+import { prisma } from "@fastbuild/db";
 
 describe("postRouter", () => {
   it("已登录用户可以创建帖子", async () => {
@@ -211,7 +211,7 @@ describe("RSC prefetch helper", () => {
 ```typescript
 // packages/db/tests/prisma.test.ts
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { prisma } from "@acme/db";
+import { prisma } from "@fastbuild/db";
 
 describe("Prisma schema", () => {
   beforeAll(async () => {
@@ -246,7 +246,7 @@ describe("Prisma schema", () => {
 
 ```typescript
 // tests/utils/factory.ts
-import { prisma } from "@acme/db";
+import { prisma } from "@fastbuild/db";
 import { faker } from "@faker-js/faker";
 
 export async function createUser(overrides: Partial<{ email: string; name: string }> = {}) {
@@ -279,7 +279,7 @@ export async function resetDatabase() {
 #### 14.5.2 Better Auth Mock
 
 ```typescript
-// tests/__mocks__/@acme/auth.ts
+// tests/__mocks__/@fastbuild/auth.ts
 import { vi } from "vitest";
 
 export const auth = {
@@ -293,7 +293,7 @@ export const auth = {
 export const getSession = () => auth.api.getSession();
 ```
 
-- 使用 `vi.mock("@acme/auth", ...)` 覆盖真实实现。
+- 使用 `vi.mock("@fastbuild/auth", ...)` 覆盖真实实现。
 - 对于 server actions，可结合 `next/headers` 的 mock (`vi.mock("next/headers", ...)`) 返回自定义 header。
 
 ### 14.6 CI/CD 流水线建议

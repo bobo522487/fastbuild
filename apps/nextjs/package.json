@@ -1,5 +1,5 @@
 {
-  "name": "@acme/nextjs",
+  "name": "@fastbuild/nextjs",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,12 +17,12 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@acme/api": "workspace:*",
-    "@acme/auth": "workspace:*",
-    "@acme/db": "workspace:*",
-    "@acme/logger": "workspace:*",
-    "@acme/ui": "workspace:*",
-    "@acme/validators": "workspace:*",
+    "@fastbuild/api": "workspace:*",
+    "@fastbuild/auth": "workspace:*",
+    "@fastbuild/db": "workspace:*",
+    "@fastbuild/logger": "workspace:*",
+    "@fastbuild/ui": "workspace:*",
+    "@fastbuild/validators": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "catalog:",
@@ -37,10 +37,10 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@acme/biome-config": "workspace:*",
-    "@acme/tailwind-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
     "@biomejs/biome": "catalog:",
+    "@fastbuild/biome-config": "workspace:*",
+    "@fastbuild/tailwind-config": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "@types/node": "^22.18.10",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",

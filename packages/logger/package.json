@@ -1,5 +1,5 @@
 {
-  "name": "@acme/logger",
+  "name": "@fastbuild/logger",
   "private": true,
   "type": "module",
   "exports": {
@@ -22,14 +22,16 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "pino": "^9.4.0",
-    "pino-pretty": "^11.2.1",
     "uuid": "^9.0.1"
   },
+  "optionalDependencies": {
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.1"
+  },
   "devDependencies": {
-    "@acme/biome-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
     "@biomejs/biome": "catalog:",
+    "@fastbuild/biome-config": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "@types/node": "^22.18.10",
     "@types/uuid": "^9.0.8",
     "typescript": "catalog:"

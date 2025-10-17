@@ -21,7 +21,7 @@ body:
       placeholder: |
         Node.js: v22.20.0
         pnpm: 10.15.1
-        @acme/logger: 1.0.0
+        @fastbuild/logger: 1.0.0
         ... other packages ...
     validations:
       required: true

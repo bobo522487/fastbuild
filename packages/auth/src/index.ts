@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { oAuthProxy } from "better-auth/plugins";
 
-import { prisma } from "@acme/db";
+import { prisma } from "@fastbuild/db";
 
 export function initAuth(options: {
   baseUrl: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@acme/auth",
+  "name": "@fastbuild/auth",
   "private": true,
   "type": "module",
   "exports": {
@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@acme/db": "workspace:*",
+    "@fastbuild/db": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.8",
     "better-auth": "1.3.27",
     "next": "^15.5.4",
@@ -26,10 +26,10 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@acme/biome-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
     "@better-auth/cli": "1.3.27",
     "@biomejs/biome": "catalog:",
+    "@fastbuild/biome-config": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "@types/react": "catalog:react19",
     "typescript": "catalog:"
   }

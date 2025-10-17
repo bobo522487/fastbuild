@@ -139,12 +139,6 @@ codeCode
   - **BFF网关**: Next.js的API路由（在App Router中称为Route Handlers）是理想的API网关。它们接收前端请求，然后可以编排对一个或多个下游服务的调用（例如，同时调用metadata-service和Java的workflow-service），最后将整合后的数据返回给前端。
   - **文档驱动**: 使用Swagger/OpenAPI来定义您的API，可以自动生成交互式文档，这对于前端团队、后端团队（包括Java团队）乃至第三方开发者来说都至关重要。
 
-#### **API Testing**: Jest + Supertest for API contract testing
-
-- **角色**: 保证API稳定性和可靠性的关键环节。
-- **优势**:
-  - **契约测试**: 您可以编写测试用例，模拟前端请求，并断言Next.js API路由的响应是否符合OpenAPI规范。这确保了即使内部服务实现发生变化，只要API契约不变，就不会破坏前端应用。
-
 #### **Styling**: Tailwind CSS 4.1.14 with custom components
 
 - **角色**: apps 中所有应用UI的造型层。

@@ -1,10 +1,10 @@
 import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod/v4";
 
-import { prisma, CreatePostSchema } from "@acme/db";
+import { prisma, CreatePostSchema } from "@fastbuild/db";
 import { postCache, createCacheKey, createCacheMiddleware } from "../utils/cache";
 import { NotFoundError, ForbiddenError, BusinessRuleError, asyncHandler } from "../utils/errors";
-import { apiLogger } from "../utils/logger";
+import { getApiLogger } from "../utils/logger";
 import { logging } from "../middleware/logger";
 
 import { protectedProcedure, publicProcedure } from "../trpc";
@@ -65,17 +65,18 @@ export const postRouter = {
   create: loggedProtectedProcedure
     .input(CreatePostSchema)
     .mutation(async ({ ctx, input }) => {
+      const context = ctx as any;
       const post = await prisma.post.create({
         data: {
           ...input,
-          userId: ctx.user.id,
+          userId: context.user.id,
         },
         include: { user: true },
       });
 
       // Invalidate relevant caches
       postCache.delete(createCacheKey('post', 'all'));
-      postCache.delete(createCacheKey('post', 'byUser', ctx.user.id));
+      postCache.delete(createCacheKey('post', 'byUser', context.user.id));
 
       return post;
     }),
@@ -83,8 +84,9 @@ export const postRouter = {
   delete: loggedProtectedProcedure
     .input(z.object({ id: z.string().cuid() }))
     .mutation(asyncHandler(async ({ ctx, input }) => {
-      apiLogger.info({
-        userId: ctx.user.id,
+      const context = ctx as any;
+      getApiLogger().info({
+        userId: context.user.id,
         postId: input.id,
       }, 'User attempting to delete post');
 
@@ -97,9 +99,9 @@ export const postRouter = {
         throw new NotFoundError('Post', input.id);
       }
 
-      if (post.userId !== ctx.user.id) {
-        apiLogger.warn({
-          userId: ctx.user.id,
+      if (post.userId !== context.user.id) {
+        getApiLogger().warn({
+          userId: context.user.id,
           postId: input.id,
           postOwnerId: post.userId,
         }, 'Unauthorized delete attempt');
@@ -113,11 +115,11 @@ export const postRouter = {
       // Invalidate relevant caches
       postCache.delete(createCacheKey('post', 'byId', input.id));
       postCache.delete(createCacheKey('post', 'all'));
-      postCache.delete(createCacheKey('post', 'byUser', ctx.user.id));
+      postCache.delete(createCacheKey('post', 'byUser', context.user.id));
       postCache.delete(createCacheKey('post', 'byUser', post.userId));
 
-      apiLogger.info({
-        userId: ctx.user.id,
+      getApiLogger().info({
+        userId: context.user.id,
         postId: input.id,
       }, 'Post deleted successfully');
 

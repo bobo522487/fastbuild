@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { appRouter, createTRPCContext } from "@acme/api";
-import { prisma } from "@acme/db";
+import { appRouter, createTRPCContext } from "@fastbuild/api";
+import { prisma } from "@fastbuild/db";
 
 describe("postRouter", () => {
   beforeEach(() => {

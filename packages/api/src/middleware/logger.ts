@@ -1,4 +1,4 @@
-import { createLogger, generateCorrelationId } from '@acme/logger';
+// Lazy import logger to avoid circular dependencies during initialization
 
 // Simplified logging middleware that works with any tRPC context
 export const loggerMiddleware = () =>
@@ -8,45 +8,51 @@ export const loggerMiddleware = () =>
     type: string;
     next: () => Promise<any>;
   }) => {
-    const start = Date.now();
-    const correlationId = ctx.request?.headers?.get('x-correlation-id') ||
-                           ctx.request?.headers?.get('x-request-id') ||
-                           generateCorrelationId();
-
-    const logger = createLogger({
-      correlationId,
-      type: 'tRPC',
-      path,
-      procedure: type,
-      userId: ctx.session?.user?.id,
-    });
-
-    logger.info({ correlationId, path, type }, 'tRPC request started');
-
     try {
-      const result = await next();
-      const duration = Date.now() - start;
+      const { createLogger, generateCorrelationId } = require('@fastbuild/logger');
+      const start = Date.now();
+      const correlationId = ctx.request?.headers?.get('x-correlation-id') ||
+                             ctx.request?.headers?.get('x-request-id') ||
+                             generateCorrelationId();
 
-      logger.info({
-        duration,
-        success: true,
-        hasData: !!result?.data
-      }, 'tRPC request completed');
+      const logger = createLogger({
+        correlationId,
+        type: 'tRPC',
+        path,
+        procedure: type,
+        userId: ctx.session?.user?.id,
+      });
 
-      return result;
-    } catch (error) {
-      const duration = Date.now() - start;
+      logger.info({ correlationId, path, type }, 'tRPC request started');
 
-      logger.error({
-        duration,
-        error: {
-          name: error instanceof Error ? error.name : 'Unknown',
-          message: error instanceof Error ? error.message : String(error),
-          ...(process.env.NODE_ENV === 'development' && { stack: error instanceof Error ? error.stack : undefined }),
-        }
-      }, 'tRPC request failed');
+      try {
+        const result = await next();
+        const duration = Date.now() - start;
 
-      throw error;
+        logger.info({
+          duration,
+          success: true,
+          hasData: !!result?.data
+        }, 'tRPC request completed');
+
+        return result;
+      } catch (error) {
+        const duration = Date.now() - start;
+
+        logger.error({
+          duration,
+          error: {
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error),
+            ...(process.env.NODE_ENV === 'development' && { stack: error instanceof Error ? error.stack : undefined }),
+          }
+        }, 'tRPC request failed');
+
+        throw error;
+      }
+    } catch (loggerError) {
+      console.warn('Failed to initialize logger middleware:', loggerError);
+      return next();
     }
   };
 
@@ -63,14 +69,19 @@ export const performanceMiddleware = () =>
     const duration = Date.now() - start;
 
     if (duration > 1000) {
-      const logger = createLogger({
-        type: 'performance',
-        path,
-        procedure: type,
-        userId: ctx.session?.user?.id,
-      });
+      try {
+        const { createLogger } = require('@fastbuild/logger');
+        const logger = createLogger({
+          type: 'performance',
+          path,
+          procedure: type,
+          userId: ctx.session?.user?.id,
+        });
 
-      logger.warn({ duration, threshold: 1000 }, 'Slow tRPC operation');
+        logger.warn({ duration, threshold: 1000 }, 'Slow tRPC operation');
+      } catch (error) {
+        console.warn('Failed to log slow operation:', error);
+      }
     }
 
     return result;
@@ -84,50 +95,56 @@ export const logging = () =>
     type: string;
     next: () => Promise<any>;
   }) => {
-    const start = Date.now();
-    const correlationId = ctx.request?.headers?.get('x-correlation-id') ||
-                           ctx.request?.headers?.get('x-request-id') ||
-                           generateCorrelationId();
-
-    const logger = createLogger({
-      correlationId,
-      type: 'tRPC',
-      path,
-      procedure: type,
-      userId: ctx.session?.user?.id,
-    });
-
-    logger.info({ correlationId, path, type }, 'tRPC request started');
-
     try {
-      const result = await next();
-      const duration = Date.now() - start;
+      const { createLogger, generateCorrelationId } = require('@fastbuild/logger');
+      const start = Date.now();
+      const correlationId = ctx.request?.headers?.get('x-correlation-id') ||
+                             ctx.request?.headers?.get('x-request-id') ||
+                             generateCorrelationId();
 
-      // Log slow operations
-      if (duration > 1000) {
-        logger.warn({ duration, threshold: 1000 }, 'Slow tRPC operation');
-      }
+      const logger = createLogger({
+        correlationId,
+        type: 'tRPC',
+        path,
+        procedure: type,
+        userId: ctx.session?.user?.id,
+      });
 
-      logger.info({
-        duration,
-        success: true,
-        hasData: !!result?.data
-      }, 'tRPC request completed');
+      logger.info({ correlationId, path, type }, 'tRPC request started');
 
-      return result;
-    } catch (error) {
-      const duration = Date.now() - start;
+      try {
+        const result = await next();
+        const duration = Date.now() - start;
 
-      logger.error({
-        duration,
-        error: {
-          name: error instanceof Error ? error.name : 'Unknown',
-          message: error instanceof Error ? error.message : String(error),
-          ...(process.env.NODE_ENV === 'development' && { stack: error instanceof Error ? error.stack : undefined }),
+        // Log slow operations
+        if (duration > 1000) {
+          logger.warn({ duration, threshold: 1000 }, 'Slow tRPC operation');
         }
-      }, 'tRPC request failed');
 
-      throw error;
+        logger.info({
+          duration,
+          success: true,
+          hasData: !!result?.data
+        }, 'tRPC request completed');
+
+        return result;
+      } catch (error) {
+        const duration = Date.now() - start;
+
+        logger.error({
+          duration,
+          error: {
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error),
+            ...(process.env.NODE_ENV === 'development' && { stack: error instanceof Error ? error.stack : undefined }),
+          }
+        }, 'tRPC request failed');
+
+        throw error;
+      }
+    } catch (loggerError) {
+      console.warn('Failed to initialize logging middleware:', loggerError);
+      return next();
     }
   };
 

@@ -12,8 +12,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
-import type { Auth } from "@acme/auth";
-import { prisma } from "@acme/db";
+import type { Auth } from "@fastbuild/auth";
+import { prisma } from "@fastbuild/db";
 import { createErrorHandler } from "./utils/errors";
 import { strictRateLimit } from "./middleware/rate-limiter";
 
@@ -43,10 +43,10 @@ const extractIpAddress = (headers: Headers) => {
   return null;
 };
 
-export const createTRPCContext = async (opts: {
+export const createTRPCContext: (opts: {
   headers: Headers;
   auth: Auth;
-}) => {
+}) => Promise<any> = async (opts) => {
   const headers = new Headers(opts.headers);
   const authApi = opts.auth.api;
   const session = await authApi.getSession({
@@ -73,7 +73,7 @@ export const createTRPCContext = async (opts: {
  * This is where the trpc api is initialized, connecting the context and
  * transformer
  */
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<any>().create({
   transformer: superjson,
   errorFormatter: createErrorHandler(),
 });
@@ -89,7 +89,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
  * This is how you create new routers and subrouters in your tRPC API
  * @see https://trpc.io/docs/router
  */
-export const createTRPCRouter = t.router;
+export const createTRPCRouter: typeof t.router = t.router;
 
 /**
  * Public (unauthed) procedure
@@ -98,7 +98,7 @@ export const createTRPCRouter = t.router;
  * tRPC API. It does not guarantee that a user querying is authorized, but you
  * can still access user session data if they are logged in
  */
-export const publicProcedure = t.procedure;
+export const publicProcedure: typeof t.procedure = t.procedure;
 
 /**
  * Protected (authenticated) procedure
@@ -108,14 +108,15 @@ export const publicProcedure = t.procedure;
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session?.user) {
+export const protectedProcedure: typeof t.procedure = t.procedure.use(({ ctx, next }) => {
+  const context = ctx as any;
+  if (!context.session?.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
       ...ctx,
-      user: ctx.session.user,
+      user: context.session.user,
     },
   });
 });
@@ -124,4 +125,4 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
  * Rate limited procedure for write operations
  * Combines authentication with stricter rate limiting
  */
-export const rateLimitedProcedure = protectedProcedure.use(strictRateLimit);
+export const rateLimitedProcedure: typeof t.procedure = protectedProcedure.use(strictRateLimit as any);

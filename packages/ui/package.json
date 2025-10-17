@@ -1,5 +1,5 @@
 {
-  "name": "@acme/ui",
+  "name": "@fastbuild/ui",
   "private": true,
   "type": "module",
   "exports": {
@@ -32,9 +32,9 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
-    "@acme/biome-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
     "@biomejs/biome": "catalog:",
+    "@fastbuild/biome-config": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "@types/react": "catalog:react19",
     "react": "catalog:react19",
     "typescript": "catalog:",

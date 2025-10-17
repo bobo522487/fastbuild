@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { ZodError } from 'zod';
-import { logger, logTRPCError } from './logger';
+import { getLogger, logTRPCError } from './logger';
 
 export enum ErrorCode {
   // Validation errors
@@ -110,7 +110,7 @@ export function convertToTRPCError(error: unknown, context?: Record<string, any>
   }
 
   if (error instanceof ZodError) {
-    logger.warn({
+    getLogger().warn({
       issues: error.issues,
       context
     }, 'Validation error');
@@ -123,7 +123,7 @@ export function convertToTRPCError(error: unknown, context?: Record<string, any>
   }
 
   if (error instanceof Error) {
-    logger.error({
+    getLogger().error({
       message: error.message,
       stack: error.stack,
       context
@@ -136,7 +136,7 @@ export function convertToTRPCError(error: unknown, context?: Record<string, any>
     });
   }
 
-  logger.error({
+  getLogger().error({
     error: String(error),
     context
   }, 'Unknown error type');

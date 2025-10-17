@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Post, User } from "@prisma/client";
 import { expect } from "vitest";
 
-import { prisma } from "@acme/db";
+import { prisma } from "@fastbuild/db";
 
 export interface TestUser {
   id: string;
@@ -89,7 +89,7 @@ export function createAuthContext(user?: TestUser | null, headers: Record<string
 }
 
 export async function createMockCaller(user?: TestUser | null) {
-  const { appRouter, createTRPCContext } = await import("@acme/api");
+  const { appRouter, createTRPCContext } = await import("@fastbuild/api");
 
   return appRouter.createCaller({
     ...(await createTRPCContext(createAuthContext(user))),

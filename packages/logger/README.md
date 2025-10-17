@@ -1,4 +1,4 @@
-# @acme/logger - Structured Logging System
+# @fastbuild/logger - Structured Logging System
 
 A comprehensive, production-ready structured logging system built with Pino for T3 Turbo projects. Provides both server-side and client-side logging with monitoring integration, alert management, and log retention policies.
 
@@ -23,7 +23,7 @@ The package is already included in your T3 Turbo workspace. No additional instal
 ### Basic Usage
 
 ```typescript
-import { createLogger } from '@acme/logger';
+import { createLogger } from '@fastbuild/logger';
 
 // Create a logger with context
 const logger = createLogger({
@@ -46,7 +46,7 @@ logger.error({
 #### Performance Monitoring
 
 ```typescript
-import { performanceLogger } from '@acme/logger';
+import { performanceLogger } from '@fastbuild/logger';
 
 // Automatic performance logging
 performanceLogger.time('database-query', async () => {
@@ -59,7 +59,7 @@ performanceLogger.time('database-query', async () => {
 #### HTTP Request Logging
 
 ```typescript
-import { httpRequestLogger, httpResponseLogger } from '@acme/logger';
+import { httpRequestLogger, httpResponseLogger } from '@fastbuild/logger';
 
 // Log HTTP requests
 httpRequestLogger({
@@ -80,7 +80,7 @@ httpResponseLogger({
 #### Error Handling
 
 ```typescript
-import { logError } from '@acme/logger';
+import { logError } from '@fastbuild/logger';
 
 try {
   // Your operation that might fail
@@ -99,7 +99,7 @@ try {
 #### Browser Logging
 
 ```typescript
-import { createBrowserLogger } from '@acme/logger/client';
+import { createBrowserLogger } from '@fastbuild/logger/client';
 
 // Create browser logger with batching
 const logger = createBrowserLogger({
@@ -126,7 +126,7 @@ logger.error({
 #### React Integration
 
 ```typescript
-import { useLogger, LoggerErrorBoundary } from '@acme/logger/client';
+import { useLogger, LoggerErrorBoundary } from '@fastbuild/logger/client';
 
 // Use logger in React components
 function MyComponent() {
@@ -151,7 +151,7 @@ function MyComponent() {
 The logging system automatically integrates with Prisma when you use the configured database client:
 
 ```typescript
-import { prisma } from '@acme/db';
+import { prisma } from '@fastbuild/db';
 
 // All Prisma operations are automatically logged with:
 // - Query execution time
@@ -172,7 +172,7 @@ import {
   logDatabaseHealth,
   createTransactionLogger,
   logMigration
-} from '@acme/logger';
+} from '@fastbuild/logger';
 
 // Check database health
 await logDatabaseHealth(prisma);
@@ -202,7 +202,7 @@ logMigration({
 Add logging middleware to your tRPC procedures:
 
 ```typescript
-import { logging } from '@acme/api/middleware/logger';
+import { logging } from '@fastbuild/api/middleware/logger';
 import { publicProcedure, protectedProcedure } from '../trpc';
 
 // Apply logging middleware
@@ -220,7 +220,7 @@ const loggedProtectedProcedure = protectedProcedure.use(logging());
 #### Manual tRPC Logging
 
 ```typescript
-import { apiLogger, logTRPCError } from '@acme/api/utils/logger';
+import { apiLogger, logTRPCError } from '@fastbuild/api/utils/logger';
 
 // Manual logging in procedures
 export const updateUser = protectedProcedure
@@ -258,7 +258,7 @@ export const updateUser = protectedProcedure
 import {
   createDatadogLogger,
   DatadogLoggerConfig
-} from '@acme/logger/monitoring';
+} from '@fastbuild/logger/monitoring';
 
 const config: DatadogLoggerConfig = {
   apiKey: process.env.DATADOG_API_KEY,
@@ -279,7 +279,7 @@ datadogLogger.info({ metric: 'user.login' }, 'User login event');
 import {
   createNewRelicLogger,
   NewRelicLoggerConfig
-} from '@acme/logger/monitoring';
+} from '@fastbuild/logger/monitoring';
 
 const config: NewRelicLoggerConfig = {
   licenseKey: process.env.NEW_RELIC_LICENSE_KEY,
@@ -299,7 +299,7 @@ import {
   createAlertManager,
   AlertRule,
   AlertSeverity
-} from '@acme/logger/alerts';
+} from '@fastbuild/logger/alerts';
 
 const alertManager = createAlertManager();
 
@@ -332,7 +332,7 @@ alertManager.addRule(errorRateRule);
 ### Triggering Manual Alerts
 
 ```typescript
-import { triggerAlert } from '@acme/logger/alerts';
+import { triggerAlert } from '@fastbuild/logger/alerts';
 
 // Trigger alert for specific events
 triggerAlert({
@@ -355,7 +355,7 @@ triggerAlert({
 import {
   createLogRetentionManager,
   RetentionPolicy
-} from '@acme/logger/retention';
+} from '@fastbuild/logger/retention';
 
 const policy: RetentionPolicy = {
   environment: 'production',
@@ -380,7 +380,7 @@ await retentionManager.cleanup(); // Clean old logs
 ### Automatic Cleanup
 
 ```typescript
-import { startLogCleanupScheduler } from '@acme/logger/retention';
+import { startLogCleanupScheduler } from '@fastbuild/logger/retention';
 
 // Start automatic cleanup (runs daily at 2 AM)
 startLogCleanupScheduler('0 2 * * *');
@@ -416,7 +416,7 @@ RETENTION_ARCHIVE_DAYS=30         # Days before archiving logs
 ### Custom Configuration
 
 ```typescript
-import { configureLogger } from '@acme/logger';
+import { configureLogger } from '@fastbuild/logger';
 
 configureLogger({
   level: 'info',
@@ -484,7 +484,7 @@ configureLogger({
 ### Unit Tests
 
 ```typescript
-import { createLogger } from '@acme/logger';
+import { createLogger } from '@fastbuild/logger';
 
 // Mock logger for testing
 const mockLogger = createLogger({
@@ -501,7 +501,7 @@ mockLogger.info({ test: true }, 'Test message');
 ### Integration Tests
 
 ```typescript
-import { createTestLogger } from '@acme/logger/test';
+import { createTestLogger } from '@fastbuild/logger/test';
 
 // Create logger with test configuration
 const testLogger = createTestLogger({

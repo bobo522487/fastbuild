@@ -1,5 +1,4 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import { createLogger } from "@acme/logger";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -14,17 +13,23 @@ const prismaClient = new PrismaClient({
 if (process.env.NODE_ENV !== 'production') {
   try {
     prismaClient.$on('query' as any, (event: any) => {
-      const logger = createLogger({
-        type: 'database',
-        query: event.query?.substring(0, 100),
-        duration: event.duration,
-        params: event.params,
-      });
+      // Lazy load logger only when needed
+      try {
+        const { createLogger } = require('@fastbuild/logger');
+        const logger = createLogger({
+          type: 'database',
+          query: event.query?.substring(0, 100),
+          duration: event.duration,
+          params: event.params,
+        });
 
-      if (event.duration > 1000) {
-        logger.warn({ duration: event.duration }, 'Slow Prisma query');
-      } else {
-        logger.debug({ duration: event.duration }, 'Prisma query executed');
+        if (event.duration > 1000) {
+          logger.warn({ duration: event.duration }, 'Slow Prisma query');
+        } else {
+          logger.debug({ duration: event.duration }, 'Prisma query executed');
+        }
+      } catch (loggerError) {
+        console.warn('Failed to create logger for Prisma query:', loggerError);
       }
     });
   } catch (error) {

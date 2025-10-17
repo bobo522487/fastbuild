@@ -1,4 +1,4 @@
-import { createLogger } from '@acme/logger';
+import { createLogger } from '@fastbuild/logger';
 
 // Monitoring configuration interface
 interface MonitoringConfig {

@@ -45,7 +45,7 @@ export interface RateLimitOptions<TRouterContext = any> {
   store?: RateLimiterStore;
 }
 
-function resolveIdentifier<TRouterContext extends { request?: { ip: string | null; requestId: string }; session?: { user?: { id?: string } } }>(
+function resolveIdentifier<TRouterContext>(
   ctx: TRouterContext,
   identifier?: string | IdentifierResolver<TRouterContext>,
 ): string {
@@ -58,15 +58,18 @@ function resolveIdentifier<TRouterContext extends { request?: { ip: string | nul
     if (resolved) return resolved;
   }
 
-  if (ctx.session?.user?.id) {
-    return ctx.session.user.id;
+  // Use type assertion for optional properties
+  const context = ctx as any;
+
+  if (context.session?.user?.id) {
+    return context.session.user.id;
   }
 
-  if (ctx.request?.ip) {
-    return ctx.request.ip;
+  if (context.request?.ip) {
+    return context.request.ip;
   }
 
-  return ctx.request?.requestId ?? 'anonymous';
+  return context.request?.requestId ?? 'anonymous';
 }
 
 export function createRateLimiter<TRouterContext = any>(

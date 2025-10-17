@@ -1,5 +1,5 @@
 {
-  "name": "@acme/api",
+  "name": "@fastbuild/api",
   "private": true,
   "type": "module",
   "exports": {
@@ -28,19 +28,19 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@acme/auth": "workspace:*",
-    "@acme/db": "workspace:*",
-    "@acme/logger": "workspace:*",
-    "@acme/validators": "workspace:*",
+    "@fastbuild/auth": "workspace:*",
+    "@fastbuild/db": "workspace:*",
+    "@fastbuild/logger": "workspace:*",
+    "@fastbuild/validators": "workspace:*",
     "@trpc/server": "catalog:",
     "superjson": "2.2.2",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@acme/biome-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
     "@biomejs/biome": "catalog:",
     "@faker-js/faker": "^8.0.0",
+    "@fastbuild/biome-config": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "typescript": "catalog:",
     "vitest": "^1.0.0"
   }

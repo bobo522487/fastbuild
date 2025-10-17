@@ -7,18 +7,18 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 
-import type { RouterOutputs } from "@acme/api";
-import { CreatePostSchema } from "@acme/db";
-import { Button } from "@acme/ui/button";
+import type { RouterOutputs } from "@fastbuild/api";
+import { CreatePostSchema } from "@fastbuild/db";
+import { Button } from "@fastbuild/ui/button";
 import {
   Field,
   FieldContent,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@acme/ui/field";
-import { Input } from "@acme/ui/input";
-import { toast } from "@acme/ui/toast";
+} from "@fastbuild/ui/field";
+import { Input } from "@fastbuild/ui/input";
+import { toast } from "@fastbuild/ui/toast";
 
 import { useTRPC } from "~/trpc/react";
 import { ErrorBoundary, CreatePostErrorFallback, PostListErrorFallback } from "./error-boundary";

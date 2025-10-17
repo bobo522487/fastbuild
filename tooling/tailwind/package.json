@@ -1,5 +1,5 @@
 {
-  "name": "@acme/tailwind-config",
+  "name": "@fastbuild/tailwind-config",
   "private": true,
   "type": "module",
   "exports": {
@@ -19,9 +19,9 @@
     "tailwindcss": "catalog:"
   },
   "devDependencies": {
-    "@acme/biome-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
     "@biomejs/biome": "catalog:",
+    "@fastbuild/biome-config": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "@types/node": "^22.18.10",
     "typescript": "catalog:"
   }

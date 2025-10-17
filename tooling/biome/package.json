@@ -1,5 +1,5 @@
 {
-  "name": "@acme/biome-config",
+  "name": "@fastbuild/biome-config",
   "private": true,
   "type": "module",
   "exports": {
@@ -13,7 +13,7 @@
     "@biomejs/biome": "catalog:"
   },
   "devDependencies": {
-    "@acme/tsconfig": "workspace:*",
+    "@fastbuild/tsconfig": "workspace:*",
     "@types/node": "^22.18.10",
     "typescript": "catalog:"
   }

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { toast } from '@acme/ui/toast';
+import { toast } from '@fastbuild/ui/toast';
 
 import { CreatePostForm, PostCard, PostList } from '../posts';
 import { ErrorBoundary } from '../error-boundary';
-import { createMockCaller, createUser, createPostWithUser } from '@acme/api/testing';
+import { createMockCaller, createUser, createPostWithUser } from '@fastbuild/api/testing';
 
 // Mock tRPC
 vi.mock('~/trpc/react', () => ({
@@ -26,7 +26,7 @@ vi.mock('~/trpc/react', () => ({
 }));
 
 // Mock toast
-vi.mock('@acme/ui/toast', () => ({
+vi.mock('@fastbuild/ui/toast', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),

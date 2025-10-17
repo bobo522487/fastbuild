@@ -90,22 +90,22 @@ importers:
 
   apps/nextjs:
     dependencies:
-      '@acme/api':
+      '@fastbuild/api':
         specifier: workspace:*
         version: link:../../packages/api
-      '@acme/auth':
+      '@fastbuild/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@acme/db':
+      '@fastbuild/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@acme/logger':
+      '@fastbuild/logger':
         specifier: workspace:*
         version: link:../../packages/logger
-      '@acme/ui':
+      '@fastbuild/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@acme/validators':
+      '@fastbuild/validators':
         specifier: workspace:*
         version: link:../../packages/validators
       '@t3-oss/env-nextjs':
@@ -145,18 +145,18 @@ importers:
         specifier: 'catalog:'
         version: 4.1.12
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../../tooling/biome
-      '@acme/tailwind-config':
-        specifier: workspace:*
-        version: link:../../tooling/tailwind
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../../tooling/biome
+      '@fastbuild/tailwind-config':
+        specifier: workspace:*
+        version: link:../../tooling/tailwind
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@types/node':
         specifier: ^22.18.10
         version: 22.18.10
@@ -181,16 +181,16 @@ importers:
 
   packages/api:
     dependencies:
-      '@acme/auth':
+      '@fastbuild/auth':
         specifier: workspace:*
         version: link:../auth
-      '@acme/db':
+      '@fastbuild/db':
         specifier: workspace:*
         version: link:../db
-      '@acme/logger':
+      '@fastbuild/logger':
         specifier: workspace:*
         version: link:../logger
-      '@acme/validators':
+      '@fastbuild/validators':
         specifier: workspace:*
         version: link:../validators
       '@trpc/server':
@@ -203,18 +203,18 @@ importers:
         specifier: 'catalog:'
         version: 4.1.12
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../../tooling/biome
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
       '@faker-js/faker':
         specifier: ^8.0.0
         version: 8.4.1
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../../tooling/biome
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -224,7 +224,7 @@ importers:
 
   packages/auth:
     dependencies:
-      '@acme/db':
+      '@fastbuild/db':
         specifier: workspace:*
         version: link:../db
       '@t3-oss/env-nextjs':
@@ -246,18 +246,18 @@ importers:
         specifier: 'catalog:'
         version: 4.1.12
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../../tooling/biome
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@better-auth/cli':
         specifier: 1.3.27
         version: 1.3.27(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/pg@8.11.10)(@types/react@19.1.12)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(kysely@0.28.5)(magicast@0.3.5)(mysql2@3.11.3)(next@15.5.4(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(postgres@3.4.7)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../../tooling/biome
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@types/react':
         specifier: catalog:react19
         version: 19.1.12
@@ -267,7 +267,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@acme/logger':
+      '@fastbuild/logger':
         specifier: workspace:*
         version: link:../logger
       '@prisma/client':
@@ -277,15 +277,15 @@ importers:
         specifier: 'catalog:'
         version: 4.1.12
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../../tooling/biome
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../../tooling/biome
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@types/node':
         specifier: ^22.18.10
         version: 22.18.10
@@ -308,15 +308,15 @@ importers:
         specifier: ^9.0.1
         version: 9.0.1
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../../tooling/biome
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../../tooling/biome
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@types/node':
         specifier: ^22.18.10
         version: 22.18.10
@@ -348,15 +348,15 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../../tooling/biome
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../../tooling/biome
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@types/react':
         specifier: catalog:react19
         version: 19.1.12
@@ -376,15 +376,15 @@ importers:
         specifier: 'catalog:'
         version: 4.1.12
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../../tooling/biome
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../../tooling/biome
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -395,7 +395,7 @@ importers:
         specifier: 'catalog:'
         version: 2.2.5
     devDependencies:
-      '@acme/tsconfig':
+      '@fastbuild/tsconfig':
         specifier: workspace:*
         version: link:../typescript
       '@types/node':
@@ -419,15 +419,15 @@ importers:
         specifier: 'catalog:'
         version: 4.1.14
     devDependencies:
-      '@acme/biome-config':
-        specifier: workspace:*
-        version: link:../biome
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../typescript
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.2.5
+      '@fastbuild/biome-config':
+        specifier: workspace:*
+        version: link:../biome
+      '@fastbuild/tsconfig':
+        specifier: workspace:*
+        version: link:../typescript
       '@types/node':
         specifier: ^22.18.10
         version: 22.18.10
